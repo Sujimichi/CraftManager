@@ -31,7 +31,8 @@ namespace CraftManager
         //Trigger the creation of custom Skin (copy of default skin with various custom styles added to it, see stylesheet.cs)
         private void OnGUI(){
             if(DryUI.skin == null){
-                StyleSheet.prepare();
+//                StyleSheet.prepare();
+                DryUI.skin = new StyleSheet(HighLogic.Skin).skin;
             }
         }
 
@@ -97,6 +98,7 @@ namespace CraftManager
             window_pos = new Rect((Screen.width/2) - (window_width/2) + 100, 80, window_width, window_height);
             require_login = true;
             visible = true;
+            draggable = false;
             CraftData.load_craft();
             CraftData.filter_craft();
         }
@@ -106,8 +108,8 @@ namespace CraftManager
 
         protected override void WindowContent(int win_id){
             
-            GUILayout.Label("this will be the top of stuff");
-            GUILayout.Label(CraftData.save_dir);
+            GUILayout.Label("this will be the top of stuff", "h1");
+            GUILayout.Label(CraftData.save_dir, "h2");
 
             section(() =>{
                 if(GUILayout.Button("load", width(40f))){
@@ -154,6 +156,15 @@ namespace CraftManager
                     }
 
                 });
+
+                Rect scroller = GUILayoutUtility.GetLastRect();
+                if(scroller.Contains(Event.current.mousePosition)){
+//                    if(Event.current.button == 1 && Event.current.type == EventType.MouseDrag){
+                        scroll_pos["main"] += Event.current.delta;
+                        Event.current.Use();
+//                    }
+                }
+
 
                 //Right Hand Section
                 scroll_pos["rhs"] = scroll(scroll_pos["rhs"], inner_width*0.2f, window_height, w2 => {
