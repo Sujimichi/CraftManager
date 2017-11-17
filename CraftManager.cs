@@ -28,6 +28,13 @@ namespace CraftManager
 
         }
 
+        //Trigger the creation of custom Skin (copy of default skin with various custom styles added to it, see stylesheet.cs)
+        private void OnGUI(){
+            if(DryUI.skin == null){
+                StyleSheet.prepare();
+            }
+        }
+
         internal static void log(string msg){
             Debug.Log(msg);
         }
@@ -90,18 +97,14 @@ namespace CraftManager
             window_pos = new Rect((Screen.width/2) - (window_width/2) + 100, 80, window_width, window_height);
             require_login = true;
             visible = true;
-            DryUI.skin = HighLogic.Skin;
-//            craft_list_item.onHover = craft_list_item.normal;
+            CraftData.load_craft();
+            CraftData.filter_craft();
         }
 
 
-        GUIStyle craft_list_item;
         public bool tog = false;
 
         protected override void WindowContent(int win_id){
-            if(craft_list_item == null){
-                craft_list_item = new GUIStyle(GUI.skin.button);
-            }
             
             GUILayout.Label("this will be the top of stuff");
             GUILayout.Label(CraftData.save_dir);
@@ -128,14 +131,15 @@ namespace CraftManager
 
 
                 //Main Craft Section
+                style_override = "craft.list_container";
                 scroll_pos["main"] = scroll(scroll_pos["main"], inner_width*0.6f, window_height, w2 => {
 
                     foreach(CraftData craft in CraftData.filtered){
-                        section(w2, craft_list_item, (w3)=>{
+                        section(w2-(12f+18f), "craft.list_item", (w3)=>{
                             section(w3*0.6f,()=>{
                                 v_section(()=>{
-                                    GUILayout.Label(craft.name);
-                                    GUILayout.Label(craft.mass.ToString());
+                                    GUILayout.Label(craft.name, "craft.name");
+                                    GUILayout.Label(craft.mass.ToString(), "craft.info");
                                 });
                                 
                             });
