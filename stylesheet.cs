@@ -81,6 +81,9 @@ namespace CraftManager
             define_style("h2.centered", "h2", s =>{
                 s.alignment = TextAnchor.LowerCenter;
             });
+            define_style("small", base_skin.label, s =>{
+                s.fontSize = 12;
+            });
 
             define_style("hyperlink", base_skin.label, s =>{
                 s.normal.textColor = new Color(0.4f, 0.5f, 0.9f, 1); //roughly KerbalX Blue - #6E91EB
@@ -104,13 +107,24 @@ namespace CraftManager
                 s.fontStyle = FontStyle.Bold;
                 s.fontSize = 20;
                 s.normal.textColor = Color.yellow;
-                s.padding = new RectOffset(0, 0, 0, 0);                
+                s.padding = new RectOffset(0, 0, 0, 0);
+                s.margin.top = 5;
+                s.margin.bottom = 0;
+            });
+            define_style("craft.alt_name", "small", s =>{
+                s.normal.textColor = Color.yellow;
+                s.margin.top = 0;
             });
 
             define_style("craft.info", base_skin.label, s =>{
                 s.fontSize = 15;
-                s.normal.textColor = Color.black;
+                s.normal.textColor = new Color(244, 244, 244, 1);
                 s.padding = new RectOffset(0, 0, 0, 0);
+            });
+            define_style("craft.cost", "craft.info", s =>{
+                s.fontStyle = FontStyle.Bold;
+                s.normal.textColor = Color.green;
+//                s.alignment = TextAnchor.MiddleRight;
             });
 
             define_style("craft.list_item", base_skin.button, s =>{
@@ -169,9 +183,7 @@ namespace CraftManager
 //            alert_h2.name = "alert.h2";
 //            alert_h2.fontSize = 20;
 //            
-//            GUIStyle small = new GUIStyle(base_skin.label);
-//            small.name = "small";
-//            small.fontSize = 12;
+
 //            
 //            GUIStyle centered = new GUIStyle(base_skin.label);
 //            centered.name = "centered";

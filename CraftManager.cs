@@ -108,34 +108,34 @@ namespace CraftManager
 
 
                 //Right Hand Section
-                scroll_pos["rhs"] = scroll(scroll_pos["rhs"], inner_width*0.2f, window_height, w2 => {
-                    GUILayout.Label("info shit");
-                    if(CraftData.selected_craft() != null){
-                        label(CraftData.selected_craft().description);
-                    };
+                scroll_pos["rhs"] = scroll(scroll_pos["rhs"], inner_width*0.2f, window_height, rhs_section_width => {
+                    draw_right_hand_section(rhs_section_width);
                 });
 
             });
 
         }
 
-        protected void draw_craft_list_item(CraftData craft, float width){
-            section(width-(12f+18f), "craft.list_item" + (craft.selected ? ".selected" : ""), (inner_width)=>{
-                section(inner_width*0.6f,()=>{
+        protected void draw_craft_list_item(CraftData craft, float section_width){
+            section(section_width-(12f+18f), "craft.list_item" + (craft.selected ? ".selected" : ""), (inner_width)=>{ //subtractions from width to account for margin and scrollbar
+                section(inner_width-80f,()=>{
                     v_section(()=>{
-                        GUILayout.Label(craft.name, "craft.name");
-                        section(() => {
-                            label(craft.part_count + " parts in " + craft.stage_count + " stages", "craft.info");
-                            label("mass: " + Math.Round(craft.mass["total"],2), "craft.info");
-                            label("cost: " + Math.Round(craft.cost["total"],2), "craft.info");
+                        label(craft.name, "craft.name");
+                        if(craft.name != craft.alt_name){
+                            label("(" + craft.alt_name + ")", "craft.alt_name");
+                        }
+
+                        section((w) => {
+                            GUILayout.Label(craft.part_count + " parts in " + craft.stage_count + " stages", "craft.info", width(w/4f));
+                            label("cost: " + humanize(craft.cost["total"]), "craft.cost");
                         });
+                        label("mass: " + humanize(craft.mass["total"]), "craft.info");
                     });
                     
                 });
-                section(inner_width*0.4f,()=>{
-                    v_section(()=>{
-                        GUILayout.Label("craft pic");
-                    });
+                section(80f,()=>{
+                    GUILayout.FlexibleSpace();
+                    GUILayout.Label(craft.thumbnail, width(70), height(70));
                 });
                 
             }, craft_area => {
@@ -148,10 +148,20 @@ namespace CraftManager
                     Event.current.Use();
                 }
             });
+        }
 
-
-   
-
+        protected void draw_right_hand_section(float width){
+            GUILayout.Label("info shit");
+            if(CraftData.selected_craft() != null){
+                CraftData craft = CraftData.selected_craft();
+                label("total mass: " + humanize(craft.mass["total"]));
+                label("total cost: " + humanize(craft.cost["total"]));
+                label("dry mass: " + humanize(craft.mass["dry"]));
+                label("fuel mass: " + humanize(craft.mass["fuel"]));
+                label("dry cost: " + humanize(craft.cost["fuel"]));
+                label("fuel cost: " + humanize(craft.cost["fuel"]));
+                label(craft.description);
+            };
         }
 
         protected override void FooterContent(int window_id){

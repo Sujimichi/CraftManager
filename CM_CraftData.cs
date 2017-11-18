@@ -46,7 +46,12 @@ namespace CraftManager
 
 
         public string path = "";
+        public string save_name = "";
+        public Texture thumbnail;
+
+
         public string name = "";
+        public string alt_name = null;
         public string description = "";
         public string construction_type = "";
 
@@ -69,6 +74,9 @@ namespace CraftManager
         public CraftData(string full_path){
             path = full_path;
             set_info_from_craft_file();
+
+            save_name = path.Replace(Paths.joined(KSPUtil.ApplicationRootPath, "saves", ""), "").Split('/')[0];
+            thumbnail = ShipConstruction.GetThumbnail("/thumbs/" + save_name + "_" + construction_type + "_" + name);
         }
 
         private void set_info_from_craft_file(){
@@ -77,9 +85,10 @@ namespace CraftManager
             AvailablePart matched_part;
 
             name = Path.GetFileNameWithoutExtension(path);
+            alt_name = data.GetValue("ship");
             description = data.GetValue("description");
             construction_type = data.GetValue("type");
-            if(construction_type != "SPH" || construction_type != "VAB"){
+            if(!(construction_type == "SPH" || construction_type == "VAB")){
                 construction_type = "Subassembly";
             }
             part_count = parts.Length;
@@ -123,7 +132,7 @@ namespace CraftManager
                 }
 
             }
-
+            stage_count += 1; //this might not be right
             cost["total"] = cost["dry"] + cost["fuel"];
             mass["total"] = mass["dry"] + mass["fuel"];
 
