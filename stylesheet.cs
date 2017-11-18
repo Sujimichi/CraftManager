@@ -118,6 +118,11 @@ namespace CraftManager
                 s.margin = new RectOffset(0, 0, 5, 5);
             });
 
+            define_style("craft.list_item.selected", "craft.list_item", s =>{
+                s.normal.background = s.active.background;
+                s.hover.background = s.focused.background;
+            });
+
             define_style("craft.list_container", base_skin.scrollView, s =>{
                 s.padding = new RectOffset(5, 5, 0, 0);    
             });

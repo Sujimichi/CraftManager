@@ -13,6 +13,7 @@ using System.Collections;
 using System.Collections.Generic;
 
 using UnityEngine;
+using UnityEngine.EventSystems;
 using KSP.UI.Screens;
 
 using KatLib;
@@ -37,7 +38,7 @@ namespace CraftManager
         }
 
         internal static void log(string msg){
-            Debug.Log(msg);
+            Debug.Log("[CM] " + msg);
         }
     }
 
@@ -62,20 +63,39 @@ namespace CraftManager
             filtered = all_craft;    
         }
 
+        public static void select_craft(CraftData craft){
+            foreach(CraftData list_craft in filtered){
+                list_craft.selected = list_craft == craft;
+            }
+        }
 
         public string path;
         public string name;
-        public double mass;
+        public float mass;
+        public float craft_cost;
+        public float fuel_cost;
+
+
+        public int part_count;
+        public bool selected = false;
 
         public CraftData(string full_path){
             path = full_path;
-            string[] split_plath = path.Split('/');
-            name = split_plath[split_plath.Length-1];
-            mass = 42.0;
-        }
 
-        //            ShipConstruct ship = new ShipConstruct();
-        //            ship.LoadShip(ConfigNode.Load("path_to_ship"));
+            ShipConstruct ship = new ShipConstruct();
+            ship.LoadShip(ConfigNode.Load(path));
+            name = ship.shipName;
+            mass = ship.GetTotalMass();
+            ship.GetShipCosts(out craft_cost, out fuel_cost);
+
+            part_count = ship.parts.Count();
+
+                
+
+//            string[] split_plath = path.Split('/');
+//            name = split_plath[split_plath.Length-1];
+
+        }
 
     }
 
@@ -98,18 +118,17 @@ namespace CraftManager
             window_pos = new Rect((Screen.width/2) - (window_width/2) + 100, 80, window_width, window_height);
             require_login = true;
             visible = true;
-            draggable = false;
+//            draggable = false;
             CraftData.load_craft();
             CraftData.filter_craft();
+            CraftManager.log("start called");
         }
 
 
-        public bool tog = false;
-
         protected override void WindowContent(int win_id){
-            
-            GUILayout.Label("this will be the top of stuff", "h1");
-            GUILayout.Label(CraftData.save_dir, "h2");
+
+            GUILayout.Label("this will be the top of stuff");
+            GUILayout.Label(CraftData.save_dir);
 
             section(() =>{
                 if(GUILayout.Button("load", width(40f))){
@@ -134,36 +153,19 @@ namespace CraftManager
 
                 //Main Craft Section
                 style_override = "craft.list_container";
-                scroll_pos["main"] = scroll(scroll_pos["main"], inner_width*0.6f, window_height, w2 => {
-
+                scroll_pos["main"] = scroll(scroll_pos["main"], inner_width*0.6f, window_height, craft_list_width => {
                     foreach(CraftData craft in CraftData.filtered){
-                        section(w2-(12f+18f), "craft.list_item", (w3)=>{
-                            section(w3*0.6f,()=>{
-                                v_section(()=>{
-                                    GUILayout.Label(craft.name, "craft.name");
-                                    GUILayout.Label(craft.mass.ToString(), "craft.info");
-                                });
-                                
-                            });
-                            section(w3*0.4f,()=>{
-                                v_section(()=>{
-                                    GUILayout.Label("craft pic");
-                                    tog = GUILayout.Toggle(tog, new GUIContent("foo", "fish"), "Button", width(w3*0.3f));
-                                });
-                            });
-                            
-                        });
+                        draw_craft_list_item(craft, craft_list_width);
                     }
-
                 });
 
-                Rect scroller = GUILayoutUtility.GetLastRect();
-                if(scroller.Contains(Event.current.mousePosition)){
+//                Rect scroller = GUILayoutUtility.GetLastRect();
+//                if(scroller.Contains(Event.current.mousePosition)){
 //                    if(Event.current.button == 1 && Event.current.type == EventType.MouseDrag){
-                        scroll_pos["main"] += Event.current.delta;
-                        Event.current.Use();
+//                        scroll_pos["main"] += Event.current.delta;
+//                        Event.current.Use();
 //                    }
-                }
+//                }
 
 
                 //Right Hand Section
@@ -172,6 +174,36 @@ namespace CraftManager
                 });
 
             });
+
+        }
+
+        protected void draw_craft_list_item(CraftData craft, float width){
+            section(width-(12f+18f), "craft.list_item" + (craft.selected ? ".selected" : ""), (inner_width)=>{
+                section(inner_width*0.6f,()=>{
+                    v_section(()=>{
+                        GUILayout.Label(craft.name, "craft.name");
+                        section(() => {
+                            label("mass: " + craft.mass.ToString(), "craft.info");
+                            label("cost: " + craft.craft_cost + craft.fuel_cost, "craft.info");
+                            label("parts: " + craft.part_count, "craft.info");
+                        });
+                    });
+                    
+                });
+                section(inner_width*0.4f,()=>{
+                    v_section(()=>{
+                        GUILayout.Label("craft pic");
+                    });
+                });
+                
+            }, craft_area => {
+                if(craft_area.Contains(Event.current.mousePosition) && Event.current.type == EventType.MouseDown && Event.current.button == 0 ){                    
+                    CraftData.select_craft(craft);
+                }
+            });
+
+
+   
 
         }
 
