@@ -108,6 +108,7 @@ namespace CraftManager
             define_style("craft_type_sel.active", "craft_type_sel", s =>{
                 s.normal.background = s.active.background;
                 s.hover.background = s.focused.background;
+                s.normal.textColor = Color.green;
             });
 
 

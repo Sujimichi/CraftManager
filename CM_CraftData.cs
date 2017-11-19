@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-//using System.Linq;
 using System.Collections.Generic;
 
 using UnityEngine;
@@ -12,12 +11,15 @@ namespace CraftManager
     public class CraftData
     {
         //**Class Methods/Variables**//
+
+
         public static string save_dir = Paths.joined(KSPUtil.ApplicationRootPath, "saves", HighLogic.SaveFolder);
 
         public static List<CraftData> all_craft = new List<CraftData>();  //will hold all the craft loaded from disk
         public static List<CraftData> filtered  = new List<CraftData>();  //will hold the results of search/filtering to be shown in the UI.
         public static Dictionary<string, AvailablePart> game_parts = new Dictionary<string, AvailablePart>();  //populated on first use, name->part lookup for installed parts
 
+        public static List<string> all_tags = new List<string>();
 
         public static void load_craft(){            
             string[] craft_file_paths;
@@ -28,6 +30,8 @@ namespace CraftManager
                 all_craft.Add(new CraftData(path));
             }
         }
+
+
 
         public static void filter_craft(){
             filtered = all_craft;    
@@ -61,17 +65,22 @@ namespace CraftManager
         }
 
 
+
         //**Instance Methods/Variables**//
+
 
         public string path = "";
         public string save_name = "";
-        public Texture thumbnail;
+        public string file_checksum;
 
+        public Texture thumbnail;
 
         public string name = "";
         public string alt_name = null;
         public string description = "";
         public string construction_type = "";
+        public string create_time;
+        public string last_updated_time;
 
         public bool missing_parts = false;
         public bool locked_parts = false;
@@ -79,7 +88,6 @@ namespace CraftManager
 
         public int stage_count = 0;
         public int part_count = 0;
-
         public Dictionary<string, float> cost = new Dictionary<string, float> {
             {"dry", 0.0f}, {"fuel", 0.0f}, {"total", 0.0f}
         };
@@ -88,19 +96,25 @@ namespace CraftManager
         };
 
 
-
         public CraftData(string full_path){
             path = full_path;
-            set_info_from_craft_file();
+
+            read_craft_info_from_file();
+
+            create_time = System.IO.File.GetCreationTime(path).ToBinary().ToString();
+            last_updated_time = System.IO.File.GetLastWriteTime(path).ToBinary().ToString();
+            file_checksum = Checksum.digest(File.ReadAllText(path));
 
             save_name = path.Replace(Paths.joined(KSPUtil.ApplicationRootPath, "saves", ""), "").Split('/')[0];
             thumbnail = ShipConstruction.GetThumbnail("/thumbs/" + save_name + "_" + construction_type + "_" + name);
         }
 
-        private void set_info_from_craft_file(){
+        private void read_craft_info_from_file(){
             ConfigNode data = ConfigNode.Load(path);
             ConfigNode[] parts = data.GetNodes();
             AvailablePart matched_part;
+
+                
 
             name = Path.GetFileNameWithoutExtension(path);
             alt_name = data.GetValue("ship");
@@ -134,6 +148,7 @@ namespace CraftManager
                     }
                 }
 
+                //locate part in game_parts and read part cost/mass information.
                 matched_part = find_part(get_part_name(part));
                 if(matched_part != null){
                     ShipConstruction.GetPartCostsAndMass(part, matched_part, out dry_cost, out fuel_cost, out dry_mass, out fuel_mass);
@@ -156,6 +171,7 @@ namespace CraftManager
 
         }
 
+        //get the part name from a PART config node.
         private string get_part_name(ConfigNode part){
             string part_name = part.GetValue("part");
             if(!String.IsNullOrEmpty(part_name)){
@@ -165,6 +181,7 @@ namespace CraftManager
             }
             return part_name;
         }
+
 
         private AvailablePart find_part(string part_name){
             if(game_parts.Count == 0){

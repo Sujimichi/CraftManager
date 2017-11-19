@@ -40,6 +40,10 @@ namespace CraftManager
         }
     }
 
+
+
+
+
     [KSPAddon(KSPAddon.Startup.EditorAny, false)]
     public class CM_UI : DryUI
     {
@@ -56,12 +60,10 @@ namespace CraftManager
         private void Start(){     
             window_title = "Craft Manager";
             window_pos = new Rect((Screen.width/2) - (window_width/2) + 100, 80, window_width, window_height);
-            require_login = true;
             visible = true;
 //            draggable = false;
             CraftData.load_craft();
             CraftData.filter_craft();
-
         }
 
         private string search_string = "";
@@ -126,6 +128,29 @@ namespace CraftManager
                             if(GUILayout.Button("filter", width(40f))){CraftData.filter_craft();}
                             if(GUILayout.Button("clear", width(40f))){CraftData.all_craft.Clear();}
                         });
+
+                        if(GUILayout.Button("tag test")){
+                            Tags.tag_craft("foo", "bar");
+                            Tags.tag_craft("foo", "lar");
+                            Tags.tag_craft("fish", "sticks");
+                            Tags.tag_craft("fish", "bar");
+                            Tags.add("goats");
+                        }
+
+                        if(Tags.tags_for("foo").Count > 0){
+                            string s = String.Join(",", Tags.tags_for("foo").ToArray());
+                            label( s );
+                        }
+
+                        if(GUILayout.Button("load tags")){
+                            Tags.load();
+                        }
+
+                        foreach(string tag in Tags.all){
+                            label(tag);
+                        }
+
+
                         
                     });
                 });
@@ -166,7 +191,7 @@ namespace CraftManager
         }
 
         protected void draw_craft_list_item(CraftData craft, float section_width){
-            section(section_width-(12f+18f), "craft.list_item" + (craft.selected ? ".selected" : ""), (inner_width)=>{ //subtractions from width to account for margin and scrollbar
+            section(section_width-(12f+18f), "craft.list_item" + (craft.selected ? ".selected" : ""), (inner_width)=>{ //subtractions from width to account for margins and scrollbar
                 section(inner_width-80f,()=>{
                     v_section(()=>{
                         label(craft.name, "craft.name");
@@ -208,7 +233,16 @@ namespace CraftManager
                 label("fuel mass: " + humanize(craft.mass["fuel"]));
                 label("dry cost: " + humanize(craft.cost["fuel"]));
                 label("fuel cost: " + humanize(craft.cost["fuel"]));
+
+                label("time: " + craft.create_time);
+                label(DateTime.FromBinary(long.Parse(craft.create_time)).ToShortDateString());
+                label(DateTime.FromBinary(long.Parse(craft.create_time)).ToShortTimeString());
+
+                label(craft.file_checksum);
+
                 label(craft.description);
+
+
             };
         }
 
