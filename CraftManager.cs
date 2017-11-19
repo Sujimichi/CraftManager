@@ -61,20 +61,56 @@ namespace CraftManager
 //            draggable = false;
             CraftData.load_craft();
             CraftData.filter_craft();
+
         }
 
+        private string search_string = "";
+        private string last_search = "";
+
+        private Dictionary<string, bool> toggles = new Dictionary<string, bool>(){
+            {"SPH",true},{"VAB",false},{"Subassemblies",false} //TODO select SPH or VAB based on current editor
+        };
+
+        private void type_select(string key, bool val){
+            GUIUtility.keyboardControl = 0;
+            if(!Input.GetKey(KeyCode.LeftControl)){
+                toggles["SPH"] = false;
+                toggles["VAB"] = false;
+                toggles["Subassemblies"] = false;
+            }
+            toggles[key] = val;
+
+            //ensure that at least one of the options is selected (if none are selected, select the one just clicked).
+            int set_count = 0;
+            foreach(bool v in toggles.Values){
+                if(v){
+                    set_count++;
+                }            
+            }
+            if(set_count==0){
+                toggles[key] = true;
+            }       
+            filter_craft();
+        }
+
+        private void filter_craft(){
+            Dictionary<string, object> search_criteria = new Dictionary<string, object>();
+            search_criteria.Add("search", search_string);
+            search_criteria.Add("type", toggles);
+            CraftData.filter_craft(search_criteria);
+        }
 
         protected override void WindowContent(int win_id){
 
             GUILayout.Label("this will be the top of stuff");
-            GUILayout.Label(CraftData.save_dir);
 
-            section(() =>{
-                if(GUILayout.Button("load", width(40f))){
-                    CraftData.load_craft();
-                }
-                if(GUILayout.Button("filter", width(40f))){
-                    CraftData.filter_craft();
+
+            //SPH, VAB, Subs select buttons
+            section(400, (w) =>{
+                foreach(string opt in toggles.Keys){
+                    if(GUILayout.Button(opt, "craft_type_sel" + (toggles[opt] ? ".active" : ""))){
+                        type_select(opt, !toggles[opt]);            
+                    }
                 }
             });
 
@@ -83,19 +119,32 @@ namespace CraftManager
 
                 //Left Hand Section
                 v_section(inner_width*0.2f, w2 => {
-                    GUILayout.Label("title shit");
                     scroll_pos["lhs"] = scroll(scroll_pos["lhs"], w2, window_height, w3 => {
                         GUILayout.Label("some shit");
+                        section(() =>{
+                            if(GUILayout.Button("load", width(40f))){CraftData.load_craft();}
+                            if(GUILayout.Button("filter", width(40f))){CraftData.filter_craft();}
+                            if(GUILayout.Button("clear", width(40f))){CraftData.all_craft.Clear();}
+                        });
+                        
                     });
                 });
 
 
                 //Main Craft Section
-                style_override = "craft.list_container";
-                scroll_pos["main"] = scroll(scroll_pos["main"], inner_width*0.6f, window_height, craft_list_width => {
-                    foreach(CraftData craft in CraftData.filtered){
-                        draw_craft_list_item(craft, craft_list_width);
+                v_section(()=>{
+                    last_search = search_string;
+                    search_string = GUILayout.TextField(search_string);
+                    if(last_search != search_string){
+                        filter_craft();
                     }
+
+                    style_override = "craft.list_container";
+                    scroll_pos["main"] = scroll(scroll_pos["main"], inner_width*0.6f, window_height, craft_list_width => {
+                        foreach(CraftData craft in CraftData.filtered){
+                            draw_craft_list_item(craft, craft_list_width);
+                        }
+                    });
                 });
 
 //                Rect scroller = GUILayoutUtility.GetLastRect();
@@ -151,7 +200,6 @@ namespace CraftManager
         }
 
         protected void draw_right_hand_section(float width){
-            GUILayout.Label("info shit");
             if(CraftData.selected_craft() != null){
                 CraftData craft = CraftData.selected_craft();
                 label("total mass: " + humanize(craft.mass["total"]));
@@ -163,6 +211,8 @@ namespace CraftManager
                 label(craft.description);
             };
         }
+
+
 
         protected override void FooterContent(int window_id){
             GUILayout.Label("hello, this is footer");

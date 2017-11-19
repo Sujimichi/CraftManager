@@ -102,6 +102,14 @@ namespace CraftManager
             });
 
 
+            define_style("craft_type_sel", base_skin.button, s =>{
+                s.fontSize = 20;
+            });
+            define_style("craft_type_sel.active", "craft_type_sel", s =>{
+                s.normal.background = s.active.background;
+                s.hover.background = s.focused.background;
+            });
+
 
             define_style("craft.name", base_skin.label, s =>{
                 s.fontStyle = FontStyle.Bold;

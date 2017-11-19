@@ -11,11 +11,12 @@ namespace CraftManager
 {
     public class CraftData
     {
+        //**Class Methods/Variables**//
         public static string save_dir = Paths.joined(KSPUtil.ApplicationRootPath, "saves", HighLogic.SaveFolder);
 
-        public static List<CraftData> all_craft = new List<CraftData>();
-        public static List<CraftData> filtered  = new List<CraftData>();
-        public static Dictionary<string, AvailablePart> game_parts = new Dictionary<string, AvailablePart>();
+        public static List<CraftData> all_craft = new List<CraftData>();  //will hold all the craft loaded from disk
+        public static List<CraftData> filtered  = new List<CraftData>();  //will hold the results of search/filtering to be shown in the UI.
+        public static Dictionary<string, AvailablePart> game_parts = new Dictionary<string, AvailablePart>();  //populated on first use, name->part lookup for installed parts
 
 
         public static void load_craft(){            
@@ -32,6 +33,23 @@ namespace CraftManager
             filtered = all_craft;    
         }
 
+        public static void filter_craft(Dictionary<string, object> criteria){
+            filtered = all_craft;    
+            if(criteria.ContainsKey("search")){
+                filtered = filtered.FindAll(craft => craft.name.ToLower().Contains(((string)criteria["search"]).ToLower()));
+            }
+            if(criteria.ContainsKey("type")){
+                Dictionary<string, bool> types = (Dictionary<string, bool>) criteria["type"];
+                List<string> selected_types = new List<string>();
+                foreach(KeyValuePair<string, bool> t in types){
+                    if(t.Value){                        
+                        selected_types.Add(t.Key=="Subassemblies" ? "Subassembly" : t.Key);
+                    }
+                }                                   
+                filtered = filtered.FindAll(craft => selected_types.Contains(craft.construction_type));
+            }
+        }
+            
         public static void select_craft(CraftData craft){
             foreach(CraftData list_craft in filtered){
                 list_craft.selected = list_craft == craft;
@@ -43,7 +61,7 @@ namespace CraftManager
         }
 
 
-
+        //**Instance Methods/Variables**//
 
         public string path = "";
         public string save_name = "";
