@@ -62,8 +62,9 @@ namespace CraftManager
             window_pos = new Rect((Screen.width/2) - (window_width/2) + 100, 80, window_width, window_height);
             visible = true;
 //            draggable = false;
+            Tags.load();
             CraftData.load_craft();
-            CraftData.filter_craft();
+            filter_craft();
         }
 
         private string search_string = "";
@@ -73,27 +74,7 @@ namespace CraftManager
             {"SPH",true},{"VAB",false},{"Subassemblies",false} //TODO select SPH or VAB based on current editor
         };
 
-        private void type_select(string key, bool val){
-            GUIUtility.keyboardControl = 0;
-            if(!Input.GetKey(KeyCode.LeftControl)){
-                toggles["SPH"] = false;
-                toggles["VAB"] = false;
-                toggles["Subassemblies"] = false;
-            }
-            toggles[key] = val;
 
-            //ensure that at least one of the options is selected (if none are selected, select the one just clicked).
-            int set_count = 0;
-            foreach(bool v in toggles.Values){
-                if(v){
-                    set_count++;
-                }            
-            }
-            if(set_count==0){
-                toggles[key] = true;
-            }       
-            filter_craft();
-        }
 
         private void filter_craft(){
             Dictionary<string, object> search_criteria = new Dictionary<string, object>();
@@ -108,11 +89,19 @@ namespace CraftManager
 
 
             //SPH, VAB, Subs select buttons
-            section(400, (w) =>{
-                foreach(string opt in toggles.Keys){
-                    if(GUILayout.Button(opt, "craft_type_sel" + (toggles[opt] ? ".active" : ""))){
-                        type_select(opt, !toggles[opt]);            
+            section(() =>{
+                section(400, (w) =>{
+                    foreach(string opt in toggles.Keys){
+                        if(GUILayout.Button(opt, "craft_type_sel" + (toggles[opt] ? ".active" : ""))){
+                            type_select(opt, !toggles[opt]);            
+                        }
                     }
+                });
+                GUILayout.FlexibleSpace();
+                if(GUILayout.Button("refresh")){
+                    CraftData.all_craft.Clear();
+                    CraftData.load_craft();
+                    filter_craft();
                 }
             });
 
@@ -122,36 +111,13 @@ namespace CraftManager
                 //Left Hand Section
                 v_section(inner_width*0.2f, w2 => {
                     scroll_pos["lhs"] = scroll(scroll_pos["lhs"], w2, window_height, w3 => {
-                        GUILayout.Label("some shit");
-                        section(() =>{
-                            if(GUILayout.Button("load", width(40f))){CraftData.load_craft();}
-                            if(GUILayout.Button("filter", width(40f))){CraftData.filter_craft();}
-                            if(GUILayout.Button("clear", width(40f))){CraftData.all_craft.Clear();}
-                        });
+                        GUILayout.Label("Tags");
 
-                        if(GUILayout.Button("tag test")){
-                            Tags.tag_craft("foo", "bar");
-                            Tags.tag_craft("foo", "lar");
-                            Tags.tag_craft("fish", "sticks");
-                            Tags.tag_craft("fish", "bar");
-                            Tags.add("goats");
+                        foreach(KeyValuePair<string, Tag> pair in Tags.all){
+                            section(()=>{
+                                label(pair.Value.name + " - " + pair.Value.craft.Count);
+                            });
                         }
-
-                        if(Tags.tags_for("foo").Count > 0){
-                            string s = String.Join(",", Tags.tags_for("foo").ToArray());
-                            label( s );
-                        }
-
-                        if(GUILayout.Button("load tags")){
-                            Tags.load();
-                        }
-
-                        foreach(string tag in Tags.all){
-                            label(tag);
-                        }
-
-
-                        
                     });
                 });
 
@@ -200,10 +166,10 @@ namespace CraftManager
                         }
 
                         section((w) => {
-                            GUILayout.Label(craft.part_count + " parts in " + craft.stage_count + " stages", "craft.info", width(w/4f));
+                            GUILayout.Label(craft.part_count + " parts in " + craft.stage_count + " stage" + (craft.stage_count==1 ? "" : "s"), "craft.info", width(w/4f));
                             label("cost: " + humanize(craft.cost["total"]), "craft.cost");
                         });
-                        label("mass: " + humanize(craft.mass["total"]), "craft.info");
+//                        label("mass: " + humanize(craft.mass["total"]), "craft.info");
                     });
                     
                 });
@@ -246,7 +212,27 @@ namespace CraftManager
             };
         }
 
+        private void type_select(string key, bool val){
+            GUIUtility.keyboardControl = 0;
+            if(!Input.GetKey(KeyCode.LeftControl)){
+                toggles["SPH"] = false;
+                toggles["VAB"] = false;
+                toggles["Subassemblies"] = false;
+            }
+            toggles[key] = val;
 
+            //ensure that at least one of the options is selected (if none are selected, select the one just clicked).
+            int set_count = 0;
+            foreach(bool v in toggles.Values){
+                if(v){
+                    set_count++;
+                }            
+            }
+            if(set_count==0){
+                toggles[key] = true;
+            }       
+            filter_craft();
+        }
 
         protected override void FooterContent(int window_id){
             GUILayout.Label("hello, this is footer");

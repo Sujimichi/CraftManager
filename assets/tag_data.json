@@ -1,0 +1,20 @@
+TAGS
+{
+	TAG
+	{
+		tag_name = Lifter
+	}
+	TAG
+	{
+		tag_name = Spaceplane		
+	}
+	TAG
+	{
+		tag_name = Lander
+		
+	}
+	TAG
+	{
+		tag_name = LKO
+	}
+}

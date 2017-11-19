@@ -8,7 +8,7 @@ mkdir bin/Release/CraftManager/Plugins -p
 
 cp bin/Release/*.dll bin/Release/CraftManager/Plugins/
 
-cp -a Assets/*.* bin/Release/CraftManager/
+cp -a assets/*.* bin/Release/CraftManager/
 cp LICENCE.txt bin/Release/CraftManager/LICENCE.txt
 
 #ruby -e "i=%x(cat Source/KerbalX.cs | grep version); i=i.split('=')[1].sub(';','').gsub('\"','').strip; s=\"echo 'version: #{i}' > bin/Release/KerbalX/version\"; system(s)"
