@@ -11,6 +11,8 @@ TAGS
 	TAG
 	{
 		tag_name = Lander
+        craft = testy
+        craft = dead moose
 		
 	}
 	TAG

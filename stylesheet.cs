@@ -62,7 +62,7 @@ namespace CraftManager
         public StyleSheet(GUISkin base_skin){
 
             set_texture("blue_background", new Color(0.4f, 0.5f, 0.9f, 1), TextureWrapMode.Repeat);
-            set_texture("dark_background", new Color(0.12f, 0.12f, 0.12f, 0.7f));
+            set_texture("dark_background", new Color(0.12f, 0.12f, 0.12f, 0.5f));
             set_texture("pic_highlight", new Color(0.4f, 0.5f, 0.9f, 1));
             set_texture("green_background", new Color(0.2f, 0.6f, 0.2f, 1));
             set_texture("light_green_background", new Color(0.3f, 0.5f, 0.3f, 1));
@@ -124,7 +124,6 @@ namespace CraftManager
                 s.normal.textColor = Color.yellow;
                 s.margin.top = 0;
             });
-
             define_style("craft.info", base_skin.label, s =>{
                 s.fontSize = 15;
                 s.normal.textColor = new Color(244, 244, 244, 1);
@@ -140,18 +139,32 @@ namespace CraftManager
                 s.padding = new RectOffset(0, 0, 0, 0);
                 s.margin = new RectOffset(0, 0, 5, 5);
             });
-
             define_style("craft.list_item.selected", "craft.list_item", s =>{
                 s.normal.background = s.active.background;
                 s.hover.background = s.focused.background;
             });
-
             define_style("craft.list_container", base_skin.scrollView, s =>{
                 s.padding = new RectOffset(5, 5, 0, 0);    
             });
 
-
-
+            define_style("tag.toggle.light", base_skin.toggle, s =>{
+                s.padding = new RectOffset(0, 0, 0, 0);
+                s.margin = new RectOffset(0, 10, 10, 0);
+                s.fixedWidth = 10f;
+                s.fixedHeight = 10f;
+            });
+            define_style("tag.toggle.label", base_skin.label, s =>{
+            });
+            define_style("tag.section", base_skin.label, s =>{
+                s.normal.background = textures["dark_background"];
+            });
+            define_style("tag.delete_button", base_skin.button, s =>{
+                s.normal.textColor = Color.red;
+            });
+            define_style("tag.delete_button.x", "tag.delete_button", s =>{
+                s.fixedWidth = 20f;
+                s.fixedHeight = 20f;
+            });
 
 
             define_style("pic.hover", base_skin.label, s =>{

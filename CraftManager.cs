@@ -49,7 +49,7 @@ namespace CraftManager
     {
 
         private float window_height = Screen.height - 400f;
-        private float window_width  = 800f;
+        private float window_width  = 1000f;
 
         //collection of Vector2 objects to track scroll positions
         private Dictionary<string, Vector2> scroll_pos = new Dictionary<string, Vector2>(){
@@ -67,8 +67,13 @@ namespace CraftManager
             filter_craft();
         }
 
+
+        //GUI state holders
         private string search_string = "";
         private string last_search = "";
+        private string new_tag_name = "";
+        private bool edit_tags = false;
+        private bool add_to_tag = false;
 
         private Dictionary<string, bool> toggles = new Dictionary<string, bool>(){
             {"SPH",true},{"VAB",false},{"Subassemblies",false} //TODO select SPH or VAB based on current editor
@@ -77,9 +82,14 @@ namespace CraftManager
 
 
         private void filter_craft(){
+            CraftManager.log("filtering craft");
             Dictionary<string, object> search_criteria = new Dictionary<string, object>();
             search_criteria.Add("search", search_string);
             search_criteria.Add("type", toggles);
+            List<string> s_tags = Tags.selected_tags();
+            if(s_tags.Count > 0){
+                search_criteria.Add("tags", s_tags);
+            }
             CraftData.filter_craft(search_criteria);
         }
 
@@ -99,9 +109,7 @@ namespace CraftManager
                 });
                 GUILayout.FlexibleSpace();
                 if(GUILayout.Button("refresh")){
-                    CraftData.all_craft.Clear();
-                    CraftData.load_craft();
-                    filter_craft();
+                    CraftData.all_craft.Clear();CraftData.load_craft();filter_craft();
                 }
             });
 
@@ -109,18 +117,9 @@ namespace CraftManager
             section(window_width, inner_width =>{
 
                 //Left Hand Section
-                v_section(inner_width*0.2f, w2 => {
-                    scroll_pos["lhs"] = scroll(scroll_pos["lhs"], w2, window_height, w3 => {
-                        GUILayout.Label("Tags");
+                draw_left_hand_section(inner_width);
 
-                        foreach(KeyValuePair<string, Tag> pair in Tags.all){
-                            section(()=>{
-                                label(pair.Value.name + " - " + pair.Value.craft.Count);
-                            });
-                        }
-                    });
-                });
-
+                
 
                 //Main Craft Section
                 v_section(()=>{
@@ -154,6 +153,78 @@ namespace CraftManager
 
             });
 
+        }
+
+
+        protected void draw_left_hand_section(float width){
+            v_section(width*0.2f, (inner_width) =>{
+                section((w)=>{
+                    GUILayout.Label("Categories");
+                    GUILayout.FlexibleSpace();
+                    edit_tags = GUILayout.Toggle(edit_tags, "edit", "Button", GUILayout.Width(40f) );
+                });
+                scroll_pos["lhs"] = scroll(scroll_pos["lhs"], inner_width, window_height, lhs_section_width => {
+                    
+                    foreach(KeyValuePair<string, Tag> pair in Tags.all){
+                        Tag tag = pair.Value;
+                        
+                        style_override = "tag.section";
+                        section((sec_w)=>{
+                            bool prev_state = tag.selected;
+                            tag.selected = GUILayout.Toggle(tag.selected, "", "tag.toggle.light");
+                            tag.selected = GUILayout.Toggle(tag.selected, tag.name + " - " + tag.craft_count(), 
+                                "tag.toggle.label", GUILayout.Width(inner_width-(edit_tags ? 65f : 40f)) 
+                            );
+                            if(prev_state != tag.selected){
+                                if(add_to_tag){
+                                    tag.selected = prev_state;
+                                    Tags.tag_craft(Tags.craft_reference_key(CraftData.selected_craft()), tag.name);
+                                }else{
+                                    filter_craft();                                    
+                                }
+
+                            }
+
+
+                            if(edit_tags){
+                                if(GUILayout.Button("X", "tag.delete_button.x")){
+                                    close_dialog();
+                                    DryDialog dialog = show_dialog((d)=>{
+                                        if(tag.craft.Count > 0){
+                                            GUILayout.Label("This tag is used on " + tag.craft_count() + " craft.");
+                                        }
+                                        GUILayout.Label("Are you sure you want to delete it?");
+                                        section(()=>{
+                                            GUILayout.FlexibleSpace();
+                                            if(GUILayout.Button("Cancel")){
+                                                close_dialog();
+                                            };
+                                            if(GUILayout.Button("Delete", "tag.delete_button")){
+                                                Tags.remove(tag.name);close_dialog();
+                                            };
+                                        });
+                                    });
+                                    dialog.window_pos.width = 400f;
+                                    dialog.window_pos.height = 100f;
+                                    dialog.window_title = "Confirm Tag Delete";
+
+                                }
+                            }
+                        });
+                    }
+                });
+
+                section((w)=>{
+                    new_tag_name = GUILayout.TextField(new_tag_name);
+                    if(GUILayout.Button("Add", GUILayout.Width(40f) )){
+                        Tags.add(new_tag_name);
+                        new_tag_name = "";
+                    }
+                });
+
+
+
+            });
         }
 
         protected void draw_craft_list_item(CraftData craft, float section_width){
@@ -200,11 +271,26 @@ namespace CraftManager
                 label("dry cost: " + humanize(craft.cost["fuel"]));
                 label("fuel cost: " + humanize(craft.cost["fuel"]));
 
-                label("time: " + craft.create_time);
-                label(DateTime.FromBinary(long.Parse(craft.create_time)).ToShortDateString());
-                label(DateTime.FromBinary(long.Parse(craft.create_time)).ToShortTimeString());
 
-                label(craft.file_checksum);
+                label("Tags", "h3");
+                add_to_tag = GUILayout.Toggle(add_to_tag, "add tags", "Button");
+                if(add_to_tag){
+                    label("click tags on the left to add them to this craft");
+                    add_to_tag = !GUILayout.Toggle(!add_to_tag, "done", "Button");
+                }
+                foreach(string tag in Tags.tags_for(Tags.craft_reference_key(craft))){
+                    section(() =>{
+                        label(tag);    
+                        if(GUILayout.Button("x", "tag.delete_button.x")){
+                            Tags.untag_craft(Tags.craft_reference_key(craft), tag);
+                        }
+                    });
+                }                  
+
+//                label("time: " + craft.create_time);
+//                label(DateTime.FromBinary(long.Parse(craft.create_time)).ToShortDateString());
+//                label(DateTime.FromBinary(long.Parse(craft.create_time)).ToShortTimeString());
+
 
                 label(craft.description);
 
@@ -212,8 +298,10 @@ namespace CraftManager
             };
         }
 
+        //called when clicking on the craft 'type' (VAB,SPH etc) buttons. unselects the other buttons unless ctrl is being held (enabling multiple select)
+        //and ensures that at least one button is selected.
         private void type_select(string key, bool val){
-            GUIUtility.keyboardControl = 0;
+            GUIUtility.keyboardControl = 0; //take focus away from text fields so that ctrl hold can be detected
             if(!Input.GetKey(KeyCode.LeftControl)){
                 toggles["SPH"] = false;
                 toggles["VAB"] = false;
@@ -223,14 +311,9 @@ namespace CraftManager
 
             //ensure that at least one of the options is selected (if none are selected, select the one just clicked).
             int set_count = 0;
-            foreach(bool v in toggles.Values){
-                if(v){
-                    set_count++;
-                }            
-            }
-            if(set_count==0){
-                toggles[key] = true;
-            }       
+            foreach(bool v in toggles.Values){if(v){set_count++;}}
+            if(set_count==0){toggles[key] = true;}
+
             filter_craft();
         }
 

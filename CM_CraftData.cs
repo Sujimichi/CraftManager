@@ -52,6 +52,14 @@ namespace CraftManager
                 }                                   
                 filtered = filtered.FindAll(craft => selected_types.Contains(craft.construction_type));
             }
+            if(criteria.ContainsKey("tags")){
+                CraftManager.log("filtering by tags");
+                List<string> s_tags = (List<string>)criteria["tags"];
+                foreach(string tag in s_tags){
+                    CraftManager.log(tag);
+                    filtered = filtered.FindAll(craft => craft.tags().Contains(tag));
+                }
+            }
         }
             
         public static void select_craft(CraftData craft){
@@ -194,6 +202,10 @@ namespace CraftManager
                 return game_parts[part_name];
             }
             return null;
+        }
+
+        public List<string> tags(){
+            return Tags.tags_for(Tags.craft_reference_key(this));
         }
 
     }

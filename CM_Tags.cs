@@ -15,6 +15,7 @@ namespace CraftManager
 
         public string name;
         public List<string> craft = new List<string>();
+        public bool selected = false;
 
         public Tag(string tag_name, List<string> assign_craft){
             name = tag_name;
@@ -33,6 +34,11 @@ namespace CraftManager
             }
         }
 
+        public int craft_count(){
+            return CraftData.filtered.FindAll(c => this.craft.Contains(c.name)).Count;
+        }
+
+
     }
 
 
@@ -43,6 +49,19 @@ namespace CraftManager
 //        public static List<string> all = new List<string>();
 
         public static string file_path = Paths.joined(KSPUtil.ApplicationRootPath, "GameData", "CraftManager", "tag_data.json");
+
+        public static string craft_reference_key(CraftData craft){
+            return craft.name;
+        }
+
+        public static List<string> selected_tags(){
+            List<Tag> tags = new List<Tag>(Tags.all.Values);
+            List<string> s_tags = new List<string>();
+            foreach(Tag t in tags.FindAll(tag => tag.selected)){
+                s_tags.Add(t.name);
+            }
+            return s_tags;
+        }
 
         //add a new tag. 
         public static void add(string tag){
@@ -91,7 +110,7 @@ namespace CraftManager
 
 
         //convert Dictionary<string, List<string>> to ConfigNodes and write to file
-        public static void save(){
+        private static void save(){
             ConfigNode nodes = new ConfigNode();
             ConfigNode tag_nodes = new ConfigNode();
 
