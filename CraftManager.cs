@@ -72,6 +72,10 @@ namespace CraftManager
         private string search_string = "";
         private string last_search = "";
         private string new_tag_name = "";
+        private string sort_opt = "name";
+        private string[] sort_options = new string[]{"name", "part_count", "mass", "stage_count", "date_created", "date_updated"};
+        private bool reverse_sort = false;
+
         private bool edit_tags = false;
         private bool add_to_tag = false;
         private bool tag_mode_reduce = true;
@@ -92,8 +96,8 @@ namespace CraftManager
                 search_criteria.Add("tags", s_tags);
                 search_criteria.Add("tag_mode_reduce", tag_mode_reduce);
             }
-            search_criteria.Add("sort", "part_count");
-            search_criteria.Add("reverse_sort", false);
+            search_criteria.Add("sort", sort_opt);
+            search_criteria.Add("reverse_sort", reverse_sort);
             CraftData.filter_craft(search_criteria);
         }
 
@@ -134,17 +138,25 @@ namespace CraftManager
                     last_search = search_string;
                     section(()=>{
                         search_string = GUILayout.TextField(search_string);
-                        if(GUILayout.Button("sort: name", width(100f))){
-                            
+                        if(last_search != search_string){
+                            filter_craft();
                         }
-                        if(GUILayout.Button("\\/", width(15f))){
-                            
+                        if(GUILayout.Button("sort: " + sort_opt.Replace("_"," "), width(150f))){
+                            int i = sort_options.IndexOf(sort_opt) + 1;
+                            if(i > sort_options.Length-1){
+                                i=0;
+                            }
+                            sort_opt = sort_options[i];
+                            filter_craft();
+
+                        }
+
+                        if(GUILayout.Button((reverse_sort ? "/\\" : "\\/"), width(22f))){
+                            reverse_sort = !reverse_sort;
+                            filter_craft();
                         }
                         
                     });
-                    if(last_search != search_string){
-                        filter_craft();
-                    }
 
                     style_override = "craft.list_container";
                     scroll_pos["main"] = scroll(scroll_pos["main"], inner_width*0.6f, window_height, craft_list_width => {
@@ -177,8 +189,8 @@ namespace CraftManager
             v_section(section_width*0.2f, (inner_width) =>{
                 section((w)=>{
                     GUILayout.Label("Tags");
-                    tag_mode_reduce = GUILayout.Toggle(tag_mode_reduce, "reduce", "Button", width(60f));
-                    tag_mode_reduce = !GUILayout.Toggle(!tag_mode_reduce, "extend", "Button", width(60f));
+//                    tag_mode_reduce = GUILayout.Toggle(tag_mode_reduce, "reduce", "Button", width(60f));
+//                    tag_mode_reduce = !GUILayout.Toggle(!tag_mode_reduce, "extend", "Button", width(60f));
 
                     GUILayout.FlexibleSpace();
                     edit_tags = GUILayout.Toggle(edit_tags, "edit", "Button", width(40f) );
@@ -324,6 +336,8 @@ namespace CraftManager
             dialog.window_pos.height = 100f;
             dialog.window_title = "Confirm Tag Delete";            
         }
+
+
 
         //called when clicking on the craft 'type' (VAB,SPH etc) buttons. unselects the other buttons unless ctrl is being held (enabling multiple select)
         //and ensures that at least one button is selected.

@@ -73,12 +73,19 @@ namespace CraftManager
             if(criteria.ContainsKey("sort")){
                 string sort_by = (string)criteria["sort"];
                 filtered.Sort((x,y) => {
+                    //{"name", "part_count", "mass", "date_created", "date_updated", "stage_count"};
                     if(sort_by == "name"){
                         return x.name.CompareTo(y.name);
-                    }else if(sort_by == "created"){
-                        return x.create_time.CompareTo(y.create_time);
                     }else if(sort_by == "part_count"){
-                        return x.part_count.CompareTo(y.part_count);
+                        return y.part_count.CompareTo(x.part_count);
+                    }else if(sort_by == "stage_count"){
+                        return y.stage_count.CompareTo(x.stage_count);
+                    }else if(sort_by == "mass"){
+                        return y.mass["total"].CompareTo(x.mass["total"]);
+                    }else if(sort_by == "date_created"){
+                        return x.create_time.CompareTo(y.create_time);
+                    }else if(sort_by == "date_updated"){
+                        return x.last_updated_time.CompareTo(y.last_updated_time);
                     }else{
                         return x.name.CompareTo(y.name);
                     }

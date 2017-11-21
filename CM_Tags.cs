@@ -54,8 +54,8 @@ namespace CraftManager
 
         public static string file_path = Paths.joined(KSPUtil.ApplicationRootPath, "GameData", "CraftManager", "tag_data.json");
 
-        public static string craft_reference_key(CraftData craft){
-            return craft.name;
+        public static string craft_reference_key(CraftData craft){            
+            return craft.construction_type + "_" + craft.name;
         }
 
         public static List<string> selected_tags(){
