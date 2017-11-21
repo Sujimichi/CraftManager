@@ -74,6 +74,8 @@ namespace CraftManager
         private string new_tag_name = "";
         private bool edit_tags = false;
         private bool add_to_tag = false;
+        private bool tag_mode_reduce = true;
+
 
         private Dictionary<string, bool> toggles = new Dictionary<string, bool>(){
             {"SPH",true},{"VAB",false},{"Subassemblies",false} //TODO select SPH or VAB based on current editor
@@ -82,14 +84,16 @@ namespace CraftManager
 
 
         private void filter_craft(){
-            CraftManager.log("filtering craft");
             Dictionary<string, object> search_criteria = new Dictionary<string, object>();
             search_criteria.Add("search", search_string);
             search_criteria.Add("type", toggles);
             List<string> s_tags = Tags.selected_tags();
             if(s_tags.Count > 0){
                 search_criteria.Add("tags", s_tags);
+                search_criteria.Add("tag_mode_reduce", tag_mode_reduce);
             }
+            search_criteria.Add("sort", "part_count");
+            search_criteria.Add("reverse_sort", false);
             CraftData.filter_craft(search_criteria);
         }
 
@@ -99,12 +103,16 @@ namespace CraftManager
 
 
             //SPH, VAB, Subs select buttons
-            section(() =>{
-                section(400, (w) =>{
+            section((w) =>{
+                section(400, (w2) =>{
                     foreach(string opt in toggles.Keys){
                         if(GUILayout.Button(opt, "craft_type_sel" + (toggles[opt] ? ".active" : ""))){
                             type_select(opt, !toggles[opt]);            
                         }
+                    }
+                    if(GUILayout.Button("All", "craft_type_sel", width(30f))){
+                        toggles["SPH"]=true;toggles["VAB"]=true;toggles["Subassemblies"]=true;
+                        filter_craft();
                     }
                 });
                 GUILayout.FlexibleSpace();
@@ -124,7 +132,16 @@ namespace CraftManager
                 //Main Craft Section
                 v_section(()=>{
                     last_search = search_string;
-                    search_string = GUILayout.TextField(search_string);
+                    section(()=>{
+                        search_string = GUILayout.TextField(search_string);
+                        if(GUILayout.Button("sort: name", width(100f))){
+                            
+                        }
+                        if(GUILayout.Button("\\/", width(15f))){
+                            
+                        }
+                        
+                    });
                     if(last_search != search_string){
                         filter_craft();
                     }
@@ -156,15 +173,18 @@ namespace CraftManager
         }
 
 
-        protected void draw_left_hand_section(float width){
-            v_section(width*0.2f, (inner_width) =>{
+        protected void draw_left_hand_section(float section_width){
+            v_section(section_width*0.2f, (inner_width) =>{
                 section((w)=>{
-                    GUILayout.Label("Categories");
+                    GUILayout.Label("Tags");
+                    tag_mode_reduce = GUILayout.Toggle(tag_mode_reduce, "reduce", "Button", width(60f));
+                    tag_mode_reduce = !GUILayout.Toggle(!tag_mode_reduce, "extend", "Button", width(60f));
+
                     GUILayout.FlexibleSpace();
-                    edit_tags = GUILayout.Toggle(edit_tags, "edit", "Button", GUILayout.Width(40f) );
+                    edit_tags = GUILayout.Toggle(edit_tags, "edit", "Button", width(40f) );
                 });
+
                 scroll_pos["lhs"] = scroll(scroll_pos["lhs"], inner_width, window_height, lhs_section_width => {
-                    
                     foreach(KeyValuePair<string, Tag> pair in Tags.all){
                         Tag tag = pair.Value;
                         
@@ -172,8 +192,8 @@ namespace CraftManager
                         section((sec_w)=>{
                             bool prev_state = tag.selected;
                             tag.selected = GUILayout.Toggle(tag.selected, "", "tag.toggle.light");
-                            tag.selected = GUILayout.Toggle(tag.selected, tag.name + " - " + tag.craft_count(), 
-                                "tag.toggle.label", GUILayout.Width(inner_width-(edit_tags ? 65f : 40f)) 
+                            tag.selected = GUILayout.Toggle(tag.selected, tag.name + " - (" + tag.craft_count("filtered") + "/" + tag.craft_count("all") + ")", 
+                                "tag.toggle.label", width(inner_width-(edit_tags ? 65f : 40f)) 
                             );
                             if(prev_state != tag.selected){
                                 if(add_to_tag){
@@ -184,30 +204,9 @@ namespace CraftManager
                                 }
 
                             }
-
-
                             if(edit_tags){
                                 if(GUILayout.Button("X", "tag.delete_button.x")){
-                                    close_dialog();
-                                    DryDialog dialog = show_dialog((d)=>{
-                                        if(tag.craft.Count > 0){
-                                            GUILayout.Label("This tag is used on " + tag.craft_count() + " craft.");
-                                        }
-                                        GUILayout.Label("Are you sure you want to delete it?");
-                                        section(()=>{
-                                            GUILayout.FlexibleSpace();
-                                            if(GUILayout.Button("Cancel")){
-                                                close_dialog();
-                                            };
-                                            if(GUILayout.Button("Delete", "tag.delete_button")){
-                                                Tags.remove(tag.name);close_dialog();
-                                            };
-                                        });
-                                    });
-                                    dialog.window_pos.width = 400f;
-                                    dialog.window_pos.height = 100f;
-                                    dialog.window_title = "Confirm Tag Delete";
-
+                                    delete_tag_dialog(tag);
                                 }
                             }
                         });
@@ -216,7 +215,7 @@ namespace CraftManager
 
                 section((w)=>{
                     new_tag_name = GUILayout.TextField(new_tag_name);
-                    if(GUILayout.Button("Add", GUILayout.Width(40f) )){
+                    if(GUILayout.Button("Add", width(40f) )){
                         Tags.add(new_tag_name);
                         new_tag_name = "";
                     }
@@ -226,6 +225,8 @@ namespace CraftManager
 
             });
         }
+
+
 
         protected void draw_craft_list_item(CraftData craft, float section_width){
             section(section_width-(12f+18f), "craft.list_item" + (craft.selected ? ".selected" : ""), (inner_width)=>{ //subtractions from width to account for margins and scrollbar
@@ -261,19 +262,22 @@ namespace CraftManager
             });
         }
 
-        protected void draw_right_hand_section(float width){
+        protected void draw_right_hand_section(float section_width){
             if(CraftData.selected_craft() != null){
                 CraftData craft = CraftData.selected_craft();
                 label("total mass: " + humanize(craft.mass["total"]));
                 label("total cost: " + humanize(craft.cost["total"]));
                 label("dry mass: " + humanize(craft.mass["dry"]));
                 label("fuel mass: " + humanize(craft.mass["fuel"]));
-                label("dry cost: " + humanize(craft.cost["fuel"]));
+                label("dry cost: " + humanize(craft.cost["dry"]));
                 label("fuel cost: " + humanize(craft.cost["fuel"]));
 
 
-                label("Tags", "h3");
-                add_to_tag = GUILayout.Toggle(add_to_tag, "add tags", "Button");
+
+                section(() =>{
+                    label("Tags", "h2");
+                    add_to_tag = GUILayout.Toggle(add_to_tag, "add tags", "Button");
+                });
                 if(add_to_tag){
                     label("click tags on the left to add them to this craft");
                     add_to_tag = !GUILayout.Toggle(!add_to_tag, "done", "Button");
@@ -281,6 +285,7 @@ namespace CraftManager
                 foreach(string tag in Tags.tags_for(Tags.craft_reference_key(craft))){
                     section(() =>{
                         label(tag);    
+                        GUILayout.FlexibleSpace();
                         if(GUILayout.Button("x", "tag.delete_button.x")){
                             Tags.untag_craft(Tags.craft_reference_key(craft), tag);
                         }
@@ -296,6 +301,28 @@ namespace CraftManager
 
 
             };
+        }
+
+        protected void delete_tag_dialog(Tag tag){
+            close_dialog();
+            DryDialog dialog = show_dialog((d)=>{
+                if(tag.craft_count("all") > 0){
+                    GUILayout.Label("This tag is used on " + tag.craft_count("all") + " craft.");
+                }
+                GUILayout.Label("Are you sure you want to delete it?");
+                section(()=>{
+                    GUILayout.FlexibleSpace();
+                    if(GUILayout.Button("Cancel")){
+                        close_dialog();
+                    };
+                    if(GUILayout.Button("Delete", "tag.delete_button")){
+                        Tags.remove(tag.name);close_dialog();
+                    };
+                });
+            });
+            dialog.window_pos.width = 400f;
+            dialog.window_pos.height = 100f;
+            dialog.window_title = "Confirm Tag Delete";            
         }
 
         //called when clicking on the craft 'type' (VAB,SPH etc) buttons. unselects the other buttons unless ctrl is being held (enabling multiple select)

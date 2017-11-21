@@ -34,8 +34,12 @@ namespace CraftManager
             }
         }
 
-        public int craft_count(){
-            return CraftData.filtered.FindAll(c => this.craft.Contains(c.name)).Count;
+        public int craft_count(string opt){
+            if(opt == "filtered"){
+                return CraftData.filtered.FindAll(c => this.craft.Contains(c.name)).Count;
+            } else{
+                return CraftData.all_craft.FindAll(c => this.craft.Contains(c.name)).Count;
+            }
         }
 
 

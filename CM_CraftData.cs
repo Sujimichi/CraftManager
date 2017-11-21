@@ -53,11 +53,38 @@ namespace CraftManager
                 filtered = filtered.FindAll(craft => selected_types.Contains(craft.construction_type));
             }
             if(criteria.ContainsKey("tags")){
-                CraftManager.log("filtering by tags");
                 List<string> s_tags = (List<string>)criteria["tags"];
-                foreach(string tag in s_tags){
-                    CraftManager.log(tag);
-                    filtered = filtered.FindAll(craft => craft.tags().Contains(tag));
+                if((bool)criteria["tag_mode_reduce"]){
+                    foreach(string tag in s_tags){
+                        filtered = filtered.FindAll(craft => craft.tags().Contains(tag));
+                    }
+                } else{
+                    filtered = filtered.FindAll(craft =>{
+                        bool sel = false;
+                        foreach(string tag in craft.tags()){
+                            if(s_tags.Contains(tag)){
+                                sel = true;
+                            }
+                        }
+                        return sel;
+                    });
+                }
+            }
+            if(criteria.ContainsKey("sort")){
+                string sort_by = (string)criteria["sort"];
+                filtered.Sort((x,y) => {
+                    if(sort_by == "name"){
+                        return x.name.CompareTo(y.name);
+                    }else if(sort_by == "created"){
+                        return x.create_time.CompareTo(y.create_time);
+                    }else if(sort_by == "part_count"){
+                        return x.part_count.CompareTo(y.part_count);
+                    }else{
+                        return x.name.CompareTo(y.name);
+                    }
+                });
+                if(criteria.ContainsKey("reverse_sort") && (bool)criteria["reverse_sort"]){
+                    filtered.Reverse();
                 }
             }
         }
