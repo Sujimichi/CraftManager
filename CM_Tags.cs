@@ -36,9 +36,9 @@ namespace CraftManager
 
         public int craft_count(string opt){
             if(opt == "filtered"){
-                return CraftData.filtered.FindAll(c => this.craft.Contains(c.name)).Count;
+                return CraftData.filtered.FindAll(c => this.craft.Contains(Tags.craft_reference_key(c))).Count;
             } else{
-                return CraftData.all_craft.FindAll(c => this.craft.Contains(c.name)).Count;
+                return CraftData.all_craft.FindAll(c => this.craft.Contains(Tags.craft_reference_key(c))).Count;
             }
         }
 

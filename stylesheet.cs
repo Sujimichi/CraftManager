@@ -78,12 +78,31 @@ namespace CraftManager
             define_style("h3", "h1", s =>{
                 s.fontSize = 15;
             });
+            define_style("h1.centered", "h2", s =>{
+                s.alignment = TextAnchor.LowerCenter;
+            });
             define_style("h2.centered", "h2", s =>{
                 s.alignment = TextAnchor.LowerCenter;
+            });
+            define_style("bold", base_skin.label, s =>{
+                s.fontStyle = FontStyle.Bold;
             });
             define_style("small", base_skin.label, s =>{
                 s.fontSize = 12;
             });
+
+            define_style("compact", base_skin.label, s =>{
+                s.margin.top = 0;
+                s.margin.bottom = 0;
+            });
+            define_style("bold.compact", "compact", s =>{
+                s.fontStyle = FontStyle.Bold;
+            });
+            define_style("small.compact", "compact", s =>{
+                s.fontSize = 12;
+            });
+
+
 
             define_style("hyperlink", base_skin.label, s =>{
                 s.normal.textColor = new Color(0.4f, 0.5f, 0.9f, 1); //roughly KerbalX Blue - #6E91EB
@@ -100,6 +119,12 @@ namespace CraftManager
             define_style("hyperlink.footer", "hyperlink", s =>{
                 s.alignment = TextAnchor.LowerLeft;
             });
+            define_style("hyperlink.small", "hyperlink", s =>{
+                s.fontSize = 12;
+            });
+            define_style("hyperlink.bold", "hyperlink", s =>{
+                s.fontStyle = FontStyle.Bold;
+            });
 
 
             define_style("craft_type_sel", base_skin.button, s =>{
@@ -112,6 +137,18 @@ namespace CraftManager
             });
 
 
+
+            define_style("craft.list_container", base_skin.scrollView, s =>{
+                s.padding = new RectOffset(5, 5, 0, 0);    
+            });            
+            define_style("craft.list_item", base_skin.button, s =>{
+                s.padding = new RectOffset(0, 0, 0, 0);
+                s.margin = new RectOffset(0, 0, 5, 5);
+            });
+            define_style("craft.list_item.selected", "craft.list_item", s =>{
+                s.normal.background = s.active.background;
+                s.hover.background = s.focused.background;
+            });
             define_style("craft.name", base_skin.label, s =>{
                 s.fontStyle = FontStyle.Bold;
                 s.fontSize = 20;
@@ -122,7 +159,7 @@ namespace CraftManager
             });
             define_style("craft.alt_name", "small", s =>{
                 s.normal.textColor = Color.yellow;
-                s.margin.top = 0;
+                s.margin.top = 8;
             });
             define_style("craft.info", base_skin.label, s =>{
                 s.fontSize = 15;
@@ -132,20 +169,15 @@ namespace CraftManager
             define_style("craft.cost", "craft.info", s =>{
                 s.fontStyle = FontStyle.Bold;
                 s.normal.textColor = Color.green;
-//                s.alignment = TextAnchor.MiddleRight;
+            });
+            define_style("craft.locked_parts", base_skin.label, s =>{
+                s.normal.textColor = Color.yellow;
+            });
+            define_style("craft.missing_parts", base_skin.label, s =>{
+                s.normal.textColor = Color.red;
             });
 
-            define_style("craft.list_item", base_skin.button, s =>{
-                s.padding = new RectOffset(0, 0, 0, 0);
-                s.margin = new RectOffset(0, 0, 5, 5);
-            });
-            define_style("craft.list_item.selected", "craft.list_item", s =>{
-                s.normal.background = s.active.background;
-                s.hover.background = s.focused.background;
-            });
-            define_style("craft.list_container", base_skin.scrollView, s =>{
-                s.padding = new RectOffset(5, 5, 0, 0);    
-            });
+
 
             define_style("tag.toggle.light", base_skin.toggle, s =>{
                 s.padding = new RectOffset(0, 0, 0, 0);

@@ -207,6 +207,7 @@ namespace CraftManager
                 }
 
             }
+
             stage_count += 1; //this might not be right
             cost["total"] = cost["dry"] + cost["fuel"];
             mass["total"] = mass["dry"] + mass["fuel"];
