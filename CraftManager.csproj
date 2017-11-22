@@ -60,6 +60,7 @@
     <Compile Include="stylesheet.cs" />
     <Compile Include="CM_CraftData.cs" />
     <Compile Include="CM_Tags.cs" />
+    <Compile Include="CM_UI.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ProjectExtensions>

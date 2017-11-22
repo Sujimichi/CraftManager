@@ -151,6 +151,7 @@ namespace CraftManager
             thumbnail = ShipConstruction.GetThumbnail("/thumbs/" + save_name + "_" + construction_type + "_" + name);
         }
 
+
         private void read_craft_info_from_file(){
             ConfigNode data = ConfigNode.Load(path);
             ConfigNode[] parts = data.GetNodes();
