@@ -18,10 +18,8 @@ namespace CraftManager
     {
 
         public static Dictionary<string, Texture> assets = new Dictionary<string, Texture>() { 
-//            { "upload_toolbar_btn",       GameDatabase.Instance.GetTexture(Paths.joined("CraftManager", "Assets", "button_upload"), false) },
-//            { "upload_toolbar_btn_hover", GameDatabase.Instance.GetTexture(Paths.joined("CraftManager", "Assets", "button_upload_hover"), false) }
-            { "upload_toolbar_btn",       new Texture()}, 
-            { "upload_toolbar_btn_hover", GameDatabase.Instance.GetTexture(Paths.joined("CraftManager", "Assets", "button_upload_hover"), false) }, 
+            { "ui_toolbar_btn",       GameDatabase.Instance.GetTexture(Paths.joined("CraftManager", "Assets", "cm_ui"), false) },
+            { "ui_toolbar_btn_hover", GameDatabase.Instance.GetTexture(Paths.joined("CraftManager", "Assets", "cm_ui_hover"), false) }
 
         };
 

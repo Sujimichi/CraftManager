@@ -144,13 +144,13 @@ namespace CraftManager
                         draw_craft_list_item(craft, craft_list_width);
                     }
                 });
-                //                Rect scroller = GUILayoutUtility.GetLastRect();
-                //                if(scroller.Contains(Event.current.mousePosition)){
-                //                    if(Event.current.button == 1 && Event.current.type == EventType.MouseDrag){
-                //                        scroll_pos["main"] += Event.current.delta;
-                //                        Event.current.Use();
-                //                    }
-                //                }
+//                Rect scroller = GUILayoutUtility.GetLastRect();
+//                if(scroller.Contains(Event.current.mousePosition)){
+//                    if(Event.current.button == 1 && Event.current.type == EventType.MouseDrag){
+//                        scroll_pos["main"] += Event.current.delta;
+//                        Event.current.Use();
+//                    }
+//                }
             });            
         }
 

@@ -55,7 +55,7 @@ namespace CraftManager
                     main_btn_hover_on, main_btn_hover_off, 
                     null, null, 
                     ApplicationLauncher.AppScenes.VAB | ApplicationLauncher.AppScenes.SPH, 
-                    StyleSheet.assets["upload_toolbar_btn"]
+                    StyleSheet.assets["ui_toolbar_btn"]
                 );
             }
         }
@@ -99,10 +99,10 @@ namespace CraftManager
 
         //Button hover actions
         private void main_btn_hover_on(){
-            CraftManager.main_ui_toolbar_button.SetTexture(StyleSheet.assets["upload_toolbar_btn_hover"]);
+            CraftManager.main_ui_toolbar_button.SetTexture(StyleSheet.assets["ui_toolbar_btn_hover"]);
         }
         private void main_btn_hover_off(){
-            CraftManager.main_ui_toolbar_button.SetTexture(StyleSheet.assets["upload_toolbar_btn"]);
+            CraftManager.main_ui_toolbar_button.SetTexture(StyleSheet.assets["ui_toolbar_btn"]);
         }
     }
 
