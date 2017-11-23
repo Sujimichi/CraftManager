@@ -24,7 +24,6 @@ namespace CraftManager
 
         //takes a CraftData craft and creates a ConfigNode that contains all of it's public properties, ConfigNodes is held in 
         //a <string, ConfigNode> dict with the full path as the key. 
-        //uses GetProperties to dynamically add all public properties.
         public void write(CraftData craft){
             ConfigNode node = new ConfigNode();
             foreach(var prop in craft.GetType().GetProperties()){               
@@ -98,9 +97,6 @@ namespace CraftManager
                 data.Add(node.GetValue("path"), node);
             }
         }
-
-
-
     }
 
 
@@ -108,18 +104,16 @@ namespace CraftManager
     {
         //**Class Methods/Variables**//
 
-
-        public static string save_dir = Paths.joined(KSPUtil.ApplicationRootPath, "saves", HighLogic.SaveFolder);
-
         public static List<CraftData> all_craft = new List<CraftData>();  //will hold all the craft loaded from disk
         public static List<CraftData> filtered  = new List<CraftData>();  //will hold the results of search/filtering to be shown in the UI.
         public static Dictionary<string, AvailablePart> game_parts = new Dictionary<string, AvailablePart>();  //populated on first use, name->part lookup for installed parts
-
         public static CraftDataCache cache = null;
+
+
 
         public static void load_craft(){            
             string[] craft_file_paths;
-            craft_file_paths = Directory.GetFiles(save_dir, "*.craft", SearchOption.AllDirectories);
+            craft_file_paths = Directory.GetFiles(Paths.joined(KSPUtil.ApplicationRootPath, "saves"), "*.craft", SearchOption.AllDirectories);
 
             all_craft.Clear();
             foreach(string path in craft_file_paths){
@@ -130,6 +124,9 @@ namespace CraftManager
 
         public static void filter_craft(Dictionary<string, object> criteria){
             filtered = all_craft;    
+            if(criteria.ContainsKey("save_dir")){
+                filtered = filtered.FindAll(craft => craft.save_dir == (string)criteria["save_dir"]);
+            }
             if(criteria.ContainsKey("search")){
                 filtered = filtered.FindAll(craft => craft.name.ToLower().Contains(((string)criteria["search"]).ToLower()));
             }
@@ -201,6 +198,7 @@ namespace CraftManager
 
         //**Instance Methods/Variables**//
 
+        //craft attributes - these attributes will either be loaded from a .craft file or from the cache
         public string path { get; set; }
         public string checksum { get; set; }
         public string name { get; set; }
@@ -209,7 +207,6 @@ namespace CraftManager
         public string construction_type { get; set; }
         public bool missing_parts { get; set; }
         public bool locked_parts { get; set; }
-        public bool selected = false;
         public int stage_count { get; set; }
         public int part_count { get; set; }
         public Dictionary<string, float> cost = new Dictionary<string, float> {
@@ -245,29 +242,37 @@ namespace CraftManager
         }
 
 
+        //Attribues which are always set from craft file/path, never loaded from cache
         public Texture thumbnail;
         public string create_time;
         public string last_updated_time;
+        public string save_dir;
+        public bool selected = false;
 
 
-
+        //Initialize a new CraftData object. Takes a path to a .craft file and either populates it from attributes from the craft file
+        //or loads information from the CraftDataCache
         public CraftData(string full_path){
             path = full_path;
             checksum = Checksum.digest(File.ReadAllText(path));
 
+            //attempt to load craft data from the cache. If unable to fetch from cache then load 
+            //craft data from the .craft file and cache the loaded info.
             if(!cache.try_fetch(this)){
                 read_craft_info_from_file();
                 cache.write(this);                
             }
 
+            //set timestamp data from the craft file
             create_time = System.IO.File.GetCreationTime(path).ToBinary().ToString();
             last_updated_time = System.IO.File.GetLastWriteTime(path).ToBinary().ToString();
 
-            string save_name = path.Replace(Paths.joined(KSPUtil.ApplicationRootPath, "saves", ""), "").Split('/')[0];
-            thumbnail = ShipConstruction.GetThumbnail("/thumbs/" + save_name + "_" + construction_type + "_" + name);
+            save_dir = path.Replace(Paths.joined(KSPUtil.ApplicationRootPath, "saves", ""), "").Split('/')[0];
+            thumbnail = ShipConstruction.GetThumbnail("/thumbs/" + save_dir + "_" + construction_type + "_" + name);
         }
 
 
+        //Parse .craft file and read info
         private void read_craft_info_from_file(){
             name = Path.GetFileNameWithoutExtension(path);
             CraftManager.log("Loading craft data from file for " + name);
@@ -275,8 +280,6 @@ namespace CraftManager
             ConfigNode data = ConfigNode.Load(path);
             ConfigNode[] parts = data.GetNodes();
             AvailablePart matched_part;
-
-                
 
             alt_name = data.GetValue("ship");
             description = data.GetValue("description");
@@ -324,14 +327,13 @@ namespace CraftManager
                 } else{
                     missing_parts = true;
                 }
-
             }
 
             stage_count += 1; //this might not be right
             cost["total"] = cost["dry"] + cost["fuel"];
             mass["total"] = mass["dry"] + mass["fuel"];
-
         }
+
 
         //get the part name from a PART config node.
         private string get_part_name(ConfigNode part){

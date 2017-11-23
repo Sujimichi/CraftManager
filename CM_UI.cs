@@ -15,6 +15,8 @@ namespace CraftManager
         private float window_height = Screen.height - 400f;
         private float window_width  = 1000f;
 
+        private string current_save_dir;
+
         //collection of Vector2 objects to track scroll positions
         private Dictionary<string, Vector2> scroll_pos = new Dictionary<string, Vector2>(){
             {"lhs", new Vector2()}, {"rhs", new Vector2()}, {"main", new Vector2()}
@@ -27,14 +29,16 @@ namespace CraftManager
             window_pos = new Rect((Screen.width/2) - (window_width/2) + 100, 80, window_width, window_height);
             visible = false;
             draggable = false;
+
+            current_save_dir = HighLogic.SaveFolder;
             Tags.load();
-//            CraftData.load_craft();
-//            filter_craft();
             CraftManager.main_ui = this;
             new CraftDataCache();
+            footer = false;
+            show();
         }
 
-        protected override void on_show(){
+        protected override void on_show(){            
             refresh();
         }
 
@@ -45,8 +49,9 @@ namespace CraftManager
 
         private void filter_craft(){
             Dictionary<string, object> search_criteria = new Dictionary<string, object>();
+            search_criteria.Add("save_dir", current_save_dir);
             search_criteria.Add("search", search_string);
-            search_criteria.Add("type", toggles);
+            search_criteria.Add("type", selected_types);
             List<string> s_tags = Tags.selected_tags();
             if(s_tags.Count > 0){
                 search_criteria.Add("tags", s_tags);
@@ -70,9 +75,10 @@ namespace CraftManager
         private bool add_to_tag = false;
         private bool tag_mode_reduce = true;
 
-        private Dictionary<string, bool> toggles = new Dictionary<string, bool>(){
+        private Dictionary<string, bool> selected_types = new Dictionary<string, bool>(){
             {"SPH",true},{"VAB",false},{"Subassemblies",false} //TODO select SPH or VAB based on current editor
         };
+        private int selected_type_count = 1;
 
         private bool expand_details = false;
 
@@ -108,14 +114,13 @@ namespace CraftManager
             section(() =>{
                 //SPH, VAB, Subs select buttons
                 section(400, () =>{
-                    foreach(string opt in toggles.Keys){
-                        if(GUILayout.Button(opt, "craft_type_sel" + (toggles[opt] ? ".active" : ""))){
-                            type_select(opt, !toggles[opt]);            
+                    foreach(string opt in selected_types.Keys){
+                        if(GUILayout.Button(opt, "craft_type_sel" + (selected_types[opt] ? ".active" : ""))){
+                            type_select(opt, !selected_types[opt]);            
                         }
                     }
                     if(GUILayout.Button("All", "craft_type_sel", width(30f))){
-                        toggles["SPH"]=true;toggles["VAB"]=true;toggles["Subassemblies"]=true;
-                        filter_craft();
+                        type_select_all();
                     }
                 });
                 GUILayout.FlexibleSpace();
@@ -123,6 +128,18 @@ namespace CraftManager
                     refresh();
                 }
             });
+            section(() =>{
+                label("Search Craft:", "h2");
+                search_string = GUILayout.TextField(search_string, width(section_width/2));
+                if(last_search != search_string){
+                    filter_craft();
+                }  
+                if(GUILayout.Button("<[x]", width(40f))){
+                    search_string = "";
+                    filter_craft();
+                }
+            });
+
         }
 
         //The Main craft list
@@ -130,10 +147,7 @@ namespace CraftManager
             v_section(section_width*0.55f, (inner_width)=>{
                 last_search = search_string;
                 section(()=>{
-                    search_string = GUILayout.TextField(search_string);
-                    if(last_search != search_string){
-                        filter_craft();
-                    }
+                    fspace();
                     if(GUILayout.Button("sort: " + sort_opt.Replace("_"," "), width(150f))){
                         int i = sort_options.IndexOf(sort_opt) + 1;
                         if(i > sort_options.Length-1){
@@ -177,6 +191,13 @@ namespace CraftManager
                             if(craft.name != craft.alt_name){
                                 label("(" + craft.alt_name + ")", "craft.alt_name");
                             }
+                            if(selected_type_count > 1){
+                                label(craft.construction_type, "bold");
+                            }
+                            if(craft.save_dir != current_save_dir){
+                                fspace();
+                                label("in save: " + craft.save_dir);
+                            }
                         });
 
                         section((w) => {
@@ -184,7 +205,7 @@ namespace CraftManager
                             label("cost: " + humanize(craft.cost["total"]), "craft.cost");
                         });
                         if(craft.locked_parts){
-                            label("craft has part which haven't been unlocked yet", "craft.locked_parts");
+                            label("craft has part which hasn't been unlocked yet", "craft.locked_parts");
                         }
                         if(craft.missing_parts){
                             label("some parts are missing", "craft.missing_parts");
@@ -367,18 +388,27 @@ namespace CraftManager
         private void type_select(string key, bool val){
             GUIUtility.keyboardControl = 0; //take focus away from text fields so that ctrl hold can be detected
             if(!Input.GetKey(KeyCode.LeftControl)){
-                toggles["SPH"] = false;
-                toggles["VAB"] = false;
-                toggles["Subassemblies"] = false;
+                selected_types["SPH"] = false;
+                selected_types["VAB"] = false;
+                selected_types["Subassemblies"] = false;
             }
-            toggles[key] = val;
+            selected_types[key] = val;
 
             //ensure that at least one of the options is selected (if none are selected, select the one just clicked).
-            int set_count = 0;
-            foreach(bool v in toggles.Values){if(v){set_count++;}}
-            if(set_count==0){toggles[key] = true;}
+            selected_type_count = 0;
+            foreach(bool v in selected_types.Values){if(v){selected_type_count++;}}
+            if(selected_type_count==0){
+                selected_types[key] = true;
+                selected_type_count = 1;
+            }
 
             filter_craft();
+        }
+        private void type_select_all(){
+            selected_types["SPH"] = true;
+            selected_types["VAB"] = true;
+            selected_types["Subassemblies"] = true;
+            selected_type_count = 3;
         }
 
 
