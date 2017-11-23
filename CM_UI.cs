@@ -35,7 +35,7 @@ namespace CraftManager
             footer = false;
 
             Tags.load();
-            show();
+//            show();
         }
 
         protected override void on_show(){            

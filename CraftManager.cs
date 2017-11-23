@@ -28,6 +28,7 @@ namespace CraftManager
         //Toolbar Buttons
         internal static ApplicationLauncherButton main_ui_toolbar_button   = null;
 
+        public static string ksp_root = KSPUtil.ApplicationRootPath.Replace("/KSP_Data/../","");
 
 
         private void Awake(){

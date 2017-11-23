@@ -52,7 +52,7 @@ namespace CraftManager
     public class Tags
     {
 
-        public static string file_path = Paths.joined(KSPUtil.ApplicationRootPath, "GameData", "CraftManager", "tag_data.json");
+        public static string file_path = Paths.joined(CraftManager.ksp_root, "GameData", "CraftManager", "tag_data.json");
         public static Dictionary<string, Tag> all = new Dictionary<string, Tag>();
 
 
