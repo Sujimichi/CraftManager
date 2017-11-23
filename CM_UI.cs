@@ -22,14 +22,39 @@ namespace CraftManager
 
 
         private void Start(){     
+            CraftManager.log("Starting Main UI");
             window_title = "Craft Manager";
             window_pos = new Rect((Screen.width/2) - (window_width/2) + 100, 80, window_width, window_height);
             visible = false;
             draggable = false;
             Tags.load();
+//            CraftData.load_craft();
+//            filter_craft();
+            CraftManager.main_ui = this;
+            new CraftDataCache();
+        }
+
+        protected override void on_show(){
+            refresh();
+        }
+
+        private void refresh(){
             CraftData.load_craft();
             filter_craft();
-            CraftManager.main_ui = this;
+        }
+
+        private void filter_craft(){
+            Dictionary<string, object> search_criteria = new Dictionary<string, object>();
+            search_criteria.Add("search", search_string);
+            search_criteria.Add("type", toggles);
+            List<string> s_tags = Tags.selected_tags();
+            if(s_tags.Count > 0){
+                search_criteria.Add("tags", s_tags);
+                search_criteria.Add("tag_mode_reduce", tag_mode_reduce);
+            }
+            search_criteria.Add("sort", sort_opt);
+            search_criteria.Add("reverse_sort", reverse_sort);
+            CraftData.filter_craft(search_criteria);
         }
 
 
@@ -51,38 +76,26 @@ namespace CraftManager
 
         private bool expand_details = false;
 
-
-
-        private void filter_craft(){
-            Dictionary<string, object> search_criteria = new Dictionary<string, object>();
-            search_criteria.Add("search", search_string);
-            search_criteria.Add("type", toggles);
-            List<string> s_tags = Tags.selected_tags();
-            if(s_tags.Count > 0){
-                search_criteria.Add("tags", s_tags);
-                search_criteria.Add("tag_mode_reduce", tag_mode_reduce);
-            }
-            search_criteria.Add("sort", sort_opt);
-            search_criteria.Add("reverse_sort", reverse_sort);
-            CraftData.filter_craft(search_criteria);
-        }
-
-        private void refresh(){
-            CraftData.load_craft();
-            filter_craft();
-        }
-
-        protected override void on_show(){
-            refresh();
-        }
-
         //Main GUI draw method (called by onGUI, see DryUI in KatLib).  Broken up into easier to digest sections to help prevent heart burn.
         protected override void WindowContent(int win_id){
-            draw_top_section(window_width);          
-            section(window_width, inner_width =>{
-                draw_left_hand_section(inner_width); //Tag list section
-                draw_main_section(inner_width);      //Main craft list
-                draw_right_hand_section(inner_width);//Craft details section
+            v_section(()=>{
+                draw_top_section(window_width);          
+                section(window_width, inner_width =>{
+                    draw_left_hand_section(inner_width); //Tag list section
+                    draw_main_section(inner_width);      //Main craft list
+                    draw_right_hand_section(inner_width);//Craft details section
+                });
+                
+                section(window_width,(inner_width) =>{
+                    fspace();
+                    gui_state(CraftData.selected_craft() != null, ()=>{
+                        if(GUILayout.Button("Load", "button.load", width(inner_width*0.2f) )){
+                            EditorLogic.LoadShipFromFile(CraftData.selected_craft().path);
+                            this.hide();
+                        }                        
+                    });
+
+                });
             });
         }
 

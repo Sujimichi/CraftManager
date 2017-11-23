@@ -1,13 +1,109 @@
 ﻿using System;
 using System.IO;
 using System.Collections.Generic;
-
 using UnityEngine;
 
 using KatLib;
 
 namespace CraftManager
 {
+
+    public class CraftDataCache
+    {
+
+
+        public string cache_path = Paths.joined(KSPUtil.ApplicationRootPath, "GameData", "CraftManager", "craft_data.cache");
+        public Dictionary<string, ConfigNode> data = new Dictionary<string, ConfigNode>();
+
+        public CraftDataCache(){
+            if(File.Exists(cache_path)){
+                load(); 
+            }
+            CraftData.cache = this;
+        }
+
+        //takes a CraftData craft and creates a ConfigNode that contains all of it's public properties, ConfigNodes is held in 
+        //a <string, ConfigNode> dict with the full path as the key. 
+        //uses GetProperties to dynamically add all public properties.
+        public void write(CraftData craft){
+            ConfigNode node = new ConfigNode();
+            foreach(var prop in craft.GetType().GetProperties()){               
+                node.AddValue(prop.Name, prop.GetValue(craft, null));
+            }
+            if(data.ContainsKey(craft.path)){
+                data[craft.path] = node;
+            }else{
+                data.Add(craft.path,node);
+            }
+            save();
+        }
+
+        //Takes a CraftData craft object and if the cached data contains a matching path AND the checksum value matches
+        //then the craft's properties are populated from the ConfigNode in the cache.  Returns true if matching data was
+        //found, otherwise returns false, in which case the data will have to be interpreted from the .craft file.
+        public bool try_fetch(CraftData craft){
+            if(data.ContainsKey(craft.path) && data[craft.path].GetValue("checksum") == craft.checksum){
+                try{
+                    ConfigNode node = data[craft.path];                    
+                    foreach(var prop in craft.GetType().GetProperties()){               
+                        if(prop.CanWrite){
+                            var node_value = node.GetValue(prop.Name);
+                            if(!String.IsNullOrEmpty(node_value)){
+                                var type = prop.GetValue(craft, null);
+                                if(type is float){
+                                    prop.SetValue(craft, float.Parse(node_value), null);                                
+                                }else if(type is int){
+                                    prop.SetValue(craft, int.Parse(node_value), null);                                
+                                }else if(type is bool){
+                                    prop.SetValue(craft, bool.Parse(node_value), null);                                
+                                }else{
+                                    prop.SetValue(craft, node_value, null);                                
+                                }
+
+                            }
+                        }
+                    }
+
+                    return true;
+                }
+
+                catch(Exception e){
+                    CraftManager.log("try_fetch failed: " + e.Message + "\n" + e.StackTrace);
+                    return false;
+                }
+
+            } else{
+                return false;
+            }
+
+        }
+
+        private void save(){
+            ConfigNode nodes = new ConfigNode();
+            ConfigNode craft_nodes = new ConfigNode();
+
+            foreach(KeyValuePair<string, ConfigNode> pair in data){
+                craft_nodes.AddNode("CRAFT", pair.Value);
+            }
+            nodes.AddNode("CraftData", craft_nodes);
+
+            nodes.Save(cache_path);
+        }
+
+        private void load(){
+            data.Clear();
+            ConfigNode nodes = ConfigNode.Load(cache_path);
+            ConfigNode craft_nodes = nodes.GetNode("CraftData");
+            foreach(ConfigNode node in craft_nodes.nodes){
+                data.Add(node.GetValue("path"), node);
+            }
+        }
+
+
+
+    }
+
+
     public class CraftData
     {
         //**Class Methods/Variables**//
@@ -19,7 +115,7 @@ namespace CraftManager
         public static List<CraftData> filtered  = new List<CraftData>();  //will hold the results of search/filtering to be shown in the UI.
         public static Dictionary<string, AvailablePart> game_parts = new Dictionary<string, AvailablePart>();  //populated on first use, name->part lookup for installed parts
 
-        public static List<string> all_tags = new List<string>();
+        public static CraftDataCache cache = null;
 
         public static void load_craft(){            
             string[] craft_file_paths;
@@ -31,11 +127,6 @@ namespace CraftManager
             }
         }
 
-
-
-        public static void filter_craft(){
-            filtered = all_craft;    
-        }
 
         public static void filter_craft(Dictionary<string, object> criteria){
             filtered = all_craft;    
@@ -110,26 +201,17 @@ namespace CraftManager
 
         //**Instance Methods/Variables**//
 
-
-        public string path = "";
-        public string save_name = "";
-        public string file_checksum;
-
-        public Texture thumbnail;
-
-        public string name = "";
-        public string alt_name = null;
-        public string description = "";
-        public string construction_type = "";
-        public string create_time;
-        public string last_updated_time;
-
-        public bool missing_parts = false;
-        public bool locked_parts = false;
+        public string path { get; set; }
+        public string checksum { get; set; }
+        public string name { get; set; }
+        public string alt_name { get; set; }
+        public string description { get; set; }
+        public string construction_type { get; set; }
+        public bool missing_parts { get; set; }
+        public bool locked_parts { get; set; }
         public bool selected = false;
-
-        public int stage_count = 0;
-        public int part_count = 0;
+        public int stage_count { get; set; }
+        public int part_count { get; set; }
         public Dictionary<string, float> cost = new Dictionary<string, float> {
             {"dry", 0.0f}, {"fuel", 0.0f}, {"total", 0.0f}
         };
@@ -137,29 +219,65 @@ namespace CraftManager
             {"dry", 0.0f}, {"fuel", 0.0f}, {"total", 0.0f}
         };
 
+        public float cost_dry{ 
+            get { return cost["dry"]; } 
+            set { cost["dry"] = value; }
+        }
+        public float cost_fuel{ 
+            get { return cost["fuel"]; } 
+            set { cost["fuel"] = value; }
+        }
+        public float cost_total{ 
+            get { return cost["total"]; } 
+            set { cost["total"] = value; }
+        }
+        public float mass_dry{ 
+            get { return mass["dry"]; } 
+            set { mass["dry"] = value; }
+        }
+        public float mass_fuel{ 
+            get { return mass["fuel"]; } 
+            set { mass["fuel"] = value; }
+        }
+        public float mass_total{ 
+            get { return mass["total"]; } 
+            set { mass["total"] = value; }
+        }
+
+
+        public Texture thumbnail;
+        public string create_time;
+        public string last_updated_time;
+
+
 
         public CraftData(string full_path){
             path = full_path;
+            checksum = Checksum.digest(File.ReadAllText(path));
 
-            read_craft_info_from_file();
+            if(!cache.try_fetch(this)){
+                read_craft_info_from_file();
+                cache.write(this);                
+            }
 
             create_time = System.IO.File.GetCreationTime(path).ToBinary().ToString();
             last_updated_time = System.IO.File.GetLastWriteTime(path).ToBinary().ToString();
-            file_checksum = Checksum.digest(File.ReadAllText(path));
 
-            save_name = path.Replace(Paths.joined(KSPUtil.ApplicationRootPath, "saves", ""), "").Split('/')[0];
+            string save_name = path.Replace(Paths.joined(KSPUtil.ApplicationRootPath, "saves", ""), "").Split('/')[0];
             thumbnail = ShipConstruction.GetThumbnail("/thumbs/" + save_name + "_" + construction_type + "_" + name);
         }
 
 
         private void read_craft_info_from_file(){
+            name = Path.GetFileNameWithoutExtension(path);
+            CraftManager.log("Loading craft data from file for " + name);
+
             ConfigNode data = ConfigNode.Load(path);
             ConfigNode[] parts = data.GetNodes();
             AvailablePart matched_part;
 
                 
 
-            name = Path.GetFileNameWithoutExtension(path);
             alt_name = data.GetValue("ship");
             description = data.GetValue("description");
             construction_type = data.GetValue("type");

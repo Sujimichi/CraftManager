@@ -17,6 +17,10 @@ namespace CraftManager
         public List<string> craft = new List<string>();
         public bool selected = false;
 
+        public Tag(string tag_name){
+            name = tag_name;
+            craft = new List<string>();
+        }
         public Tag(string tag_name, List<string> assign_craft){
             name = tag_name;
             craft = assign_craft;
@@ -70,8 +74,7 @@ namespace CraftManager
         //add a new tag. 
         public static void add(string tag){
             if(!all.ContainsKey(tag)){
-                all.Add(tag, new Tag(tag, new List<string>() ));
-                //all.Add(tag, new List<string>());
+                all.Add(tag, new Tag(tag));
                 save();
             }
         }

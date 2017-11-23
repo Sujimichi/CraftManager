@@ -195,6 +195,12 @@ namespace CraftManager
             });
 
 
+            define_style("button.load", base_skin.button, s =>{
+                s.fontSize = 20;
+                s.normal.textColor = Color.green;
+                s.hover.textColor = Color.blue;
+            });
+
             define_style("pic.hover", base_skin.label, s =>{
                 s.normal.textColor = Color.black;
                 s.normal.background = textures["blue_background"];
