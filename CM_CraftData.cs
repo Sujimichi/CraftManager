@@ -15,11 +15,12 @@ namespace CraftManager
         public string cache_path = Paths.joined(KSPUtil.ApplicationRootPath, "GameData", "CraftManager", "craft_data.cache");
         public Dictionary<string, ConfigNode> data = new Dictionary<string, ConfigNode>();
 
+
+
         public CraftDataCache(){
             if(File.Exists(cache_path)){
                 load(); 
             }
-            CraftData.cache = this;
         }
 
         //takes a CraftData craft and creates a ConfigNode that contains all of it's public properties, ConfigNodes is held in 
@@ -112,6 +113,10 @@ namespace CraftManager
 
 
         public static void load_craft(){            
+            if(cache == null){
+                cache = new CraftDataCache();                
+            }
+
             string[] craft_file_paths;
             craft_file_paths = Directory.GetFiles(Paths.joined(KSPUtil.ApplicationRootPath, "saves"), "*.craft", SearchOption.AllDirectories);
 

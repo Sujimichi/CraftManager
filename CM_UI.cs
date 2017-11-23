@@ -25,21 +25,22 @@ namespace CraftManager
 
         private void Start(){     
             CraftManager.log("Starting Main UI");
+            CraftManager.main_ui = this;
+            current_save_dir = HighLogic.SaveFolder;
+
             window_title = "Craft Manager";
             window_pos = new Rect((Screen.width/2) - (window_width/2) + 100, 80, window_width, window_height);
             visible = false;
             draggable = false;
-
-            current_save_dir = HighLogic.SaveFolder;
-            Tags.load();
-            CraftManager.main_ui = this;
-            new CraftDataCache();
             footer = false;
+
+            Tags.load();
             show();
         }
 
         protected override void on_show(){            
             refresh();
+            auto_focus_on = "main_search_field";
         }
 
         private void refresh(){
@@ -64,6 +65,7 @@ namespace CraftManager
 
 
         //GUI state holders
+        private string auto_focus_on = null;
         private string search_string = "";
         private string last_search = "";
         private string sort_opt = "name";
@@ -103,6 +105,11 @@ namespace CraftManager
 
                 });
             });
+            if(!String.IsNullOrEmpty(auto_focus_on)){
+                GUI.FocusControl(auto_focus_on);
+                auto_focus_on = null;
+            }
+
         }
 
         protected override void FooterContent(int window_id){
@@ -130,6 +137,7 @@ namespace CraftManager
             });
             section(() =>{
                 label("Search Craft:", "h2");
+                GUI.SetNextControlName("main_search_field");
                 search_string = GUILayout.TextField(search_string, width(section_width/2));
                 if(last_search != search_string){
                     filter_craft();
@@ -139,7 +147,6 @@ namespace CraftManager
                     filter_craft();
                 }
             });
-
         }
 
         //The Main craft list
@@ -409,6 +416,7 @@ namespace CraftManager
             selected_types["VAB"] = true;
             selected_types["Subassemblies"] = true;
             selected_type_count = 3;
+            filter_craft();
         }
 
 

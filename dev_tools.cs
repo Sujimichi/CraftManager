@@ -48,5 +48,32 @@ namespace CraftManager
         }
     }
 
+//    [KSPAddon(KSPAddon.Startup.AllGameScenes, false)]
+//    public class KerbalXConsole : DryUI
+//    {
+//        private void Start(){
+//            window_title = "CM::Konsole";
+//            window_pos = new Rect(0, 0, 310, 5);
+//            prevent_click_through = true;
+//            visible = true;
+//        }
+//        
+//        
+//        protected override void WindowContent(int win_id){
+//            label("sup bitches");
+//
+//            CraftDataCache c = null;
+//            if(GUILayout.Button("test")){
+//                c = gameObject.GetComponent<CraftDataCache>();
+//
+//            }
+//            if(c != null){
+//                label("cache is about");
+//            }
+//                
+//        }
+//
+//    }
+
 }
 

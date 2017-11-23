@@ -21,6 +21,7 @@ namespace CraftManager
             name = tag_name;
             craft = new List<string>();
         }
+
         public Tag(string tag_name, List<string> assign_craft){
             name = tag_name;
             craft = assign_craft;
@@ -41,22 +42,19 @@ namespace CraftManager
         public int craft_count(string opt){
             if(opt == "filtered"){
                 return CraftData.filtered.FindAll(c => this.craft.Contains(Tags.craft_reference_key(c))).Count;
-            } else{
+            }else{
                 return CraftData.all_craft.FindAll(c => this.craft.Contains(Tags.craft_reference_key(c))).Count;
             }
         }
-
-
     }
 
 
     public class Tags
     {
 
-        public static Dictionary<string, Tag> all = new Dictionary<string, Tag>();
-//        public static List<string> all = new List<string>();
-
         public static string file_path = Paths.joined(KSPUtil.ApplicationRootPath, "GameData", "CraftManager", "tag_data.json");
+        public static Dictionary<string, Tag> all = new Dictionary<string, Tag>();
+
 
         public static string craft_reference_key(CraftData craft){            
             return craft.construction_type + "_" + craft.name;
