@@ -16,6 +16,7 @@ namespace CraftManager
         private float window_width  = 1000f;
 
         private string current_save_dir;
+        private List<string> all_saves= new List<string>();
 
         //collection of Vector2 objects to track scroll positions
         private Dictionary<string, Vector2> scroll_pos = new Dictionary<string, Vector2>(){
@@ -26,6 +27,12 @@ namespace CraftManager
         private void Start(){     
             CraftManager.log("Starting Main UI");
             CraftManager.main_ui = this;
+            foreach(string dir in Directory.GetDirectories(Paths.joined(CraftManager.ksp_root, "saves"))){
+                string dir_name = dir.Replace(Paths.joined(CraftManager.ksp_root, "saves"), "").Replace("/","");
+                if(dir_name != "training" && dir_name != "scenarios"){
+                    all_saves.Add(dir_name);
+                }
+            }
             current_save_dir = HighLogic.SaveFolder;
 
             window_title = "Craft Manager";
@@ -130,7 +137,14 @@ namespace CraftManager
                         type_select_all();
                     }
                 });
-                GUILayout.FlexibleSpace();
+                fspace();
+                if(GUILayout.Button("save: " + current_save_dir)){
+                    int i = all_saves.IndexOf(current_save_dir) + 1;
+                    if(i > all_saves.Count-1){i=0;}
+                    current_save_dir = all_saves[i];
+                    refresh();
+
+                }
                 if(GUILayout.Button("refresh")){
                     refresh();
                 }
@@ -209,7 +223,7 @@ namespace CraftManager
 
                         section((w) => {
                             GUILayout.Label(craft.part_count + " parts in " + craft.stage_count + " stage" + (craft.stage_count==1 ? "" : "s"), "craft.info", width(w/4f));
-                            label("cost: " + humanize(craft.cost["total"]), "craft.cost");
+                            label("cost: " + humanize(craft.cost_total), "craft.cost");
                         });
                         if(craft.locked_parts){
                             label("craft has part which hasn't been unlocked yet", "craft.locked_parts");
@@ -301,11 +315,11 @@ namespace CraftManager
                     label("Craft Details", "h2");
                     section(()=>{
                         label("Cost", "bold.compact");
-                        label(humanize(craft.cost["total"]), "compact");
+                        label(humanize(craft.cost_total), "compact");
                     });
                     section(()=> {
                         label("Mass", "bold.compact");
-                        label(humanize(craft.mass["total"]), "compact");
+                        label(humanize(craft.mass_total), "compact");
                         fspace();                       
                         expand_details = GUILayout.Toggle(expand_details, "expand", "hyperlink.bold");
                     });
@@ -320,13 +334,13 @@ namespace CraftManager
                         });
                         section(()=>{                        
                             GUILayout.Label("Cost", "bold.compact", width(inner_width*0.2f));
-                            GUILayout.Label(humanize(craft.cost["dry"]), "small.compact", grid_width);
-                            GUILayout.Label(humanize(craft.cost["fuel"]), "small.compact", grid_width);
+                            GUILayout.Label(humanize(craft.cost_dry), "small.compact", grid_width);
+                            GUILayout.Label(humanize(craft.cost_fuel), "small.compact", grid_width);
                         });
                         section(()=>{                        
                             GUILayout.Label("Mass", "bold.compact", width(inner_width*0.2f));
-                            GUILayout.Label(humanize(craft.mass["dry"]), "small.compact", grid_width);
-                            GUILayout.Label(humanize(craft.mass["fuel"]), "small.compact", grid_width);
+                            GUILayout.Label(humanize(craft.mass_dry), "small.compact", grid_width);
+                            GUILayout.Label(humanize(craft.mass_fuel), "small.compact", grid_width);
                         });
                     }
                     GUILayout.Space(15);

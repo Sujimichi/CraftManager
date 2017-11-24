@@ -73,6 +73,7 @@ namespace CraftManager
         //triggered by scene load, calls removal of the buttons
         private void scene_load_request(GameScenes scene){
             remove_from_toolbar();
+            CraftData.cache = null;
         }
 
         //Button Actions

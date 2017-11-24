@@ -153,7 +153,7 @@ namespace CraftManager
             if(save_dir == null){
                 craft_file_paths = Directory.GetFiles(Paths.joined(CraftManager.ksp_root, "saves"), "*.craft", SearchOption.AllDirectories);
             } else{
-                craft_file_paths = Directory.GetFiles(Paths.joined(CraftManager.ksp_root, save_dir, "saves"), "*.craft", SearchOption.AllDirectories);
+                craft_file_paths = Directory.GetFiles(Paths.joined(CraftManager.ksp_root, "saves", save_dir), "*.craft", SearchOption.AllDirectories);
             }
 
             all_craft.Clear();
@@ -210,7 +210,7 @@ namespace CraftManager
                     }else if(sort_by == "stage_count"){
                         return y.stage_count.CompareTo(x.stage_count);
                     }else if(sort_by == "mass"){
-                        return y.mass["total"].CompareTo(x.mass["total"]);
+                        return y.mass_total.CompareTo(x.mass_total);
                     }else if(sort_by == "date_created"){
                         return x.create_time.CompareTo(y.create_time);
                     }else if(sort_by == "date_updated"){
@@ -248,41 +248,16 @@ namespace CraftManager
         public string alt_name { get; set; }
         public string description { get; set; }
         public string construction_type { get; set; }
-        public bool missing_parts { get; set; }
-//        public bool locked_parts = false; //{ get; set; }
         public int stage_count { get; set; }
         public int part_count { get; set; }
-        public Dictionary<string, float> cost = new Dictionary<string, float> {
-            {"dry", 0.0f}, {"fuel", 0.0f}, {"total", 0.0f}
-        };
-        public Dictionary<string, float> mass = new Dictionary<string, float> {
-            {"dry", 0.0f}, {"fuel", 0.0f}, {"total", 0.0f}
-        };
+        public bool missing_parts { get; set; }
+        public float cost_dry { get; set; }
+        public float cost_fuel { get; set; }
+        public float cost_total { get; set; }
+        public float mass_dry { get; set; }
+        public float mass_fuel { get; set; }
+        public float mass_total { get; set; }
 
-        public float cost_dry{ 
-            get { return cost["dry"]; } 
-            set { cost["dry"] = value; }
-        }
-        public float cost_fuel{ 
-            get { return cost["fuel"]; } 
-            set { cost["fuel"] = value; }
-        }
-        public float cost_total{ 
-            get { return cost["total"]; } 
-            set { cost["total"] = value; }
-        }
-        public float mass_dry{ 
-            get { return mass["dry"]; } 
-            set { mass["dry"] = value; }
-        }
-        public float mass_fuel{ 
-            get { return mass["fuel"]; } 
-            set { mass["fuel"] = value; }
-        }
-        public float mass_total{ 
-            get { return mass["total"]; } 
-            set { mass["total"] = value; }
-        }
 
         public List<string> part_name_list = new List<string>();
         public string part_names {
@@ -363,6 +338,7 @@ namespace CraftManager
             missing_parts = false;
 //            locked_parts = false;
 
+            cost_dry = 0;cost_fuel = 0;cost_total = 0;mass_dry = 0;mass_fuel = 0;mass_total = 0;
 
             //interim variables used to collect values from GetPartCostsAndMass (defined outside of loop as a garbage reduction measure)
             float dry_mass = 0;
@@ -389,10 +365,10 @@ namespace CraftManager
                 matched_part = cache.fetch_part(part_name);
                 if(matched_part != null){
                     ShipConstruction.GetPartCostsAndMass(part, matched_part, out dry_cost, out fuel_cost, out dry_mass, out fuel_mass);
-                    cost["dry"] += dry_cost;
-                    cost["fuel"] += fuel_cost;
-                    mass["dry"] += dry_mass;
-                    mass["fuel"] += fuel_mass;
+                    cost_dry += dry_cost;
+                    cost_fuel += fuel_cost;
+                    mass_dry += dry_mass;
+                    mass_fuel += fuel_mass;
 //                    if(!ResearchAndDevelopment.PartTechAvailable(matched_part)){
 //                        locked_parts = true;
 //                    }
@@ -403,8 +379,8 @@ namespace CraftManager
             }
 
             stage_count += 1; //this might not be right
-            cost["total"] = cost["dry"] + cost["fuel"];
-            mass["total"] = mass["dry"] + mass["fuel"];
+            cost_total = cost_dry + cost_fuel;
+            mass_total = mass_dry + mass_fuel;
         }
 
 
