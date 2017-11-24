@@ -5,6 +5,13 @@
 //2017-10-05_22-01-21
 //Branch: master
 
+/* TODO List
+  - KerbalX Integreation
+  - improve add tag to craft interface
+  - move to other category (sph, vab, subass)
+  - move/copy to other save
+  - support for stock craft
+*/
 
 using System;
 using System.IO;

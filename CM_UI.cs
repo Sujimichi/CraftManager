@@ -15,14 +15,44 @@ namespace CraftManager
         private float window_height = Screen.height - 400f;
         private float window_width  = 1000f;
 
-        private string active_save_dir;
         private string current_save_dir = HighLogic.SaveFolder;
+        private string active_save_dir;
+
+
+        private string search_string = "";
+        private string last_search = "";
+        
         private Dictionary<string, string> save_menu_options = new Dictionary<string, string>();
-        float save_menu_width = 0;
+        private Dictionary<string, string>sort_options = new Dictionary<string, string>{
+            {"name", "Name"}, {"part_count", "Part Count"}, {"stage_count", "Stages"}, {"mass", "Mass"}, {"cost", "Cost"}, {"date_created", "Created"}, {"date_updated", "Updated"}
+        };
+
+        private float save_menu_width = 0;
+        private float sort_menu_width = 0;
+
+        private string sort_opt = "name";
+        private bool reverse_sort = false;
+        
+
+        private string auto_focus_on = null;
+        private string new_tag_name = "";
+        private bool edit_tags = false;
+        private bool add_to_tag = false;
+        private bool tag_mode_reduce = true;
+        private bool expand_details = false;
+
+
+        private Dictionary<string, bool> selected_types = new Dictionary<string, bool>(){
+            {"SPH",true},{"VAB",false},{"Subassemblies",false} //TODO select SPH or VAB based on current editor
+        };
+        private int selected_type_count = 1;
+
+
         //collection of Vector2 objects to track scroll positions
         private Dictionary<string, Vector2> scroll_pos = new Dictionary<string, Vector2>(){
             {"lhs", new Vector2()}, {"rhs", new Vector2()}, {"main", new Vector2()}
         };
+
 
 
         private void Start(){     
@@ -76,29 +106,6 @@ namespace CraftManager
         }
 
 
-        //GUI state holders
-        private string auto_focus_on = null;
-        private string search_string = "";
-        private string last_search = "";
-        private string sort_opt = "name";
-//        private string[] sort_options = new string[]{"name", "part_count", "mass", "stage_count", "date_created", "date_updated"};
-        private Dictionary<string, string>sort_options = new Dictionary<string, string>{
-            {"name", "Name"}, {"part_count", "Part Count"}, {"mass", "Mass"}, {"stage_count", "Stages"}, {"date_created", "Created"}, {"date_updated", "Updated"}
-        };
-        private float sort_menu_width = 0;
-        private bool reverse_sort = false;
-
-        private string new_tag_name = "";
-        private bool edit_tags = false;
-        private bool add_to_tag = false;
-        private bool tag_mode_reduce = true;
-
-        private Dictionary<string, bool> selected_types = new Dictionary<string, bool>(){
-            {"SPH",true},{"VAB",false},{"Subassemblies",false} //TODO select SPH or VAB based on current editor
-        };
-        private int selected_type_count = 1;
-
-        private bool expand_details = false;
 
         //Main GUI draw method (called by onGUI, see DryUI in KatLib).  Broken up into easier to digest sections to help prevent heart burn.
         protected override void WindowContent(int win_id){
@@ -131,12 +138,6 @@ namespace CraftManager
         protected override void FooterContent(int window_id){
             GUILayout.Label("hello, this is footer");
         }
-
-//        string menu_out = "nill";
-//        Dictionary<string, string> menu_list = new Dictionary<string, string>{
-//            {"foo", "foo"}, {"bar_bar", "bar"}, {"moo", "cow"}
-//        };
-
 
         protected void draw_top_section(float section_width){
             section(() =>{
@@ -199,7 +200,6 @@ namespace CraftManager
                         reverse_sort = !reverse_sort;
                         filter_craft();
                     }
-
                 });
 
                 style_override = "craft.list_container";

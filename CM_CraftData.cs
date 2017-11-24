@@ -211,6 +211,8 @@ namespace CraftManager
                         return y.stage_count.CompareTo(x.stage_count);
                     }else if(sort_by == "mass"){
                         return y.mass_total.CompareTo(x.mass_total);
+                    }else if(sort_by == "cost"){
+                        return y.cost_total.CompareTo(x.cost_total);
                     }else if(sort_by == "date_created"){
                         return x.create_time.CompareTo(y.create_time);
                     }else if(sort_by == "date_updated"){
@@ -275,7 +277,6 @@ namespace CraftManager
 
         public bool locked_parts = false;
         public void check_locked_parts() {
-            CraftManager.log("checking locked parts");
             locked_parts = false;
             foreach(string p_name in part_name_list){
                 if(cache.locked_parts.Contains(p_name)){
@@ -285,7 +286,7 @@ namespace CraftManager
         }
 
         //Attribues which are always set from craft file/path, never loaded from cache
-        public Texture thumbnail;
+        public Texture2D thumbnail;
         public string create_time;
         public string last_updated_time;
         public string save_dir;
@@ -313,7 +314,16 @@ namespace CraftManager
             last_updated_time = System.IO.File.GetLastWriteTime(path).ToBinary().ToString();
 
             save_dir = path.Replace(Paths.joined(CraftManager.ksp_root, "saves", ""), "").Split('/')[0];
-            //thumbnail = ShipConstruction.GetThumbnail("/thumbs/" + save_dir + "_" + construction_type + "_" + name);
+
+            string thumbnail_path = Paths.joined(CraftManager.ksp_root, "thumbs/" + save_dir + "_" + construction_type + "_" + name + ".png");
+            thumbnail = new Texture2D(1, 1, TextureFormat.RGBA32, false);
+            if(File.Exists(thumbnail_path)){
+                byte[] pic_data = File.ReadAllBytes(thumbnail_path);  //read image file
+                thumbnail.LoadImage(pic_data);                
+            }else{
+                thumbnail = (Texture2D)StyleSheet.assets[construction_type + "_placeholder"];                
+            }
+//            thumbnail = ShipConstruction.GetThumbnail("/thumbs/" + save_dir + "_" + construction_type + "_" + name);
 
         }
 

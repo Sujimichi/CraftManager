@@ -11,6 +11,7 @@ cp bin/Release/*.dll bin/Release/CraftManager/Plugins/
 
 cp -a assets/*.* bin/Release/CraftManager/
 mv bin/Release/CraftManager/*.jpg bin/Release/CraftManager/Assets/
+mv bin/Release/CraftManager/*.png bin/Release/CraftManager/Assets/
 
 cp LICENCE.txt bin/Release/CraftManager/LICENCE.txt
 

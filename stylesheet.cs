@@ -18,9 +18,11 @@ namespace CraftManager
     {
 
         public static Dictionary<string, Texture> assets = new Dictionary<string, Texture>() { 
-            { "ui_toolbar_btn",       GameDatabase.Instance.GetTexture(Paths.joined("CraftManager", "Assets", "cm_ui"), false) },
-            { "ui_toolbar_btn_hover", GameDatabase.Instance.GetTexture(Paths.joined("CraftManager", "Assets", "cm_ui_hover"), false) }
-
+            { "ui_toolbar_btn",         GameDatabase.Instance.GetTexture(Paths.joined("CraftManager", "Assets", "cm_ui"), false) },
+            { "ui_toolbar_btn_hover",   GameDatabase.Instance.GetTexture(Paths.joined("CraftManager", "Assets", "cm_ui_hover"), false) },
+            { "SPH_placeholder",        GameDatabase.Instance.GetTexture(Paths.joined("CraftManager", "Assets", "SPH_placeholder"), false) },
+            { "VAB_placeholder",        GameDatabase.Instance.GetTexture(Paths.joined("CraftManager", "Assets", "VAB_placeholder"), false) },
+            { "Subassembly_placeholder",GameDatabase.Instance.GetTexture(Paths.joined("CraftManager", "Assets", "SUB_placeholder"), false) }
         };
 
         public GUISkin skin;
@@ -57,7 +59,7 @@ namespace CraftManager
 
         public StyleSheet(GUISkin base_skin){
 
-            set_texture("blue_background", new Color(0.4f, 0.5f, 0.9f, 1), TextureWrapMode.Repeat);
+            set_texture("blue_background", new Color(0.4f, 0.5f, 0.9f, 1), TextureWrapMode.Repeat);           
             set_texture("dark_background", new Color(0.12f, 0.12f, 0.12f, 0.5f));
             set_texture("pic_highlight", new Color(0.4f, 0.5f, 0.9f, 1));
             set_texture("green_background", new Color(0.2f, 0.6f, 0.2f, 1));
@@ -208,12 +210,12 @@ namespace CraftManager
 
 
             define_style("menu.background", base_skin.label, s =>{
-                s.normal.textColor = Color.black;
                 s.normal.background = textures["dark_background"];
             });
             define_style("menu.item", base_skin.button, s =>{
                 s.normal.background = (Texture2D)textures["dark_background"];
                 s.hover.background = (Texture2D)textures["blue_background"];
+                s.active.background = (Texture2D)textures["green_background"];
             });
 
 
