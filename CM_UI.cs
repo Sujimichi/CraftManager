@@ -44,7 +44,7 @@ namespace CraftManager
         }
 
         private void refresh(){
-            CraftData.load_craft();
+            CraftData.load_craft(current_save_dir);
             filter_craft();
         }
 

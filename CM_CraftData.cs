@@ -16,6 +16,7 @@ namespace CraftManager
         public Dictionary<string, ConfigNode> craft_data = new Dictionary<string, ConfigNode>();
 
         public Dictionary<string, AvailablePart> part_data = new Dictionary<string, AvailablePart>();  //name->part lookup for available parts
+        public List<string> locked_parts = new List<string>();
 
         public string installed_part_sig;
 
@@ -27,11 +28,15 @@ namespace CraftManager
             }
 
             if(part_data.Count == 0){
+                locked_parts.Clear();
                 CraftManager.log("caching game parts");
                 List<string> part_names = new List<string>();
                 foreach(AvailablePart part in PartLoader.LoadedPartsList){
                     part_data.Add(part.name, part);
                     part_names.Add(part.name);
+                    if(!ResearchAndDevelopment.PartTechAvailable(part)){
+                        locked_parts.AddUnique(part.name);
+                    }
                 }
                 part_names.Sort();
                 string s = "";
@@ -56,6 +61,8 @@ namespace CraftManager
             foreach(var prop in craft.GetType().GetProperties()){               
                 node.AddValue(prop.Name, prop.GetValue(craft, null));
             }
+
+
             if(craft_data.ContainsKey(craft.path)){
                 craft_data[craft.path] = node;
             }else{
@@ -133,18 +140,21 @@ namespace CraftManager
 
         public static List<CraftData> all_craft = new List<CraftData>();  //will hold all the craft loaded from disk
         public static List<CraftData> filtered  = new List<CraftData>();  //will hold the results of search/filtering to be shown in the UI.
-
         public static CraftDataCache cache = null;
 
 
 
-        public static void load_craft(){            
+        public static void load_craft(string save_dir = null){
             if(cache == null){
                 cache = new CraftDataCache();                
             }
 
             string[] craft_file_paths;
-            craft_file_paths = Directory.GetFiles(Paths.joined(CraftManager.ksp_root, "saves"), "*.craft", SearchOption.AllDirectories);
+            if(save_dir == null){
+                craft_file_paths = Directory.GetFiles(Paths.joined(CraftManager.ksp_root, "saves"), "*.craft", SearchOption.AllDirectories);
+            } else{
+                craft_file_paths = Directory.GetFiles(Paths.joined(CraftManager.ksp_root, save_dir, "saves"), "*.craft", SearchOption.AllDirectories);
+            }
 
             all_craft.Clear();
             foreach(string path in craft_file_paths){
@@ -229,7 +239,8 @@ namespace CraftManager
 
         //**Instance Methods/Variables**//
 
-        //craft attributes - these attributes will either be loaded from a .craft file or from the cache
+        //craft attributes - attributes with getters will automatically be stored in the cache and 
+        //if they also have a setter then they can be restored from the cache.
         public string path { get; set; }
         public string checksum { get; set; }
         public string part_sig { get; set; }
@@ -238,7 +249,7 @@ namespace CraftManager
         public string description { get; set; }
         public string construction_type { get; set; }
         public bool missing_parts { get; set; }
-        public bool locked_parts { get; set; }
+//        public bool locked_parts = false; //{ get; set; }
         public int stage_count { get; set; }
         public int part_count { get; set; }
         public Dictionary<string, float> cost = new Dictionary<string, float> {
@@ -273,6 +284,30 @@ namespace CraftManager
             set { mass["total"] = value; }
         }
 
+        public List<string> part_name_list = new List<string>();
+        public string part_names {
+            get{
+                return String.Join(", ", part_name_list.ToArray());
+            }
+            set{ 
+                part_name_list.Clear();
+                foreach(string v in value.Split(',')){
+                    part_name_list.AddUnique(v.Trim());
+                }
+                    
+            }
+        }
+
+        public bool locked_parts = false;
+        public void check_locked_parts() {
+            CraftManager.log("checking locked parts");
+            locked_parts = false;
+            foreach(string p_name in part_name_list){
+                if(cache.locked_parts.Contains(p_name)){
+                    locked_parts = true;
+                }
+            }
+        }
 
         //Attribues which are always set from craft file/path, never loaded from cache
         public Texture thumbnail;
@@ -295,6 +330,8 @@ namespace CraftManager
                 part_sig = cache.installed_part_sig;
                 cache.write(this);
             }
+            //HighLogic.CurrentGame.Mode == Game.Modes.SANDBOX
+            check_locked_parts();
 
             //set timestamp data from the craft file
             create_time = System.IO.File.GetCreationTime(path).ToBinary().ToString();
@@ -324,7 +361,7 @@ namespace CraftManager
             part_count = parts.Length;
             stage_count = 0;
             missing_parts = false;
-            locked_parts = false;
+//            locked_parts = false;
 
 
             //interim variables used to collect values from GetPartCostsAndMass (defined outside of loop as a garbage reduction measure)
@@ -333,7 +370,7 @@ namespace CraftManager
             float dry_cost = 0;
             float fuel_cost = 0;
             string stage;
-
+            string part_name;
 
             foreach(ConfigNode part in parts){
 
@@ -347,16 +384,18 @@ namespace CraftManager
                 }
 
                 //locate part in game_parts and read part cost/mass information.
-                matched_part = cache.fetch_part(get_part_name(part));
+                part_name = get_part_name(part);
+                part_name_list.AddUnique(part_name);
+                matched_part = cache.fetch_part(part_name);
                 if(matched_part != null){
                     ShipConstruction.GetPartCostsAndMass(part, matched_part, out dry_cost, out fuel_cost, out dry_mass, out fuel_mass);
                     cost["dry"] += dry_cost;
                     cost["fuel"] += fuel_cost;
                     mass["dry"] += dry_mass;
                     mass["fuel"] += fuel_mass;
-                    if(!ResearchAndDevelopment.PartTechAvailable(matched_part)){
-                        locked_parts = true;
-                    }
+//                    if(!ResearchAndDevelopment.PartTechAvailable(matched_part)){
+//                        locked_parts = true;
+//                    }
 
                 } else{
                     missing_parts = true;
