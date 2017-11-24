@@ -206,6 +206,17 @@ namespace CraftManager
                 s.normal.background = textures["blue_background"];
             });
 
+
+            define_style("menu.background", base_skin.label, s =>{
+                s.normal.textColor = Color.black;
+                s.normal.background = textures["dark_background"];
+            });
+            define_style("menu.item", base_skin.button, s =>{
+                s.normal.background = (Texture2D)textures["dark_background"];
+                s.hover.background = (Texture2D)textures["blue_background"];
+            });
+
+
             //set the custom styles onto the base_skin;
             skin = Instantiate(base_skin);
             GUIStyle[] temp = new GUIStyle[custom_styles.Count];

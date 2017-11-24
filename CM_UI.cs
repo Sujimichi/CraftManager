@@ -15,9 +15,10 @@ namespace CraftManager
         private float window_height = Screen.height - 400f;
         private float window_width  = 1000f;
 
-        private string current_save_dir;
-        private List<string> all_saves= new List<string>();
-
+        private string active_save_dir;
+        private string current_save_dir = HighLogic.SaveFolder;
+        private Dictionary<string, string> save_menu_options = new Dictionary<string, string>();
+        float save_menu_width = 0;
         //collection of Vector2 objects to track scroll positions
         private Dictionary<string, Vector2> scroll_pos = new Dictionary<string, Vector2>(){
             {"lhs", new Vector2()}, {"rhs", new Vector2()}, {"main", new Vector2()}
@@ -27,22 +28,26 @@ namespace CraftManager
         private void Start(){     
             CraftManager.log("Starting Main UI");
             CraftManager.main_ui = this;
+            active_save_dir = HighLogic.SaveFolder;
+
+            save_menu_options.Add(active_save_dir, "Current Save (" + active_save_dir + ")");
             foreach(string dir in Directory.GetDirectories(Paths.joined(CraftManager.ksp_root, "saves"))){
                 string dir_name = dir.Replace(Paths.joined(CraftManager.ksp_root, "saves"), "").Replace("/","");
-                if(dir_name != "training" && dir_name != "scenarios"){
-                    all_saves.Add(dir_name);
+                if(dir_name != "training" && dir_name != "scenarios" && dir_name != active_save_dir){
+                    save_menu_options.Add(dir_name, dir_name);
                 }
             }
-            current_save_dir = HighLogic.SaveFolder;
+            save_menu_options.Add("all", "All");
+
 
             window_title = "Craft Manager";
             window_pos = new Rect((Screen.width/2) - (window_width/2) + 100, 80, window_width, window_height);
             visible = false;
-            draggable = false;
+//            draggable = false;
             footer = false;
 
             Tags.load();
-//            show();
+            show();
         }
 
         protected override void on_show(){            
@@ -51,13 +56,13 @@ namespace CraftManager
         }
 
         private void refresh(){
-            CraftData.load_craft(current_save_dir);
+            CraftData.load_craft(active_save_dir=="all" ? null : active_save_dir);
             filter_craft();
         }
 
         private void filter_craft(){
             Dictionary<string, object> search_criteria = new Dictionary<string, object>();
-            search_criteria.Add("save_dir", current_save_dir);
+//            search_criteria.Add("save_dir", active_save_dir);
             search_criteria.Add("search", search_string);
             search_criteria.Add("type", selected_types);
             List<string> s_tags = Tags.selected_tags();
@@ -76,7 +81,11 @@ namespace CraftManager
         private string search_string = "";
         private string last_search = "";
         private string sort_opt = "name";
-        private string[] sort_options = new string[]{"name", "part_count", "mass", "stage_count", "date_created", "date_updated"};
+//        private string[] sort_options = new string[]{"name", "part_count", "mass", "stage_count", "date_created", "date_updated"};
+        private Dictionary<string, string>sort_options = new Dictionary<string, string>{
+            {"name", "Name"}, {"part_count", "Part Count"}, {"mass", "Mass"}, {"stage_count", "Stages"}, {"date_created", "Created"}, {"date_updated", "Updated"}
+        };
+        private float sort_menu_width = 0;
         private bool reverse_sort = false;
 
         private string new_tag_name = "";
@@ -123,6 +132,11 @@ namespace CraftManager
             GUILayout.Label("hello, this is footer");
         }
 
+//        string menu_out = "nill";
+//        Dictionary<string, string> menu_list = new Dictionary<string, string>{
+//            {"foo", "foo"}, {"bar_bar", "bar"}, {"moo", "cow"}
+//        };
+
 
         protected void draw_top_section(float section_width){
             section(() =>{
@@ -138,16 +152,18 @@ namespace CraftManager
                     }
                 });
                 fspace();
-                if(GUILayout.Button("save: " + current_save_dir)){
-                    int i = all_saves.IndexOf(current_save_dir) + 1;
-                    if(i > all_saves.Count-1){i=0;}
-                    current_save_dir = all_saves[i];
-                    refresh();
 
+                if(save_menu_width == 0){
+                    save_menu_width = GUI.skin.button.CalcSize(new GUIContent("Save: " + active_save_dir)).x;
                 }
-                if(GUILayout.Button("refresh")){
+                dropdown("Save: " + active_save_dir, "save_menu", save_menu_options, this, save_menu_width, (resp) => {
+                    active_save_dir = resp;
+                    save_menu_width = GUI.skin.button.CalcSize(new GUIContent("Save: " + active_save_dir)).x;
                     refresh();
-                }
+                });
+                GUILayout.Space(20f);
+
+
             });
             section(() =>{
                 label("Search Craft:", "h2");
@@ -169,15 +185,15 @@ namespace CraftManager
                 last_search = search_string;
                 section(()=>{
                     fspace();
-                    if(GUILayout.Button("sort: " + sort_opt.Replace("_"," "), width(150f))){
-                        int i = sort_options.IndexOf(sort_opt) + 1;
-                        if(i > sort_options.Length-1){
-                            i=0;
-                        }
-                        sort_opt = sort_options[i];
-                        filter_craft();
 
+                    if(sort_menu_width == 0){
+                        sort_menu_width = GUI.skin.button.CalcSize(new GUIContent("Sort: " + sort_options[sort_opt])).x;
                     }
+                    dropdown("Sort: " + sort_options[sort_opt], "sort_menu", sort_options, this, sort_menu_width, (resp) => {
+                        sort_opt = resp;
+                        sort_menu_width = GUI.skin.button.CalcSize(new GUIContent("Sort: " + sort_options[sort_opt])).x;
+                        filter_craft();
+                    });
 
                     if(GUILayout.Button((reverse_sort ? "/\\" : "\\/"), width(22f))){
                         reverse_sort = !reverse_sort;
