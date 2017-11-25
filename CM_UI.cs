@@ -40,6 +40,7 @@ namespace CraftManager
         private bool add_to_tag = false;
         private bool tag_mode_reduce = true;
         private bool expand_details = false;
+        private bool exclude_stock_craft = true;
 
 
         private Dictionary<string, bool> selected_types = new Dictionary<string, bool>(){
@@ -58,8 +59,14 @@ namespace CraftManager
         private void Start(){     
             CraftManager.log("Starting Main UI");
             CraftManager.main_ui = this;
-            active_save_dir = HighLogic.SaveFolder;
+            window_title = "Craft Manager";
+            window_pos = new Rect((Screen.width/2) - (window_width/2) + 100, 80, window_width, window_height);
+            visible = false;
+            //            draggable = false;
+            footer = false;
 
+
+            active_save_dir = HighLogic.SaveFolder;
             save_menu_options.Add(active_save_dir, "Current Save (" + active_save_dir + ")");
             foreach(string dir in Directory.GetDirectories(Paths.joined(CraftManager.ksp_root, "saves"))){
                 string dir_name = dir.Replace(Paths.joined(CraftManager.ksp_root, "saves"), "").Replace("/","");
@@ -68,13 +75,6 @@ namespace CraftManager
                 }
             }
             save_menu_options.Add("all", "All");
-
-
-            window_title = "Craft Manager";
-            window_pos = new Rect((Screen.width/2) - (window_width/2) + 100, 80, window_width, window_height);
-            visible = false;
-//            draggable = false;
-            footer = false;
 
             Tags.load();
             show();
@@ -102,6 +102,9 @@ namespace CraftManager
             }
             search_criteria.Add("sort", sort_opt);
             search_criteria.Add("reverse_sort", reverse_sort);
+            if(exclude_stock_craft){
+                search_criteria.Add("exclude_stock", true);
+            }
             CraftData.filter_craft(search_criteria);
         }
 
@@ -110,23 +113,16 @@ namespace CraftManager
         //Main GUI draw method (called by onGUI, see DryUI in KatLib).  Broken up into easier to digest sections to help prevent heart burn.
         protected override void WindowContent(int win_id){
             v_section(()=>{
-                draw_top_section(window_width);          
+                draw_top_section(window_width);     
+                GUILayout.Space(10);
                 section(window_width, inner_width =>{
                     draw_left_hand_section(inner_width); //Tag list section
                     draw_main_section(inner_width);      //Main craft list
                     draw_right_hand_section(inner_width);//Craft details section
                 });
-                
-                section(window_width,(inner_width) =>{
-                    fspace();
-                    gui_state(CraftData.selected_craft() != null, ()=>{
-                        if(GUILayout.Button("Load", "button.load", width(inner_width*0.2f) )){
-                            EditorLogic.LoadShipFromFile(CraftData.selected_craft().path);
-                            this.hide();
-                        }                        
-                    });
 
-                });
+                draw_bottom_section(window_width);
+
             });
             if(!String.IsNullOrEmpty(auto_focus_on)){
                 GUI.FocusControl(auto_focus_on);
@@ -135,9 +131,40 @@ namespace CraftManager
 
         }
 
+
+        protected void draw_bottom_section(float section_width){
+            section(section_width,(inner_width) =>{
+                new_tag_name = GUILayout.TextField(new_tag_name, width(200f));
+                if(GUILayout.Button("Add", width(40f) )){
+                    Tags.add(new_tag_name);
+                    new_tag_name = "";
+                }
+
+                fspace();
+
+                gui_state(CraftData.selected_craft() != null, ()=>{
+                    if(GUILayout.Button("Load", "button.load", width(120f) )){
+                        EditorLogic.LoadShipFromFile(CraftData.selected_craft().path);
+                        this.hide();
+                    }
+                    if(GUILayout.Button("Merge", "button.merge", width(120f) )){
+//                        EditorLogic.LoadShipFromFile(CraftData.selected_craft().path);
+                        this.hide();
+                    }
+                });
+                if(GUILayout.Button("Close", "button.merge", width(120f) )){
+                    this.hide();
+                }
+
+            });
+            GUILayout.Space(20);
+        }
+
         protected override void FooterContent(int window_id){
             GUILayout.Label("hello, this is footer");
         }
+
+
 
         protected void draw_top_section(float section_width){
             section(() =>{
@@ -162,7 +189,7 @@ namespace CraftManager
                     save_menu_width = GUI.skin.button.CalcSize(new GUIContent("Save: " + active_save_dir)).x;
                     refresh();
                 });
-                GUILayout.Space(20f);
+//                GUILayout.Space(20f);
 
 
             });
@@ -177,7 +204,22 @@ namespace CraftManager
                     search_string = "";
                     filter_craft();
                 }
+                    
+                fspace();
+                section(()=>{
+                    bool prev_exstcr = exclude_stock_craft;
+                    exclude_stock_craft = !GUILayout.Toggle(!exclude_stock_craft, "");
+                    if(GUILayout.Button("include Stock Craft", "Label")){
+                        exclude_stock_craft = !exclude_stock_craft;
+                    }
+                    if(exclude_stock_craft != prev_exstcr){
+                        filter_craft();
+                    }
+
+                    
+                });
             });
+
         }
 
         //The Main craft list
@@ -202,8 +244,8 @@ namespace CraftManager
                     }
                 });
 
-                style_override = "craft.list_container";
-                scroll_pos["main"] = scroll(scroll_pos["main"], inner_width, window_height, craft_list_width => {
+
+                scroll_pos["main"] = scroll(scroll_pos["main"], "craft.list_container", inner_width, window_height, craft_list_width => {
                     foreach(CraftData craft in CraftData.filtered){
                         draw_craft_list_item(craft, craft_list_width);
                     }
@@ -231,7 +273,7 @@ namespace CraftManager
                             if(selected_type_count > 1){
                                 label(craft.construction_type, "bold");
                             }
-                            if(craft.save_dir != current_save_dir){
+                            if(active_save_dir != current_save_dir){
                                 fspace();
                                 label("in save: " + craft.save_dir);
                             }
@@ -282,7 +324,7 @@ namespace CraftManager
                     edit_tags = GUILayout.Toggle(edit_tags, "edit", "Button", width(40f) );
                 });
 
-                scroll_pos["lhs"] = scroll(scroll_pos["lhs"], inner_width, window_height, scroll_width => {
+                scroll_pos["lhs"] = scroll(scroll_pos["lhs"], "craft.list_container", inner_width, window_height, scroll_width => {
                     foreach(KeyValuePair<string, Tag> pair in Tags.all){
                         Tag tag = pair.Value;
 
@@ -291,7 +333,7 @@ namespace CraftManager
                             bool prev_state = tag.selected;
                             tag.selected = GUILayout.Toggle(tag.selected, "", "tag.toggle.light");
                             tag.selected = GUILayout.Toggle(tag.selected, tag.name + " - (" + tag.craft_count("filtered") + "/" + tag.craft_count("all") + ")", 
-                                "tag.toggle.label", width(inner_width-(edit_tags ? 65f : 40f)) 
+                                "tag.toggle.label", width(scroll_width-(edit_tags ? 60f : 35f)) 
                             );
                             if(prev_state != tag.selected){
                                 if(add_to_tag){
@@ -310,88 +352,82 @@ namespace CraftManager
                         });
                     }
                 });
-
-                section((w)=>{
-                    new_tag_name = GUILayout.TextField(new_tag_name);
-                    if(GUILayout.Button("Add", width(40f) )){
-                        Tags.add(new_tag_name);
-                        new_tag_name = "";
-                    }
-                });
             });
         }
 
 
 
         protected void draw_right_hand_section(float section_width){
-            scroll_pos["rhs"] = scroll(scroll_pos["rhs"], section_width*0.25f, window_height, scroll_width => {
-                if(CraftData.selected_craft() != null){
-                    CraftData craft = CraftData.selected_craft();
-
-                    label("Craft Details", "h2");
-                    section(()=>{
-                        label("Cost", "bold.compact");
-                        label(humanize(craft.cost_total), "compact");
-                    });
-                    section(()=> {
-                        label("Mass", "bold.compact");
-                        label(humanize(craft.mass_total), "compact");
-                        fspace();                       
-                        expand_details = GUILayout.Toggle(expand_details, "expand", "hyperlink.bold");
-                    });
-
-                    if(expand_details){
-                        float inner_width = scroll_width - 30;
-                        GUILayoutOption grid_width = width(inner_width*0.4f);
-                        section(()=>{                        
-                            GUILayout.Label("", width(inner_width*0.2f));
-                            GUILayout.Label("Dry", "bold.compact", grid_width);
-                            GUILayout.Label("Fuel", "bold.compact", grid_width);
+            v_section(section_width * 0.25f, (inner_width) =>{                
+                label("Craft Details", "h2");
+                scroll_pos["rhs"] = scroll(scroll_pos["rhs"], inner_width, window_height, scroll_width => {
+                    if(CraftData.selected_craft() != null){
+                        CraftData craft = CraftData.selected_craft();                        
+                        section(()=>{
+                            label("Cost", "bold.compact");
+                            label(humanize(craft.cost_total), "compact");
                         });
-                        section(()=>{                        
-                            GUILayout.Label("Cost", "bold.compact", width(inner_width*0.2f));
-                            GUILayout.Label(humanize(craft.cost_dry), "small.compact", grid_width);
-                            GUILayout.Label(humanize(craft.cost_fuel), "small.compact", grid_width);
+                        section(()=> {
+                            label("Mass", "bold.compact");
+                            label(humanize(craft.mass_total), "compact");
+                            fspace();                       
+                            expand_details = GUILayout.Toggle(expand_details, "expand", "hyperlink.bold");
                         });
-                        section(()=>{                        
-                            GUILayout.Label("Mass", "bold.compact", width(inner_width*0.2f));
-                            GUILayout.Label(humanize(craft.mass_dry), "small.compact", grid_width);
-                            GUILayout.Label(humanize(craft.mass_fuel), "small.compact", grid_width);
-                        });
-                    }
-                    GUILayout.Space(15);
+                        
+                        if(expand_details){
+                            float details_width = scroll_width - 30;
+                            GUILayoutOption grid_width = width(details_width*0.4f);
+                            section(()=>{                        
+                                GUILayout.Label("", width(details_width*0.2f));
+                                GUILayout.Label("Dry", "bold.compact", grid_width);
+                                GUILayout.Label("Fuel", "bold.compact", grid_width);
+                            });
+                            section(()=>{                        
+                                GUILayout.Label("Cost", "bold.compact", width(details_width*0.2f));
+                                GUILayout.Label(humanize(craft.cost_dry), "small.compact", grid_width);
+                                GUILayout.Label(humanize(craft.cost_fuel), "small.compact", grid_width);
+                            });
+                            section(()=>{                        
+                                GUILayout.Label("Mass", "bold.compact", width(details_width*0.2f));
+                                GUILayout.Label(humanize(craft.mass_dry), "small.compact", grid_width);
+                                GUILayout.Label(humanize(craft.mass_fuel), "small.compact", grid_width);
+                            });
+                        }
 
-                    section(() =>{
-                        label("Tags", "h2");
-                        GUILayout.FlexibleSpace();
-                        add_to_tag = GUILayout.Toggle(add_to_tag, "add tags", "Button", width(70f));
-                    });
-                    if(add_to_tag){
-                        label("click tags on the left to add them to this craft");
-                        add_to_tag = !GUILayout.Toggle(!add_to_tag, "done", "Button");
-                    }
-                    foreach(string tag in Tags.tags_for(Tags.craft_reference_key(craft))){
+                        GUILayout.Space(15);
+                        
                         section(() =>{
-                            label(tag);    
+                            label("Tags", "h2");
                             GUILayout.FlexibleSpace();
-                            if(GUILayout.Button("x", "tag.delete_button.x")){
-                                Tags.untag_craft(Tags.craft_reference_key(craft), tag);
-                            }
+                            add_to_tag = GUILayout.Toggle(add_to_tag, "add tags", "Button", width(70f));
                         });
-                    }                  
-
-                    //                label("time: " + craft.create_time);
-                    //                label(DateTime.FromBinary(long.Parse(craft.create_time)).ToShortDateString());
-                    //                label(DateTime.FromBinary(long.Parse(craft.create_time)).ToShortTimeString());
-
-
-                    label(craft.description);
-
-
-                }else{
-
-                    label("Select a craft to see info about it", "h1.centered");
-                };
+                        if(add_to_tag){
+                            label("click tags on the left to add them to this craft");
+                            add_to_tag = !GUILayout.Toggle(!add_to_tag, "done", "Button");
+                        }
+                        foreach(string tag in Tags.tags_for(Tags.craft_reference_key(craft))){
+                            section(() =>{
+                                label(tag);    
+                                GUILayout.FlexibleSpace();
+                                if(GUILayout.Button("x", "tag.delete_button.x")){
+                                    Tags.untag_craft(Tags.craft_reference_key(craft), tag);
+                                }
+                            });
+                        }                  
+                        
+                        //                label("time: " + craft.create_time);
+                        //                label(DateTime.FromBinary(long.Parse(craft.create_time)).ToShortDateString());
+                        //                label(DateTime.FromBinary(long.Parse(craft.create_time)).ToShortTimeString());
+                        
+                        
+                        label(craft.description);
+                        
+                        
+                    }else{
+                        
+                        label("Select a craft to see info about it", "h1.centered");
+                    };
+                });
             });
         }
 
@@ -399,24 +435,28 @@ namespace CraftManager
 
         protected void delete_tag_dialog(Tag tag){
             close_dialog();
-            DryDialog dialog = show_dialog((d)=>{
-                if(tag.craft_count("all") > 0){
-                    GUILayout.Label("This tag is used on " + tag.craft_count("all") + " craft.");
-                }
-                GUILayout.Label("Are you sure you want to delete it?");
-                section(()=>{
-                    GUILayout.FlexibleSpace();
-                    if(GUILayout.Button("Cancel")){
-                        close_dialog();
-                    };
-                    if(GUILayout.Button("Delete", "tag.delete_button")){
-                        Tags.remove(tag.name);close_dialog();
-                    };
+            DryDialog dialog = show_dialog((d)=>{                
+                style_override = "dialog.section";
+                v_section(()=>{
+                    if(tag.craft_count("all") > 0){
+                        GUILayout.Label("This tag is used for " + tag.craft_count("all") + " craft.");
+                    }
+                    GUILayout.Label("Are you sure you want to delete this tag?");
+                    section(()=>{
+                        GUILayout.FlexibleSpace();
+                        if(GUILayout.Button("Cancel")){close_dialog();}
+                        if(GUILayout.Button("Delete", "tag.delete_button")){
+                            Tags.remove(tag.name);close_dialog();
+                        };
+                    });
                 });
             });
             dialog.window_pos.width = 400f;
-            dialog.window_pos.height = 100f;
-            dialog.window_title = "Confirm Tag Delete";            
+//            dialog.window_pos.height = 120f;
+            dialog.window_pos.x = Event.current.mousePosition.x + window_pos.x;
+            dialog.window_pos.y = Event.current.mousePosition.y + window_pos.y + 140;
+            dialog.window_title = "Confirm Tag Delete";       
+
         }
 
 

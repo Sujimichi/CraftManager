@@ -3,6 +3,7 @@ using System.IO;
 using System.Collections.Generic;
 using UnityEngine;
 
+
 using KatLib;
 
 namespace CraftManager
@@ -160,13 +161,22 @@ namespace CraftManager
             foreach(string path in craft_file_paths){
                 all_craft.Add(new CraftData(path));
             }
+
+            foreach(string path in Directory.GetFiles(Paths.joined(CraftManager.ksp_root, "Ships"), "*.craft", SearchOption.AllDirectories)){
+                all_craft.Add(new CraftData(path, true));
+            }
+                
+
         }
 
 
         public static void filter_craft(Dictionary<string, object> criteria){
             filtered = all_craft;    
-            if(criteria.ContainsKey("save_dir")){
-                filtered = filtered.FindAll(craft => craft.save_dir == (string)criteria["save_dir"]);
+//            if(criteria.ContainsKey("save_dir")){
+//                filtered = filtered.FindAll(craft => craft.save_dir == (string)criteria["save_dir"]);
+//            }
+            if(criteria.ContainsKey("exclude_stock")){
+                filtered = filtered.FindAll(craft => !craft.stock_craft);
             }
             if(criteria.ContainsKey("search")){
                 filtered = filtered.FindAll(craft => craft.name.ToLower().Contains(((string)criteria["search"]).ToLower()));
@@ -253,12 +263,14 @@ namespace CraftManager
         public int stage_count { get; set; }
         public int part_count { get; set; }
         public bool missing_parts { get; set; }
+        public bool stock_craft { get; set; }
         public float cost_dry { get; set; }
         public float cost_fuel { get; set; }
         public float cost_total { get; set; }
         public float mass_dry { get; set; }
         public float mass_fuel { get; set; }
         public float mass_total { get; set; }
+
 
 
         public List<string> part_name_list = new List<string>();
@@ -285,7 +297,7 @@ namespace CraftManager
             }
         }
 
-        //Attribues which are always set from craft file/path, never loaded from cache
+        //Attribues which are always set from craft file/path, not loaded from cache
         public Texture2D thumbnail;
         public string create_time;
         public string last_updated_time;
@@ -295,9 +307,10 @@ namespace CraftManager
 
         //Initialize a new CraftData object. Takes a path to a .craft file and either populates it from attributes from the craft file
         //or loads information from the CraftDataCache
-        public CraftData(string full_path){
+        public CraftData(string full_path, bool stock = false){
             path = full_path;
             checksum = Checksum.digest(File.ReadAllText(path));
+            stock_craft = stock;
 
             //attempt to load craft data from the cache. If unable to fetch from cache then load 
             //craft data from the .craft file and cache the loaded info.
@@ -313,18 +326,24 @@ namespace CraftManager
             create_time = System.IO.File.GetCreationTime(path).ToBinary().ToString();
             last_updated_time = System.IO.File.GetLastWriteTime(path).ToBinary().ToString();
 
-            save_dir = path.Replace(Paths.joined(CraftManager.ksp_root, "saves", ""), "").Split('/')[0];
+            string thumbnail_path;
+            if(stock_craft){
+                save_dir = "Stock Craft";
+                thumbnail_path = Paths.joined(CraftManager.ksp_root, "Ships", "@thumbs", construction_type,  name + ".png");
+            } else{
+                save_dir = path.Replace(Paths.joined(CraftManager.ksp_root, "saves", ""), "").Split('/')[0];
+                thumbnail_path = Paths.joined(CraftManager.ksp_root, "thumbs/" + save_dir + "_" + construction_type + "_" + name + ".png");
+            }
 
-            string thumbnail_path = Paths.joined(CraftManager.ksp_root, "thumbs/" + save_dir + "_" + construction_type + "_" + name + ".png");
-            thumbnail = new Texture2D(1, 1, TextureFormat.RGBA32, false);
             if(File.Exists(thumbnail_path)){
+                thumbnail = new Texture2D(1, 1, TextureFormat.RGBA32, false);
                 byte[] pic_data = File.ReadAllBytes(thumbnail_path);  //read image file
-                thumbnail.LoadImage(pic_data);                
-            }else{
+                thumbnail.LoadImage(pic_data);          
+            } else{
                 thumbnail = (Texture2D)StyleSheet.assets[construction_type + "_placeholder"];                
             }
-//            thumbnail = ShipConstruction.GetThumbnail("/thumbs/" + save_dir + "_" + construction_type + "_" + name);
 
+//            thumbnail = ShipConstruction.GetThumbnail("/thumbs/" + save_dir + "_" + construction_type + "_" + name);
         }
 
 

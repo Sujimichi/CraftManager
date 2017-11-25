@@ -198,10 +198,18 @@ namespace CraftManager
 
 
             define_style("button.load", base_skin.button, s =>{
-                s.fontSize = 20;
-                s.normal.textColor = Color.green;
-                s.hover.textColor = Color.blue;
+                s.fontSize = 30;
+                s.normal.textColor = new Color(0.2f,0.3f,0.3f,1);
+                s.hover.textColor = new Color(0.6f,0.9f,0.3f,1);
+                s.margin = new RectOffset(0,0,10,15);
             });
+            define_style("button.merge", base_skin.button, s =>{
+                s.fontSize = 30;
+                s.normal.textColor = Color.gray;
+                s.hover.textColor = new Color(0.6f,0.9f,0.3f,1);
+                s.margin = new RectOffset(0,0,10,15);
+            });
+
 
             define_style("pic.hover", base_skin.label, s =>{
                 s.normal.textColor = Color.black;
@@ -216,6 +224,11 @@ namespace CraftManager
                 s.normal.background = (Texture2D)textures["dark_background"];
                 s.hover.background = (Texture2D)textures["blue_background"];
                 s.active.background = (Texture2D)textures["green_background"];
+            });
+
+            define_style("dialog.section", base_skin.label, s =>{
+                s.normal.background = textures["dark_background"];
+                s.margin = new RectOffset(0,0,0,8);
             });
 
 

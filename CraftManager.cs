@@ -6,11 +6,11 @@
 //Branch: master
 
 /* TODO List
-  - KerbalX Integreation
   - improve add tag to craft interface
+  - make tag_data store save specific (maybe have tags which can be global and tags which are save specific);
   - move to other category (sph, vab, subass)
   - move/copy to other save
-  - support for stock craft
+  - KerbalX Integreation
 */
 
 using System;
