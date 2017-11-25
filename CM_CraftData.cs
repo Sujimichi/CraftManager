@@ -143,6 +143,15 @@ namespace CraftManager
         public static List<CraftData> filtered  = new List<CraftData>();  //will hold the results of search/filtering to be shown in the UI.
         public static CraftDataCache cache = null;
 
+        public static int save_state = 0;
+        public static bool loading_craft = false;
+        public static bool craft_saved {
+            get{
+                return save_state <= 0;
+            }
+        }
+
+
 
 
         public static void load_craft(string save_dir = null){

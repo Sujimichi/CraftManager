@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Collections.Generic;
-
+using KSP.UI.Screens;
 using UnityEngine;
 
 using KatLib;
@@ -55,6 +55,43 @@ namespace CraftManager
         };
 
 
+        //register events used to keep track of the save state of the craft.
+        //These events are unregistered by onGameSceneLoadRequested Event.
+        private void Awake(){
+            GameEvents.onEditorShipModified.Add(on_ship_modified);
+            GameEvents.onEditorRestart.Add(on_editor_restart);
+        }
+
+        //editor restart is triggered when loading a craft and creating a new one.  
+        //reset the save_state count to 0 (after new) or -1 (after load).  Reason is that onEditorShipModified is called 
+        //directly after loading so it ends up as 0.  The distinction between load and new is detected by loading_craft being true.
+        public void on_editor_restart(){
+            if(CraftData.loading_craft){
+                CraftData.save_state = -1;
+                CraftData.loading_craft = false;
+            } else{
+                CraftData.save_state = 0;
+            }
+        }
+        //called by onEditorShipModified, increments count of save_state
+        public void on_ship_modified(ShipConstruct ship){
+            CraftData.save_state++;
+        }
+
+        //Actions which are hooked into click events on the main editor buttons (not done with GameEvents)
+        //clicking save resets the save_state to 0. Although this isn't quite right; in the case of the dialog 
+        //to overright existing craft being shown it could result in the wrong save_state being set.
+        private UnityEngine.Events.UnityAction on_save_click = new UnityEngine.Events.UnityAction(()=>{            
+            CraftData.save_state = 0;
+        });
+
+        //Replace the default load action
+        private UnityEngine.Events.UnityAction on_load_click = new UnityEngine.Events.UnityAction(()=>{            
+            CraftManager.main_ui.toggle();
+        });
+        
+
+
 
         private void Start(){     
             CraftManager.log("Starting Main UI");
@@ -65,6 +102,12 @@ namespace CraftManager
             //            draggable = false;
             footer = false;
 
+
+            EditorLogic.fetch.saveBtn.onClick.AddListener(on_save_click);
+            UnityEngine.UI.Button.ButtonClickedEvent c = new UnityEngine.UI.Button.ButtonClickedEvent();
+            c.AddListener(on_load_click);
+            EditorLogic.fetch.loadBtn.onClick = c;
+            
 
             active_save_dir = HighLogic.SaveFolder;
             save_menu_options.Add(active_save_dir, "Current Save (" + active_save_dir + ")");
@@ -77,7 +120,7 @@ namespace CraftManager
             save_menu_options.Add("all", "All");
 
             Tags.load();
-            show();
+//            show();
         }
 
         protected override void on_show(){            
@@ -90,9 +133,11 @@ namespace CraftManager
             filter_craft();
         }
 
+
+
+
         private void filter_craft(){
             Dictionary<string, object> search_criteria = new Dictionary<string, object>();
-//            search_criteria.Add("save_dir", active_save_dir);
             search_criteria.Add("search", search_string);
             search_criteria.Add("type", selected_types);
             List<string> s_tags = Tags.selected_tags();
@@ -124,13 +169,17 @@ namespace CraftManager
                 draw_bottom_section(window_width);
 
             });
-            if(!String.IsNullOrEmpty(auto_focus_on)){
+
+            if(!String.IsNullOrEmpty(auto_focus_on)){  //When the UI opens set focus on the main search text field
                 GUI.FocusControl(auto_focus_on);
                 auto_focus_on = null;
-            }
+            } 
 
         }
 
+        public Dictionary<string, string> load_ops = new Dictionary<string, string>{
+            {"load", "Load Normal"}, {"merge", "Merge"}, {"subload", "Load as Subassembly"}
+        };
 
         protected void draw_bottom_section(float section_width){
             section(section_width,(inner_width) =>{
@@ -144,13 +193,19 @@ namespace CraftManager
 
                 gui_state(CraftData.selected_craft() != null, ()=>{
                     if(GUILayout.Button("Load", "button.load", width(120f) )){
+                        CraftData.loading_craft = true;
                         EditorLogic.LoadShipFromFile(CraftData.selected_craft().path);
                         this.hide();
                     }
-                    if(GUILayout.Button("Merge", "button.merge", width(120f) )){
-//                        EditorLogic.LoadShipFromFile(CraftData.selected_craft().path);
-                        this.hide();
-                    }
+//                    if(GUILayout.Button("Merge", "button.merge", width(120f) )){
+////                        EditorLogic.LoadShipFromFile(CraftData.selected_craft().path);
+//                        this.hide();
+//                    }
+
+                    dropdown("\\/", "load_menu", load_ops, this, 30f, "button.load", "menu.background", "menu.item", resp => {
+                        
+                    });
+
                 });
                 if(GUILayout.Button("Close", "button.merge", width(120f) )){
                     this.hide();

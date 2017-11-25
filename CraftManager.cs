@@ -41,7 +41,7 @@ namespace CraftManager
         private void Awake(){
             GameEvents.onGUIApplicationLauncherReady.Add(add_to_toolbar);
             GameEvents.onGUIApplicationLauncherDestroyed.Add(remove_from_toolbar);
-            GameEvents.onGameSceneLoadRequested.Add(scene_load_request);
+            GameEvents.onGameSceneLoadRequested.Add(scene_load_request);           
         }
 
         //Trigger the creation of custom Skin (copy of default skin with various custom styles added to it, see stylesheet.cs)
@@ -50,6 +50,8 @@ namespace CraftManager
                 DryUI.skin = new StyleSheet(HighLogic.Skin).skin;
             }
         }
+
+
 
         //Bind events to add buttons to the toolbar
         private void add_to_toolbar(){
@@ -81,6 +83,13 @@ namespace CraftManager
         private void scene_load_request(GameScenes scene){
             remove_from_toolbar();
             CraftData.cache = null;
+            CraftData.save_state = 0;
+
+            if(CraftManager.main_ui){
+                GameEvents.onEditorShipModified.Remove(CraftManager.main_ui.on_ship_modified);
+                GameEvents.onEditorRestart.Remove(CraftManager.main_ui.on_editor_restart);
+            }
+
         }
 
         //Button Actions
