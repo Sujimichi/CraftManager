@@ -46,9 +46,14 @@ namespace CraftManager
         private bool expand_details = false;
         private bool exclude_stock_craft = true;
 
+        string load_button_text = "Load";
+        string load_button_action = "load";
+        float load_button_width = 120f;
 
         private Dictionary<string, bool> selected_types = new Dictionary<string, bool>(){
-            {"SPH",true},{"VAB",false},{"Subassemblies",false} //TODO select SPH or VAB based on current editor
+            {"SPH",EditorDriver.editorFacility.CompareTo(EditorFacility.SPH)==0},
+            {"VAB",EditorDriver.editorFacility.CompareTo(EditorFacility.VAB)==0},
+            {"Subassemblies",false} 
         };
         private int selected_type_count = 1;
 
@@ -182,9 +187,7 @@ namespace CraftManager
         }
 
 
-        string load_button_text = "Load";
-        string load_button_action = "load";
-        float load_button_width = 120f;
+
 
         protected void draw_bottom_section(float section_width){
             section(section_width,(inner_width) =>{
@@ -225,60 +228,6 @@ namespace CraftManager
             GUILayout.Space(20);
         }
 
-        //Handles loading the CraftData.selected_craft() into the editor. Takes a string which can either be "load", "merge" or "subload".
-        //"load" performs a normal craft load (checks save state of existing & clears existing content before loading)
-        //"merge" spawns a disconnected contruct of the craft along side an existing craft
-        //"subload" loads like merge, but retains select on the loaded craft so it can be placed (same as stock subassembly load).
-        protected void load_craft(string load_type, bool force = false){
-            if(CraftData.selected_craft() != null){
-
-                if(load_type == "load"){                                       
-                    if(CraftData.craft_saved || force){
-                        CraftData.loading_craft = true;
-                        EditorLogic.LoadShipFromFile(CraftData.selected_craft().path);
-                        this.hide();
-                    } else {
-                        DryDialog dialog = show_dialog(d =>{
-                            style_override = "dialog.section";
-                            v_section(()=>{
-                                label("The Current Craft has unsaved changes", "h2");
-                                if(GUILayout.Button("Load Anyway")){
-                                    load_craft(load_type, true);
-                                    close_dialog();
-                                }
-                                GUILayout.Space(10);
-                                if(GUILayout.Button("Save Current Craft first")){
-                                    string path = ShipConstruction.GetSavePath(EditorLogic.fetch.ship.shipName);
-                                    EditorLogic.fetch.ship.SaveShip().Save(path);
-                                    load_craft(load_type, true);
-                                    close_dialog();
-                                }
-                                GUILayout.Space(10);
-                                if(GUILayout.Button("Cancel")){
-                                    close_dialog();
-                                }
-                            });
-                        });
-                        dialog.window_title = "Confirm Load";
-                        dialog.window_pos = new Rect(this.window_pos.x + (this.window_pos.width / 2) - (dialog.window_pos.width / 2), 
-                            this.window_pos.y + (this.window_pos.height / 2), 400, 80
-                        );
-                    }
-                } else if(load_type == "merge"){                    
-                    ShipConstruct ship = new ShipConstruct();
-                    ship.LoadShip(ConfigNode.Load(CraftData.selected_craft().path));
-                    EditorLogic.fetch.SpawnConstruct(ship);
-                    this.hide();
-                } else if(load_type == "subload"){
-                    ShipTemplate subassembly = new ShipTemplate();
-                    subassembly.LoadShip(ConfigNode.Load(CraftData.selected_craft().path));
-                    EditorLogic.fetch.SpawnTemplate(subassembly);
-                    this.hide();
-                }
-
-            }
-            
-        }
 
 
         protected override void FooterContent(int window_id){
@@ -431,9 +380,6 @@ namespace CraftManager
         }
 
 
-
-
-
         protected void draw_left_hand_section(float section_width){
             v_section(section_width*0.2f, (inner_width) =>{
                 section((w)=>{
@@ -483,6 +429,7 @@ namespace CraftManager
                 label("Craft Details", "h2");
                 scroll_pos["rhs"] = scroll(scroll_pos["rhs"], inner_width, window_height, scroll_width => {
                     if(CraftData.selected_craft() != null){
+                        GUILayout.Space(6);
                         CraftData craft = CraftData.selected_craft();                        
                         section(()=>{
                             label("Cost", "bold.compact");
@@ -553,6 +500,60 @@ namespace CraftManager
         }
 
 
+        //Handles loading the CraftData.selected_craft() into the editor. Takes a string which can either be "load", "merge" or "subload".
+        //"load" performs a normal craft load (checks save state of existing & clears existing content before loading)
+        //"merge" spawns a disconnected contruct of the craft along side an existing craft
+        //"subload" loads like merge, but retains select on the loaded craft so it can be placed (same as stock subassembly load).
+        protected void load_craft(string load_type, bool force = false){
+            if(CraftData.selected_craft() != null){
+
+                if(load_type == "load"){                                       
+                    if(CraftData.craft_saved || force){
+                        CraftData.loading_craft = true;
+                        EditorLogic.LoadShipFromFile(CraftData.selected_craft().path);
+                        this.hide();
+                    } else {
+                        DryDialog dialog = show_dialog(d =>{
+                            style_override = "dialog.section";
+                            v_section(()=>{
+                                label("The Current Craft has unsaved changes", "h2");
+                                if(GUILayout.Button("Load Anyway")){
+                                    load_craft(load_type, true);
+                                    close_dialog();
+                                }
+                                GUILayout.Space(10);
+                                if(GUILayout.Button("Save Current Craft first")){
+                                    string path = ShipConstruction.GetSavePath(EditorLogic.fetch.ship.shipName);
+                                    EditorLogic.fetch.ship.SaveShip().Save(path);
+                                    load_craft(load_type, true);
+                                    close_dialog();
+                                }
+                                GUILayout.Space(10);
+                                if(GUILayout.Button("Cancel")){
+                                    close_dialog();
+                                }
+                            });
+                        });
+                        dialog.window_title = "Confirm Load";
+                        dialog.window_pos = new Rect(this.window_pos.x + (this.window_pos.width / 2) - (dialog.window_pos.width / 2), 
+                            this.window_pos.y + (this.window_pos.height / 2), 400, 80
+                        );
+                    }
+                } else if(load_type == "merge"){                    
+                    ShipConstruct ship = new ShipConstruct();
+                    ship.LoadShip(ConfigNode.Load(CraftData.selected_craft().path));
+                    EditorLogic.fetch.SpawnConstruct(ship);
+                    this.hide();
+                } else if(load_type == "subload"){
+                    ShipTemplate subassembly = new ShipTemplate();
+                    subassembly.LoadShip(ConfigNode.Load(CraftData.selected_craft().path));
+                    EditorLogic.fetch.SpawnTemplate(subassembly);
+                    this.hide();
+                }
+
+            }
+
+        }
 
         protected void delete_tag_dialog(Tag tag){
             close_dialog();
@@ -602,6 +603,7 @@ namespace CraftManager
 
             filter_craft();
         }
+
         private void type_select_all(){
             selected_types["SPH"] = true;
             selected_types["VAB"] = true;
