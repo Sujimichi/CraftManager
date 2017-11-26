@@ -12,7 +12,7 @@ namespace CraftManager
     public class CM_UI : DryUI
     {
 
-        private float window_height = Screen.height - 400f;
+        private float main_section_height = Screen.height - 400f;
         private float window_width  = 1000f;
 
         private string current_save_dir = HighLogic.SaveFolder;
@@ -41,7 +41,6 @@ namespace CraftManager
         private string auto_focus_on = null;
         private string new_tag_name = "";
         private bool edit_tags = false;
-        private bool add_to_tag = false;
         private bool tag_mode_reduce = true;
         private bool expand_details = false;
         private bool exclude_stock_craft = true;
@@ -106,7 +105,7 @@ namespace CraftManager
             CraftManager.log("Starting Main UI");
             CraftManager.main_ui = this;
             window_title = "Craft Manager";
-            window_pos = new Rect((Screen.width/2) - (window_width/2) + 100, 80, window_width, window_height);
+            window_pos = new Rect((Screen.width/2) - (window_width/2) + 100, 80, window_width, main_section_height);
             visible = false;
             //            draggable = false;
             footer = false;
@@ -129,7 +128,7 @@ namespace CraftManager
             save_menu_options.Add("all", "All");
 
             Tags.load();
-//            show();
+            show();
         }
 
         protected override void on_show(){            
@@ -169,6 +168,7 @@ namespace CraftManager
             v_section(()=>{
                 draw_top_section(window_width);     
                 GUILayout.Space(10);
+                scroll_relative_pos = GUILayoutUtility.GetLastRect();
                 section(window_width, inner_width =>{
                     draw_left_hand_section(inner_width); //Tag list section
                     draw_main_section(inner_width);      //Main craft list
@@ -267,7 +267,7 @@ namespace CraftManager
                 });
 
 
-                scroll_pos["main"] = scroll(scroll_pos["main"], "craft.list_container", inner_width, window_height, craft_list_width => {
+                scroll_pos["main"] = scroll(scroll_pos["main"], "craft.list_container", inner_width, main_section_height, craft_list_width => {
                     foreach(CraftData craft in CraftData.filtered){
                         draw_craft_list_item(craft, craft_list_width);
                     }
@@ -343,7 +343,7 @@ namespace CraftManager
                     edit_tags = GUILayout.Toggle(edit_tags, "edit", "Button", width(40f) );
                 });
 
-                scroll_pos["lhs"] = scroll(scroll_pos["lhs"], "craft.list_container", inner_width, window_height, scroll_width => {
+                scroll_pos["lhs"] = scroll(scroll_pos["lhs"], "craft.list_container", inner_width, main_section_height, scroll_width => {
                     foreach(KeyValuePair<string, Tag> pair in Tags.all){
                         Tag tag = pair.Value;
 
@@ -355,13 +355,7 @@ namespace CraftManager
                                 "tag.toggle.label", width(scroll_width-(edit_tags ? 60f : 35f)) 
                             );
                             if(prev_state != tag.selected){
-                                if(add_to_tag){
-                                    tag.selected = prev_state;
-                                    Tags.tag_craft(Tags.craft_reference_key(CraftData.selected_craft()), tag.name);
-                                }else{
-                                    filter_craft();                                    
-                                }
-
+                                filter_craft();                                    
                             }
                             if(edit_tags){
                                 if(GUILayout.Button("X", "tag.delete_button.x")){
@@ -375,11 +369,17 @@ namespace CraftManager
         }
 
 
+        protected Rect scroll_relative_pos = new Rect(0, 0, 0, 0);
 
         protected void draw_right_hand_section(float section_width){
             v_section(section_width * 0.25f, (inner_width) =>{                
                 label("Craft Details", "h2");
-                scroll_pos["rhs"] = scroll(scroll_pos["rhs"], inner_width, window_height, scroll_width => {
+
+//                style_override = skin.scrollView;
+//                v_section(inner_width, main_section_height, (scroll_width)=>{
+                    
+//                })
+                scroll_pos["rhs"] = scroll(scroll_pos["rhs"], inner_width, main_section_height, scroll_width => {
                     if(CraftData.selected_craft() != null){
                         GUILayout.Space(6);
                         CraftData craft = CraftData.selected_craft();                        
@@ -392,6 +392,7 @@ namespace CraftManager
                             label(humanize(craft.mass_total), "compact");
                             fspace();                       
                             expand_details = GUILayout.Toggle(expand_details, "expand", "hyperlink.bold");
+
                         });
                         
                         if(expand_details){
@@ -416,18 +417,21 @@ namespace CraftManager
 
                         GUILayout.Space(15);
                         
-                        section(() =>{
+                        section((w) =>{
                             label("Tags", "h2");
                             GUILayout.FlexibleSpace();
-//                            add_to_tag = GUILayout.Toggle(add_to_tag, "add tags", "Button", width(70f));
-                            dropdown("Add Tag", "add_tag_menu_moo", Tags.names, this, 70f, resp => {
+                            scroll_relative_pos.x += (window_pos.width * (0.55f+0.2f)) - 5f;
+                            scroll_relative_pos.y += 45f - scroll_pos["rhs"].y;
+
+                                                          
+                            dropdown("Add Tag", "add_tag_menu", Tags.names, this, scroll_relative_pos, 70f, "Button", "menu.background", "menu.item.small", resp => {
                                 Tags.tag_craft(Tags.craft_reference_key(craft), resp);
                             });
+
+                   
+
                         });
-                        if(add_to_tag){
-                            label("click tags on the left to add them to this craft");
-                            add_to_tag = !GUILayout.Toggle(!add_to_tag, "done", "Button");
-                        }
+                   
                         foreach(string tag in Tags.tags_for(Tags.craft_reference_key(craft))){
                             section(() =>{
                                 label(tag);    

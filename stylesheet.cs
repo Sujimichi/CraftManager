@@ -220,11 +220,23 @@ namespace CraftManager
             define_style("menu.background", base_skin.label, s =>{
                 s.normal.background = textures["dark_background"];
             });
+            define_style("menu.scroll", base_skin.scrollView, s =>{
+//                s.normal.background = skin.label.normal.background;
+                s.padding = new RectOffset(0,0,0,0);
+                s.margin = new RectOffset(0,0,0,0);
+                s.border = new RectOffset(0,0,0,0);
+            });
             define_style("menu.item", base_skin.button, s =>{
                 s.normal.background = (Texture2D)textures["dark_background"];
                 s.hover.background = (Texture2D)textures["blue_background"];
                 s.active.background = (Texture2D)textures["green_background"];
             });
+
+            define_style("menu.item.small", "menu.item", s =>{
+                s.fontSize = 12;
+            });
+
+
 
             define_style("dialog.section", base_skin.label, s =>{
                 s.normal.background = textures["dark_background"];
