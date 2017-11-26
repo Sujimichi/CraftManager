@@ -11,6 +11,9 @@
   - move to other category (sph, vab, subass)
   - move/copy to other save
   - KerbalX Integreation
+  - Rename Craft
+  - Delete Craft
+  - Edit Craft (and subassembly) descriptions
 */
 
 using System;

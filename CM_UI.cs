@@ -27,6 +27,10 @@ namespace CraftManager
             {"name", "Name"}, {"part_count", "Part Count"}, {"stage_count", "Stages"}, {"mass", "Mass"}, {"cost", "Cost"}, {"date_created", "Created"}, {"date_updated", "Updated"}
         };
 
+        public Dictionary<string, string> load_menu_options = new Dictionary<string, string>();
+        public Dictionary<string, string> load_menu_options_default = new Dictionary<string, string> { { "merge", "Merge" }, { "subload", "Load as Subassembly" } };
+        public Dictionary<string, string> load_menu_options_submode = new Dictionary<string, string> { { "merge", "Merge" }, { "load", "Load as Craft" } };
+
         private float save_menu_width = 0;
         private float sort_menu_width = 0;
 
@@ -177,9 +181,10 @@ namespace CraftManager
 
         }
 
-        public Dictionary<string, string> load_ops = new Dictionary<string, string>{
-            {"load", "Load Normal"}, {"merge", "Merge"}, {"subload", "Load as Subassembly"}
-        };
+
+        string load_button_text = "Load";
+        string load_button_action = "load";
+        float load_button_width = 120f;
 
         protected void draw_bottom_section(float section_width){
             section(section_width,(inner_width) =>{
@@ -191,29 +196,90 @@ namespace CraftManager
 
                 fspace();
 
-                gui_state(CraftData.selected_craft() != null, ()=>{
-                    if(GUILayout.Button("Load", "button.load", width(120f) )){
-                        CraftData.loading_craft = true;
-                        EditorLogic.LoadShipFromFile(CraftData.selected_craft().path);
-                        this.hide();
+                gui_state(CraftData.selected_craft() != null, ()=>{                    
+                    load_button_text = "Load";
+                    load_button_action = "load";
+                    load_button_width = 120f;
+                    load_menu_options = load_menu_options_default;
+                    if(CraftData.selected_craft() != null && CraftData.selected_craft().construction_type == "Subassembly"){                        
+                        load_button_text = "Load Subassembly";
+                        load_button_action = "subload";
+                        load_button_width = 300f;
+                        load_menu_options = load_menu_options_submode;
                     }
-//                    if(GUILayout.Button("Merge", "button.merge", width(120f) )){
-////                        EditorLogic.LoadShipFromFile(CraftData.selected_craft().path);
-//                        this.hide();
-//                    }
 
-                    dropdown("\\/", "load_menu", load_ops, this, 30f, "button.load", "menu.background", "menu.item", resp => {
-                        
+                    if(GUILayout.Button(load_button_text, "button.load", width(load_button_width) )){
+                        load_craft(load_button_action);
+                    }
+                    dropdown("\\/", "load_menu", load_menu_options, this, 30f, "button.load", "menu.background", "menu.item", resp => {
+                        load_craft(resp);
                     });
 
                 });
-                if(GUILayout.Button("Close", "button.merge", width(120f) )){
+                GUILayout.Space(8);
+                if(GUILayout.Button("Close", "button.close", width(120f) )){
                     this.hide();
                 }
 
             });
             GUILayout.Space(20);
         }
+
+        //Handles loading the CraftData.selected_craft() into the editor. Takes a string which can either be "load", "merge" or "subload".
+        //"load" performs a normal craft load (checks save state of existing & clears existing content before loading)
+        //"merge" spawns a disconnected contruct of the craft along side an existing craft
+        //"subload" loads like merge, but retains select on the loaded craft so it can be placed (same as stock subassembly load).
+        protected void load_craft(string load_type, bool force = false){
+            if(CraftData.selected_craft() != null){
+
+                if(load_type == "load"){                                       
+                    if(CraftData.craft_saved || force){
+                        CraftData.loading_craft = true;
+                        EditorLogic.LoadShipFromFile(CraftData.selected_craft().path);
+                        this.hide();
+                    } else {
+                        DryDialog dialog = show_dialog(d =>{
+                            style_override = "dialog.section";
+                            v_section(()=>{
+                                label("The Current Craft has unsaved changes", "h2");
+                                if(GUILayout.Button("Load Anyway")){
+                                    load_craft(load_type, true);
+                                    close_dialog();
+                                }
+                                GUILayout.Space(10);
+                                if(GUILayout.Button("Save Current Craft first")){
+                                    string path = ShipConstruction.GetSavePath(EditorLogic.fetch.ship.shipName);
+                                    EditorLogic.fetch.ship.SaveShip().Save(path);
+                                    load_craft(load_type, true);
+                                    close_dialog();
+                                }
+                                GUILayout.Space(10);
+                                if(GUILayout.Button("Cancel")){
+                                    close_dialog();
+                                }
+                            });
+                        });
+                        dialog.window_title = "Confirm Load";
+                        dialog.window_pos = new Rect(this.window_pos.x + (this.window_pos.width / 2) - (dialog.window_pos.width / 2), 
+                            this.window_pos.y + (this.window_pos.height / 2), 400, 80
+                        );
+                    }
+                } else if(load_type == "merge"){                    
+                    ShipConstruct ship = new ShipConstruct();
+                    ship.LoadShip(ConfigNode.Load(CraftData.selected_craft().path));
+                    EditorLogic.fetch.SpawnConstruct(ship);
+                    this.hide();
+                } else if(load_type == "subload"){
+                    ShipTemplate subassembly = new ShipTemplate();
+                    subassembly.LoadShip(ConfigNode.Load(CraftData.selected_craft().path));
+                    EditorLogic.fetch.SpawnTemplate(subassembly);
+                    this.hide();
+                }
+
+            }
+            
+        }
+
 
         protected override void FooterContent(int window_id){
             GUILayout.Label("hello, this is footer");

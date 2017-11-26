@@ -203,10 +203,10 @@ namespace CraftManager
                 s.hover.textColor = new Color(0.6f,0.9f,0.3f,1);
                 s.margin = new RectOffset(0,0,10,15);
             });
-            define_style("button.merge", base_skin.button, s =>{
+            define_style("button.close", base_skin.button, s =>{
                 s.fontSize = 30;
-                s.normal.textColor = Color.gray;
-                s.hover.textColor = new Color(0.6f,0.9f,0.3f,1);
+                s.normal.textColor = new Color(0.4f,0.2f,0.1f,1);
+                s.hover.textColor = new Color(0.8f,0.4f,0.2f,1);
                 s.margin = new RectOffset(0,0,10,15);
             });
 
