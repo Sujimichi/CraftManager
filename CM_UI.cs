@@ -186,53 +186,11 @@ namespace CraftManager
 
         }
 
-
-
-
-        protected void draw_bottom_section(float section_width){
-            section(section_width,(inner_width) =>{
-                new_tag_name = GUILayout.TextField(new_tag_name, width(200f));
-                if(GUILayout.Button("Add", width(40f) )){
-                    Tags.add(new_tag_name);
-                    new_tag_name = "";
-                }
-
-                fspace();
-
-                gui_state(CraftData.selected_craft() != null, ()=>{                    
-                    load_button_text = "Load";
-                    load_button_action = "load";
-                    load_button_width = 120f;
-                    load_menu_options = load_menu_options_default;
-                    if(CraftData.selected_craft() != null && CraftData.selected_craft().construction_type == "Subassembly"){                        
-                        load_button_text = "Load Subassembly";
-                        load_button_action = "subload";
-                        load_button_width = 300f;
-                        load_menu_options = load_menu_options_submode;
-                    }
-
-                    if(GUILayout.Button(load_button_text, "button.load", width(load_button_width) )){
-                        load_craft(load_button_action);
-                    }
-                    dropdown("\\/", "load_menu", load_menu_options, this, 30f, "button.load", "menu.background", "menu.item", resp => {
-                        load_craft(resp);
-                    });
-
-                });
-                GUILayout.Space(8);
-                if(GUILayout.Button("Close", "button.close", width(120f) )){
-                    this.hide();
-                }
-
-            });
-            GUILayout.Space(20);
-        }
-
-
-
         protected override void FooterContent(int window_id){
             GUILayout.Label("hello, this is footer");
         }
+
+
 
 
 
@@ -259,9 +217,6 @@ namespace CraftManager
                     save_menu_width = GUI.skin.button.CalcSize(new GUIContent("Save: " + active_save_dir)).x;
                     refresh();
                 });
-//                GUILayout.Space(20f);
-
-
             });
             section(() =>{
                 label("Search Craft:", "h2");
@@ -285,11 +240,8 @@ namespace CraftManager
                     if(exclude_stock_craft != prev_exstcr){
                         filter_craft();
                     }
-
-                    
                 });
             });
-
         }
 
         //The Main craft list
@@ -467,7 +419,10 @@ namespace CraftManager
                         section(() =>{
                             label("Tags", "h2");
                             GUILayout.FlexibleSpace();
-                            add_to_tag = GUILayout.Toggle(add_to_tag, "add tags", "Button", width(70f));
+//                            add_to_tag = GUILayout.Toggle(add_to_tag, "add tags", "Button", width(70f));
+                            dropdown("Add Tag", "add_tag_menu_moo", Tags.names, this, 70f, resp => {
+                                Tags.tag_craft(Tags.craft_reference_key(craft), resp);
+                            });
                         });
                         if(add_to_tag){
                             label("click tags on the left to add them to this craft");
@@ -497,6 +452,45 @@ namespace CraftManager
                     };
                 });
             });
+        }
+
+        protected void draw_bottom_section(float section_width){
+            section(section_width,(inner_width) =>{
+                new_tag_name = GUILayout.TextField(new_tag_name, width(200f));
+                if(GUILayout.Button("Add", width(40f) )){
+                    Tags.add(new_tag_name);
+                    new_tag_name = "";
+                }
+
+                fspace();
+
+                gui_state(CraftData.selected_craft() != null, ()=>{                    
+                    load_button_text = "Load";
+                    load_button_action = "load";
+                    load_button_width = 120f;
+                    load_menu_options = load_menu_options_default;
+                    if(CraftData.selected_craft() != null && CraftData.selected_craft().construction_type == "Subassembly"){                        
+                        load_button_text = "Load Subassembly";
+                        load_button_action = "subload";
+                        load_button_width = 300f;
+                        load_menu_options = load_menu_options_submode;
+                    }
+
+                    if(GUILayout.Button(load_button_text, "button.load", width(load_button_width) )){
+                        load_craft(load_button_action);
+                    }
+                    dropdown("\\/", "load_menu", load_menu_options, this, 30f, "button.load", "menu.background", "menu.item", resp => {
+                        load_craft(resp);
+                    });
+
+                });
+                GUILayout.Space(8);
+                if(GUILayout.Button("Close", "button.close", width(120f) )){
+                    this.hide();
+                }
+
+            });
+            GUILayout.Space(20);
         }
 
 

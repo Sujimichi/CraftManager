@@ -10,10 +10,10 @@
   - make tag_data store save specific (maybe have tags which can be global and tags which are save specific);
   - move to other category (sph, vab, subass)
   - move/copy to other save
-  - KerbalX Integreation
   - Rename Craft
   - Delete Craft
   - Edit Craft (and subassembly) descriptions
+  - KerbalX Integreation
 */
 
 using System;

@@ -54,7 +54,7 @@ namespace CraftManager
 
         public static string file_path = Paths.joined(CraftManager.ksp_root, "GameData", "CraftManager", "tag_data.json");
         public static Dictionary<string, Tag> all = new Dictionary<string, Tag>();
-
+        public static Dictionary<string, string> names = new Dictionary<string, string>();
 
         public static string craft_reference_key(CraftData craft){            
             return craft.construction_type + "_" + craft.name;
@@ -118,10 +118,11 @@ namespace CraftManager
         private static void save(){
             ConfigNode nodes = new ConfigNode();
             ConfigNode tag_nodes = new ConfigNode();
+            names.Clear();
 
             foreach(KeyValuePair<string, Tag> pair in all){
                 ConfigNode node = new ConfigNode();
-
+                names.Add(pair.Key, pair.Key);
                 node.AddValue("tag_name", pair.Key);
                 foreach(string craft_ref in pair.Value.craft){
                     node.AddValue("craft", craft_ref);
@@ -135,6 +136,7 @@ namespace CraftManager
         //read ConfigNodes from file and convert to Dictonary<string, List<string>>
         public static void load(){
             all.Clear();
+            names.Clear();
             ConfigNode raw_data = ConfigNode.Load(file_path);
             ConfigNode tag_nodes = raw_data.GetNode("TAGS");
 
@@ -142,6 +144,7 @@ namespace CraftManager
                 string tag_name = tag_node.GetValue("tag_name");
                 string[] craft = tag_node.GetValues("craft");
                 Tag tag = new Tag(tag_name, new List<string>(craft));
+                names.Add(tag_name, tag_name);
                 all.Add(tag_name, tag);
             }
         }
