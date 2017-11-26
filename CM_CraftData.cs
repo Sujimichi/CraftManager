@@ -252,9 +252,12 @@ namespace CraftManager
             }
         }
 
-        public static CraftData selected_craft(){                    
-            return filtered.Find(c => c.selected == true);
+        public static CraftData selected_craft { 
+            get { 
+                return filtered.Find(c => c.selected == true);
+            } 
         }
+
 
 
 
@@ -314,9 +317,16 @@ namespace CraftManager
         public bool selected = false;
 
 
+        //Other Attributes
+        public string new_name = "";
+
         //Initialize a new CraftData object. Takes a path to a .craft file and either populates it from attributes from the craft file
         //or loads information from the CraftDataCache
         public CraftData(string full_path, bool stock = false){
+            initialize(full_path, stock);
+        }
+
+        protected void initialize(string full_path, bool stock = false){
             path = full_path;
             checksum = Checksum.digest(File.ReadAllText(path));
             stock_craft = stock;
@@ -435,6 +445,49 @@ namespace CraftManager
 
         public List<string> tags(){
             return Tags.tags_for(Tags.craft_reference_key(this));
+        }
+
+        //Rename the craft (both name in the craft file and the file itself). Does checks before attempting rename to ensure valid name.
+        //the new name should be set on the craft object first;
+        //craft.new_name = "I am Jeff";
+        //craft.rename();
+        //returns various strings depending on outcome, a "200" string means all went ok, yes it's an HTTP status code, I'm a web dev, deal with it.
+        public string rename(){
+            List<string> invalid = new List<string>();
+            if(!String.IsNullOrEmpty(new_name) && new_name != name){
+                foreach(char c in Path.GetInvalidFileNameChars()){                    
+                    if(new_name.Contains(c.ToString())){
+                        invalid.Add(c.ToString());
+                    }
+                }
+                if(invalid.Count == 0){
+                    string new_path = path.Replace(name + ".craft", new_name + ".craft");
+                    FileInfo file = new FileInfo(path);
+                    if(file.Exists){                    
+                        try{
+                            file.MoveTo(new_path);
+                        }
+                        catch(Exception e){
+                            return "Unable to rename file";
+                        }
+                        ConfigNode nodes = ConfigNode.Load(new_path);
+                        nodes.SetValue("ship", new_name);
+                        nodes.Save(new_path);
+                        initialize(new_path, stock_craft);  //reprocess the craft file
+                        return "200";
+                    } else{                    
+                        return "error 404 - file not found";
+                    }
+                } else{
+                    return "new name has invalid letters; " + String.Join(",", invalid.ToArray());
+                }
+            } else{
+                if(String.IsNullOrEmpty(new_name)){
+                    return "name can not be blank";                    
+                }else{
+                    return "name must be different";                                       
+                }
+            }
         }
 
     }

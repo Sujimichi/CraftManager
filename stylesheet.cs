@@ -100,6 +100,9 @@ namespace CraftManager
                 s.fontSize = 12;
             });
 
+            define_style("error", base_skin.label, s =>{
+                s.normal.textColor = Color.red;
+            });
 
 
             define_style("hyperlink", base_skin.label, s =>{
@@ -211,17 +214,10 @@ namespace CraftManager
             });
 
 
-            define_style("pic.hover", base_skin.label, s =>{
-                s.normal.textColor = Color.black;
-                s.normal.background = textures["blue_background"];
-            });
-
-
             define_style("menu.background", base_skin.label, s =>{
                 s.normal.background = textures["dark_background"];
             });
             define_style("menu.scroll", base_skin.scrollView, s =>{
-//                s.normal.background = skin.label.normal.background;
                 s.padding = new RectOffset(0,0,0,0);
                 s.margin = new RectOffset(0,0,0,0);
                 s.border = new RectOffset(0,0,0,0);

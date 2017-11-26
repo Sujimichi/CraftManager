@@ -378,6 +378,9 @@ namespace CraftManager
 
         protected Rect scroll_relative_pos = new Rect(0, 0, 0, 0);
 
+
+
+
         protected void draw_right_hand_section(float section_width){
             v_section(section_width * 0.25f, (inner_width) =>{                
                 label("Craft Details", "h2");
@@ -387,9 +390,9 @@ namespace CraftManager
                     
 //                })
                 scroll_pos["rhs"] = scroll(scroll_pos["rhs"], inner_width, main_section_height, scroll_width => {
-                    if(CraftData.selected_craft() != null){
+                    if(CraftData.selected_craft != null){
                         GUILayout.Space(6);
-                        CraftData craft = CraftData.selected_craft();                        
+                        CraftData craft = CraftData.selected_craft;                        
                         section(()=>{
                             label("Cost", "bold.compact");
                             label(humanize(craft.cost_total), "compact");
@@ -423,6 +426,11 @@ namespace CraftManager
                         }
 
                         GUILayout.Space(15);
+
+                        section((w) => {
+                            button("rename", rename_craft_dialog);
+                        });
+
                         
                         section((w) =>{
                             label("Tags", "h2");
@@ -475,12 +483,12 @@ namespace CraftManager
 
                 fspace();
 
-                gui_state(CraftData.selected_craft() != null, ()=>{                    
+                gui_state(CraftData.selected_craft != null, ()=>{                    
                     load_button_text = "Load";
                     load_button_action = "load";
                     load_button_width = 120f;
                     load_menu_options = load_menu_options_default;
-                    if(CraftData.selected_craft() != null && CraftData.selected_craft().construction_type == "Subassembly"){                        
+                    if(CraftData.selected_craft != null && CraftData.selected_craft.construction_type == "Subassembly"){                        
                         load_button_text = "Load Subassembly";
                         load_button_action = "subload";
                         load_button_width = 300f;
@@ -510,12 +518,12 @@ namespace CraftManager
         //"merge" spawns a disconnected contruct of the craft along side an existing craft
         //"subload" loads like merge, but retains select on the loaded craft so it can be placed (same as stock subassembly load).
         protected void load_craft(string load_type, bool force = false){
-            if(CraftData.selected_craft() != null){
+            if(CraftData.selected_craft != null){
 
                 if(load_type == "load"){                                       
                     if(CraftData.craft_saved || force){
                         CraftData.loading_craft = true;
-                        EditorLogic.LoadShipFromFile(CraftData.selected_craft().path);
+                        EditorLogic.LoadShipFromFile(CraftData.selected_craft.path);
                         this.hide();
                     } else {
                         DryDialog dialog = show_dialog(d =>{
@@ -546,12 +554,12 @@ namespace CraftManager
                     }
                 } else if(load_type == "merge"){                    
                     ShipConstruct ship = new ShipConstruct();
-                    ship.LoadShip(ConfigNode.Load(CraftData.selected_craft().path));
+                    ship.LoadShip(ConfigNode.Load(CraftData.selected_craft.path));
                     EditorLogic.fetch.SpawnConstruct(ship);
                     this.hide();
                 } else if(load_type == "subload"){
                     ShipTemplate subassembly = new ShipTemplate();
-                    subassembly.LoadShip(ConfigNode.Load(CraftData.selected_craft().path));
+                    subassembly.LoadShip(ConfigNode.Load(CraftData.selected_craft.path));
                     EditorLogic.fetch.SpawnTemplate(subassembly);
                     this.hide();
                 }
@@ -586,6 +594,30 @@ namespace CraftManager
 
         }
 
+        protected void rename_craft_dialog(){
+            string exception_message = null;
+            show_dialog(d =>{
+                style_override = "dialog.section";
+                v_section(() =>{
+                    label("rename: " + CraftData.selected_craft.name, "h2");
+                    if(!String.IsNullOrEmpty(exception_message)){
+                        label(exception_message, "error");
+                    }
+                    CraftData.selected_craft.new_name = GUILayout.TextField(CraftData.selected_craft.new_name);
+                    section(()=>{
+                        fspace();
+                        button("cancel", close_dialog);
+                        button("rename", ()=>{
+                            string resp = CraftData.selected_craft.rename();
+                            exception_message = resp;
+                            if(resp == "200"){
+                                close_dialog();
+                            }
+                        });
+                    });
+                });
+            });
+        }
 
         //called when clicking on the craft 'type' (VAB,SPH etc) buttons. unselects the other buttons unless ctrl is being held (enabling multiple select)
         //and ensures that at least one button is selected.
