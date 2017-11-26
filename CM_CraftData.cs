@@ -468,7 +468,7 @@ namespace CraftManager
                             file.MoveTo(new_path);
                         }
                         catch(Exception e){
-                            return "Unable to rename file";
+                            return "Unable to rename file\n" + e.Message;
                         }
                         ConfigNode nodes = ConfigNode.Load(new_path);
                         nodes.SetValue("ship", new_name);
@@ -488,6 +488,16 @@ namespace CraftManager
                     return "name must be different";                                       
                 }
             }
+        }
+
+        public string delete(){
+            if(File.Exists(path)){
+                File.Delete(path);
+                return "200";
+            } else{
+                return "error 404 - file not found";
+            }
+
         }
 
     }

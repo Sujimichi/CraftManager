@@ -178,6 +178,8 @@ namespace CraftManager
                 s.normal.textColor = Color.red;
             });
 
+            define_style("side_panel.scroll", "craft.list_container", s =>{
+            });
 
 
             define_style("tag.toggle.light", base_skin.toggle, s =>{

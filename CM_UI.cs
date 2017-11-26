@@ -136,14 +136,19 @@ namespace CraftManager
             auto_focus_on = "main_search_field";
         }
 
+        protected override void on_hide(){
+            close_dialog(); //incase any dialogs have been left open
+        }
+
+        //load/reload craft from the active_save_dir and apply any active filters
         private void refresh(){
             CraftData.load_craft(active_save_dir=="all" ? null : active_save_dir);
             filter_craft();
         }
 
 
-
-
+        //Collect any currently active filters into a Dictionary<string, object> which can then be passed to 
+        //filter_craft on CraftData (which does the actual filtering work).
         private void filter_craft(){
             Dictionary<string, object> search_criteria = new Dictionary<string, object>();
             search_criteria.Add("search", search_string);
@@ -350,7 +355,7 @@ namespace CraftManager
 //                label("list: " + tag_sec_height + " scroll: " + main_section_height + " item: " + GUI.skin.GetStyle("tag.toggle.label").CalcSize(new GUIContent("foo")).x);
 
 
-                scroll_pos["lhs"] = scroll(scroll_pos["lhs"], "craft.list_container", inner_width, main_section_height, scroll_width => {
+                scroll_pos["lhs"] = scroll(scroll_pos["lhs"], "side_panel.scroll", inner_width, main_section_height, scroll_width => {
                     foreach(KeyValuePair<string, Tag> pair in Tags.all){
                         Tag tag = pair.Value;
 
@@ -389,7 +394,7 @@ namespace CraftManager
 //                v_section(inner_width, main_section_height, (scroll_width)=>{
                     
 //                })
-                scroll_pos["rhs"] = scroll(scroll_pos["rhs"], inner_width, main_section_height, scroll_width => {
+                scroll_pos["rhs"] = scroll(scroll_pos["rhs"], "side_panel.scroll", inner_width, main_section_height, scroll_width => {
                     if(CraftData.selected_craft != null){
                         GUILayout.Space(6);
                         CraftData craft = CraftData.selected_craft;                        
@@ -429,9 +434,11 @@ namespace CraftManager
 
                         section((w) => {
                             button("rename", rename_craft_dialog);
+                            button("delete", delete_craft_dialog);
                         });
 
-                        
+                        GUILayout.Space(15);
+
                         section((w) =>{
                             label("Tags", "h2");
                             GUILayout.FlexibleSpace();
@@ -595,23 +602,54 @@ namespace CraftManager
         }
 
         protected void rename_craft_dialog(){
+            CraftData.selected_craft.new_name = CraftData.selected_craft.name;
             string exception_message = null;
+            int focus_count = 5;
             show_dialog(d =>{
+                d.window_title = "Rename Craft";
                 style_override = "dialog.section";
                 v_section(() =>{
                     label("rename: " + CraftData.selected_craft.name, "h2");
-                    if(!String.IsNullOrEmpty(exception_message)){
-                        label(exception_message, "error");
-                    }
+                    if(!String.IsNullOrEmpty(exception_message)){label(exception_message, "error");}
+                    GUI.SetNextControlName("rename_craft_field");
                     CraftData.selected_craft.new_name = GUILayout.TextField(CraftData.selected_craft.new_name);
                     section(()=>{
                         fspace();
-                        button("cancel", close_dialog);
-                        button("rename", ()=>{
+                        button("Cancel", close_dialog);
+                        button("Rename", ()=>{
                             string resp = CraftData.selected_craft.rename();
                             exception_message = resp;
                             if(resp == "200"){
                                 close_dialog();
+                            }
+                        });
+                    });
+                });
+                if(focus_count > 0){
+                    auto_focus_on = "rename_craft_field";
+                    focus_count--;
+                }
+            });
+        }
+
+        protected void delete_craft_dialog(){
+            string exception_message = null;
+            show_dialog(d =>{
+                d.window_title = "Delete Craft?";
+                style_override = "dialog.section";
+                v_section(() =>{
+                    label("Delete " + CraftData.selected_craft.name + "?", "h2");
+                    label("Are you sure you want to do this?", "h2");
+                    if(!String.IsNullOrEmpty(exception_message)){label(exception_message, "error");}
+                    section(()=>{
+                        fspace();
+                        button("Cancel", close_dialog);
+                        button("Delete", ()=>{
+                            string resp = CraftData.selected_craft.delete();
+                            exception_message = resp;
+                            if(resp == "200"){
+                                close_dialog();
+                                refresh();
                             }
                         });
                     });
