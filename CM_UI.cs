@@ -332,6 +332,8 @@ namespace CraftManager
         }
 
 
+
+
         protected void draw_left_hand_section(float section_width){
             v_section(section_width*0.2f, (inner_width) =>{
                 section((w)=>{
@@ -343,6 +345,11 @@ namespace CraftManager
                     edit_tags = GUILayout.Toggle(edit_tags, "edit", "Button", width(40f) );
                 });
 
+
+//                float tag_sec_height = GUI.skin.GetStyle("tag.toggle.label").CalcSize(new GUIContent("foo")).x * Tags.all.Count;
+//                label("list: " + tag_sec_height + " scroll: " + main_section_height + " item: " + GUI.skin.GetStyle("tag.toggle.label").CalcSize(new GUIContent("foo")).x);
+
+
                 scroll_pos["lhs"] = scroll(scroll_pos["lhs"], "craft.list_container", inner_width, main_section_height, scroll_width => {
                     foreach(KeyValuePair<string, Tag> pair in Tags.all){
                         Tag tag = pair.Value;
@@ -352,7 +359,7 @@ namespace CraftManager
                             bool prev_state = tag.selected;
                             tag.selected = GUILayout.Toggle(tag.selected, "", "tag.toggle.light");
                             tag.selected = GUILayout.Toggle(tag.selected, tag.name + " - (" + tag.craft_count("filtered") + "/" + tag.craft_count("all") + ")", 
-                                "tag.toggle.label", width(scroll_width-(edit_tags ? 60f : 35f)) 
+                                "tag.toggle.label", width(scroll_width-(edit_tags ? 60f : 35f))
                             );
                             if(prev_state != tag.selected){
                                 filter_craft();                                    
@@ -396,7 +403,7 @@ namespace CraftManager
                         });
                         
                         if(expand_details){
-                            float details_width = scroll_width - 30;
+                            float details_width = scroll_width - 50;
                             GUILayoutOption grid_width = width(details_width*0.4f);
                             section(()=>{                        
                                 GUILayout.Label("", width(details_width*0.2f));
