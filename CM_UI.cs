@@ -24,13 +24,12 @@ namespace CraftManager
         private string last_search = "";
         
         private Dictionary<string, string> save_menu_options = new Dictionary<string, string>();
-        private Dictionary<string, string>sort_options = new Dictionary<string, string>{
+        private Dictionary<string, string> load_menu_options = new Dictionary<string, string>();
+        private Dictionary<string, string> load_menu_options_default = new Dictionary<string, string> { { "merge", "Merge" }, { "subload", "Load as Subassembly" } };
+        private Dictionary<string, string> load_menu_options_submode = new Dictionary<string, string> { { "merge", "Merge" }, { "load", "Load as Craft" } };
+        private Dictionary<string, string> sort_options = new Dictionary<string, string>{
             {"name", "Name"}, {"cost", "Cost"}, {"crew_capacity", "Crew Capacity"}, {"mass", "Mass"}, {"part_count", "Part Count"}, {"stage_count", "Stages"}, {"date_created", "Created"}, {"date_updated", "Updated"}
         };
-
-        public Dictionary<string, string> load_menu_options = new Dictionary<string, string>();
-        public Dictionary<string, string> load_menu_options_default = new Dictionary<string, string> { { "merge", "Merge" }, { "subload", "Load as Subassembly" } };
-        public Dictionary<string, string> load_menu_options_submode = new Dictionary<string, string> { { "merge", "Merge" }, { "load", "Load as Craft" } };
 
         private float save_menu_width = 0;
         private float sort_menu_width = 0;
@@ -181,12 +180,11 @@ namespace CraftManager
                     draw_main_section(inner_width);      //Main craft list
                     draw_right_hand_section(inner_width);//Craft details section
                 });
-
                 draw_bottom_section(window_width);
-
             });
 
-            if(!String.IsNullOrEmpty(auto_focus_on)){  //When the UI opens set focus on the main search text field
+            //When the UI opens set focus on the main search text field, but don't keep setting focus
+            if(!String.IsNullOrEmpty(auto_focus_on)){  
                 GUI.FocusControl(auto_focus_on);
                 auto_focus_on = null;
             } 
@@ -429,7 +427,7 @@ namespace CraftManager
           
                         section((w) => {
                             button("transfer", transfer_craft_dialog);
-                            button("move/copy", delete_craft_dialog);
+                            button("move/copy", move_copy_craft_dialog);
                         });
                         section((w) => {
                             button("rename", rename_craft_dialog);
@@ -722,6 +720,50 @@ namespace CraftManager
                     });
                 });
             });
+        }
+
+        protected void move_copy_craft_dialog(){
+            CraftData craft = CraftData.selected_craft;
+            string resp = "";
+            string selected_save = "";
+            Dictionary<string, string> move_copy_save_menu = new Dictionary<string, string>(save_menu_options);
+            List<string> keys = new List<string>(move_copy_save_menu.Keys);
+            string key = keys.Find(k => (k.Equals(craft.save_dir) || k.Equals("Current Save (" + craft.save_dir + ")")));
+            move_copy_save_menu.Remove(key);
+            move_copy_save_menu.Remove("all");
+
+            show_dialog(d =>{
+                d.window_title = "Transfer Craft";
+                style_override = "dialog.section";
+                v_section(() =>{
+                    label("Move or Copy this craft to another save:", "h2");
+                    if(!String.IsNullOrEmpty(resp)){label(resp, "error");}
+
+                    section(()=>{
+                        GUILayout.Space(d.window_pos.width*0.3f);
+                        dropdown("Select Save", "copy_transfer_save_menu", move_copy_save_menu, d, d.window_pos.width*0.4f, "button.large", "menu.background", "menu.item", (selected_save_name) => {
+                            resp = "";
+                            selected_save = selected_save_name;
+                        });           
+                    });
+                    section(()=>{
+                        label("Selected Save: ", "h2");
+                        label(selected_save, "h2");
+                    });
+                    section(()=>{
+                        button("Move", "button.large", ()=>{resp = craft.move_copy_to(selected_save, true);});
+                        button("Copy", "button.large", ()=>{resp = craft.move_copy_to(selected_save, false);});
+                    });
+                    if(resp == "200"){
+                        close_dialog();
+                        refresh();
+                    }
+                    section(()=>{
+                        fspace();
+                        button("Cancel", close_dialog);                    
+                    });
+                });
+            });            
         }
 
         //called when clicking on the craft 'type' (VAB,SPH etc) buttons. unselects the other buttons unless ctrl is being held (enabling multiple select)

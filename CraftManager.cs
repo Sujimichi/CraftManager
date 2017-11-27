@@ -7,7 +7,6 @@
 
 /* TODO List
   - make tag_data store save specific (maybe have tags which can be global and tags which are save specific);
-  - move/copy to other save
   - KerbalX Integreation
 */
 

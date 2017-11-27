@@ -429,6 +429,44 @@ namespace CraftManager
             }
         }
 
+        public string move_copy_to(string new_save_dir, bool move = false){
+            string new_path = "";
+            List<string> existing_saves = new List<string>();
+            foreach(string dir in Directory.GetDirectories(Paths.joined(CraftManager.ksp_root, "saves"))){
+                string dir_name = dir.Replace(Paths.joined(CraftManager.ksp_root, "saves"), "").Replace("/", "");
+                existing_saves.Add(dir_name);
+            }
+
+            if(String.IsNullOrEmpty(new_save_dir)){
+                return "You must select a save";
+            }
+            if(existing_saves.Contains(new_save_dir)){
+                if(this.construction_type == "Subassembly"){
+                    new_path = Paths.joined(CraftManager.ksp_root, "saves", new_save_dir, "Subassemblies", name + ".craft");
+                } else{                
+                    new_path = Paths.joined(CraftManager.ksp_root, "saves", new_save_dir, "Ships", this.construction_type, name + ".craft");
+                }
+                if(File.Exists(new_path)){
+                    return "A Craft with this name alread exists in " + new_save_dir;
+                } else{
+                    FileInfo file = new FileInfo(path);
+                    try{
+                        if(move){
+                            file.MoveTo(new_path);
+                        }else{                        
+                            file.CopyTo(new_path);
+                        }
+                        return "200";
+                    }
+                    catch(Exception e){
+                        return "Unable to " + (move ? "move" : "copy") + " craft; " + e.Message;
+                    }
+                }
+            } else{
+                return "'" + new_save_dir + "' does not exist";
+            }
+
+        }
 
 
     }

@@ -215,6 +215,10 @@ namespace CraftManager
                 s.margin = new RectOffset(0,0,10,15);
             });
 
+            define_style("button.large", base_skin.button, s =>{
+                s.fontSize = 20;
+            });
+
 
             define_style("menu.background", base_skin.label, s =>{
                 s.normal.background = textures["dark_background"];
