@@ -129,7 +129,7 @@ namespace CraftManager
             save_menu_options.Add("all", "All");
 
             Tags.load();
-            show();
+//            show();
         }
 
         protected override void on_show(){            
@@ -298,7 +298,7 @@ namespace CraftManager
                             label(craft.part_count + " parts in " + craft.stage_count + " stage" + (craft.stage_count==1 ? "" : "s"), "craft.info", width(w/4f));
                             label("cost: " + humanize(craft.cost_total), "craft.cost");
                         });
-                        if(craft.locked_parts){
+                        if((bool)craft.locked_parts){
                             label("craft has part which hasn't been unlocked yet", "craft.locked_parts");
                         }
                         if(craft.missing_parts){
@@ -435,6 +435,8 @@ namespace CraftManager
                             button("rename", rename_craft_dialog);
                             button("delete", delete_craft_dialog);
                         });
+
+                        button("reload", ()=>{CraftData.selected_craft.initialize(CraftData.selected_craft.path);});
 
                         GUILayout.Space(15);
 

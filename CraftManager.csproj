@@ -61,6 +61,7 @@
     <Compile Include="CM_CraftData.cs" />
     <Compile Include="CM_Tags.cs" />
     <Compile Include="CM_UI.cs" />
+    <Compile Include="CM_CraftDataCache.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ProjectExtensions>
