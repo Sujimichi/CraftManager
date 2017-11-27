@@ -86,15 +86,16 @@ namespace CraftManager
         }
 
         //add a craft reference to a tag. creates the tag if it doesn't exist
-        public static void tag_craft(string craft_ref, string tag){
-            add(tag); //ensure tag exists
-            all[tag].add(craft_ref);
+        public static void tag_craft(CraftData craft, string tag){
+            add(tag); //ensure tag exists, doesn't do anything if tag exists
+            all[tag].add(craft_reference_key(craft));
             save();
         }
 
         //remove a craft reference from a tag. Does not remove tag if it is empty afterwards.
-        public static void untag_craft(string craft_ref, string tag){
+        public static void untag_craft(CraftData craft, string tag){
             if(all.ContainsKey(tag)){
+                string craft_ref = craft_reference_key(craft);
                 if(all[tag].craft.Contains(craft_ref)){
                     all[tag].remove(craft_ref);
                 }
@@ -103,10 +104,11 @@ namespace CraftManager
         }
 
         //get a list of tags for a given craft reference
-        public static List<string> tags_for(string craft_reference){
+        public static List<string> tags_for(CraftData craft){
+            string craft_ref = craft_reference_key(craft);
             List<string> in_tags = new List<string>();
             foreach(KeyValuePair<string, Tag> d in all){
-                if(d.Value.craft.Contains(craft_reference)){
+                if(d.Value.craft.Contains(craft_ref)){
                     in_tags.Add(d.Key);
                 }
             }

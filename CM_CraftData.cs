@@ -327,7 +327,7 @@ namespace CraftManager
         }
 
         public List<string> tags(){
-            return Tags.tags_for(Tags.craft_reference_key(this));
+            return Tags.tags_for(this);
         }
 
         //Rename the craft (both name in the craft file and the file itself). Does checks before attempting rename to ensure valid name.

@@ -85,7 +85,7 @@ namespace CraftManager
                 try{
                     ConfigNode node = craft_data[craft.path];                    
                     foreach(var prop in craft.GetType().GetProperties()){               
-                        if(prop.CanWrite){
+                        if(prop.CanWrite){                            
                             var node_value = node.GetValue(prop.Name);
                             if(!String.IsNullOrEmpty(node_value)){
                                 var type = prop.GetValue(craft, null);

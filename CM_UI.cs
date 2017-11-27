@@ -298,7 +298,7 @@ namespace CraftManager
                             label(craft.part_count + " parts in " + craft.stage_count + " stage" + (craft.stage_count==1 ? "" : "s"), "craft.info", width(w/4f));
                             label("cost: " + humanize(craft.cost_total), "craft.cost");
                         });
-                        if((bool)craft.locked_parts){
+                        if(craft.locked_parts){
                             label("craft has part which hasn't been unlocked yet", "craft.locked_parts");
                         }
                         if(craft.missing_parts){
@@ -436,8 +436,6 @@ namespace CraftManager
                             button("delete", delete_craft_dialog);
                         });
 
-                        button("reload", ()=>{CraftData.selected_craft.initialize(CraftData.selected_craft.path);});
-
                         GUILayout.Space(15);
 
                         section((w) =>{
@@ -446,16 +444,16 @@ namespace CraftManager
                             scroll_relative_pos.x += (window_pos.width * (0.55f+0.2f)) - 5f;
                             scroll_relative_pos.y += 45f - scroll_pos["rhs"].y;
                             dropdown("Add Tag", "add_tag_menu", Tags.names, this, scroll_relative_pos, 70f, "Button", "menu.background", "menu.item.small", resp => {
-                                Tags.tag_craft(Tags.craft_reference_key(craft), resp);
+                                Tags.tag_craft(craft, resp);
                             });
                         });
                    
-                        foreach(string tag in Tags.tags_for(Tags.craft_reference_key(craft))){
+                        foreach(string tag in Tags.tags_for(craft)){
                             section(() =>{
                                 label(tag);    
                                 fspace();
                                 button("x", "tag.delete_button.x", ()=>{
-                                    Tags.untag_craft(Tags.craft_reference_key(craft), tag);                                    
+                                    Tags.untag_craft(craft, tag);                                    
                                 });
                             });
                         }                  
