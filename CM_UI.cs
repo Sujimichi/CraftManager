@@ -3,6 +3,7 @@ using System.IO;
 using System.Collections.Generic;
 using KSP.UI.Screens;
 using UnityEngine;
+using ExtensionMethods;
 
 using KatLib;
 
@@ -376,10 +377,6 @@ namespace CraftManager
             v_section(section_width * 0.25f, (inner_width) =>{                
                 label("Craft Details", "h2");
 
-//                style_override = skin.scrollView;
-//                v_section(inner_width, main_section_height, (scroll_width)=>{
-                    
-//                })
                 scroll_pos["rhs"] = scroll(scroll_pos["rhs"], "side_panel.scroll", inner_width, main_section_height, scroll_width => {
                     if(CraftData.selected_craft != null){
                         GUILayout.Space(6);
@@ -421,12 +418,15 @@ namespace CraftManager
                             label(craft.crew_capacity.ToString(), "compact");
                         });
 
+                        section(()=>{
+                            DateTime date = DateTime.FromBinary(long.Parse(craft.last_updated_time));
+                            label("Last Updated", "bold.compact");
+                            label(date.time_ago(), "compact");
+                        });
 
                         GUILayout.Space(15);
 
-                        section((w) => {
-                            button("edit description", edit_description_dialog);
-                        });
+          
                         section((w) => {
                             button("transfer", transfer_craft_dialog);
                             button("move/copy", delete_craft_dialog);
@@ -457,13 +457,15 @@ namespace CraftManager
                                 });
                             });
                         }                  
-                        
-                        //                label("time: " + craft.create_time);
-                        //                label(DateTime.FromBinary(long.Parse(craft.create_time)).ToShortDateString());
-                        //                label(DateTime.FromBinary(long.Parse(craft.create_time)).ToShortTimeString());
-                        
-                        
-                        label(craft.description);
+
+                        section(() => {
+                            label("Description", "h2");
+                            fspace();
+                            button((String.IsNullOrEmpty(craft.description) ? "Add" : "Edit"), edit_description_dialog);
+                        });
+                        section(() => {
+                            label(craft.description);
+                        });
                         
                         
                     }else{
