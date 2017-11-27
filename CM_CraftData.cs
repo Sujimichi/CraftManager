@@ -55,15 +55,16 @@ namespace CraftManager
             return null;
         }
 
+        public List<string> ignore_fields = new List<string>{"selected_craft"};
         //takes a CraftData craft and creates a ConfigNode that contains all of it's public properties, ConfigNodes is held in 
         //a <string, ConfigNode> dict with the full path as the key. 
         public void write(CraftData craft){
             ConfigNode node = new ConfigNode();
-            foreach(var prop in craft.GetType().GetProperties()){               
-                node.AddValue(prop.Name, prop.GetValue(craft, null));
+            foreach(var prop in craft.GetType().GetProperties()){
+                if(!ignore_fields.Contains(prop.Name)){
+                    node.AddValue(prop.Name, prop.GetValue(craft, null));
+                }
             }
-
-
             if(craft_data.ContainsKey(craft.path)){
                 craft_data[craft.path] = node;
             }else{
@@ -197,7 +198,7 @@ namespace CraftManager
                     if(t.Value){                        
                         selected_types.Add(t.Key=="Subassemblies" ? "Subassembly" : t.Key);
                     }
-                }                                   
+                }
                 filtered = filtered.FindAll(craft => selected_types.Contains(craft.construction_type));
             }
             if(criteria.ContainsKey("tags")){
@@ -221,7 +222,6 @@ namespace CraftManager
             if(criteria.ContainsKey("sort")){
                 string sort_by = (string)criteria["sort"];
                 filtered.Sort((x,y) => {
-                    //{"name", "part_count", "mass", "date_created", "date_updated", "stage_count"};
                     if(sort_by == "name"){
                         return x.name.CompareTo(y.name);
                     }else if(sort_by == "part_count"){
@@ -232,6 +232,8 @@ namespace CraftManager
                         return y.mass_total.CompareTo(x.mass_total);
                     }else if(sort_by == "cost"){
                         return y.cost_total.CompareTo(x.cost_total);
+                    }else if(sort_by == "crew_capacity"){
+                        return y.crew_capacity.CompareTo(x.crew_capacity);
                     }else if(sort_by == "date_created"){
                         return x.create_time.CompareTo(y.create_time);
                     }else if(sort_by == "date_updated"){
@@ -274,6 +276,7 @@ namespace CraftManager
         public string construction_type { get; set; }
         public int stage_count { get; set; }
         public int part_count { get; set; }
+        public int crew_capacity{ get; set; }
         public bool missing_parts { get; set; }
         public bool stock_craft { get; set; }
         public float cost_dry { get; set; }
@@ -361,7 +364,6 @@ namespace CraftManager
             } else{
                 thumbnail = (Texture2D)StyleSheet.assets[construction_type + "_placeholder"];                
             }
-
 //            thumbnail = ShipConstruction.GetThumbnail("/thumbs/" + save_dir + "_" + construction_type + "_" + name);
         }
 
@@ -387,6 +389,7 @@ namespace CraftManager
 //            locked_parts = false;
 
             cost_dry = 0;cost_fuel = 0;cost_total = 0;mass_dry = 0;mass_fuel = 0;mass_total = 0;
+            crew_capacity = 0;
 
             //interim variables used to collect values from GetPartCostsAndMass (defined outside of loop as a garbage reduction measure)
             float dry_mass = 0;
@@ -413,14 +416,13 @@ namespace CraftManager
                 matched_part = cache.fetch_part(part_name);
                 if(matched_part != null){
                     ShipConstruction.GetPartCostsAndMass(part, matched_part, out dry_cost, out fuel_cost, out dry_mass, out fuel_mass);
+                    if(matched_part.partConfig.HasValue("CrewCapacity")){
+                        crew_capacity += int.Parse(matched_part.partConfig.GetValue("CrewCapacity"));
+                    }
                     cost_dry += dry_cost;
                     cost_fuel += fuel_cost;
                     mass_dry += dry_mass;
                     mass_fuel += fuel_mass;
-//                    if(!ResearchAndDevelopment.PartTechAvailable(matched_part)){
-//                        locked_parts = true;
-//                    }
-
                 } else{
                     missing_parts = true;
                 }
@@ -497,8 +499,56 @@ namespace CraftManager
             } else{
                 return "error 404 - file not found";
             }
-
         }
+
+        public string save_description(){
+            try{
+                ConfigNode nodes = ConfigNode.Load(path);
+                nodes.SetValue("description", description);
+                nodes.Save(path);
+                initialize(path, stock_craft);  //reprocess the craft file
+                return "200";
+            }
+            catch(Exception e){
+                return "Unable to update description; " + e.Message;
+            }
+        }
+
+        public string transfer_to(EditorFacility facility){
+            string new_path = "";
+            if(facility == EditorFacility.SPH){
+                new_path = Paths.joined(CraftManager.ksp_root, "saves", save_dir, "Ships", "SPH", name + ".craft");
+            } else if(facility == EditorFacility.VAB){
+                new_path = Paths.joined(CraftManager.ksp_root, "saves", save_dir, "Ships", "VAB", name + ".craft");
+            } else if(facility == EditorFacility.None){
+                new_path = Paths.joined(CraftManager.ksp_root, "saves", save_dir, "Subassemblies", name + ".craft");
+            }
+            if(String.IsNullOrEmpty(new_path)){
+                return "Unexpected error";
+            }
+            if(File.Exists(new_path)){
+                string msg = "A craft with this name already exists in " + (facility == EditorFacility.None ? "Subassemblies" : "the " + facility.ToString());
+                return msg;
+            } else{
+                try{
+                    ConfigNode nodes = ConfigNode.Load(path);
+                    nodes.SetValue("type", (facility == EditorFacility.None ? "Subassembly" : facility.ToString()));
+                    nodes.Save(new_path);
+                }
+                catch(Exception e){
+                    return "Unable to move craft; " + e.Message;
+                }
+                File.Delete(path);
+                all_craft.Remove(this);
+                if(filtered.Contains(this)){
+                    filtered.Remove(this);
+                }
+                all_craft.Add(new CraftData(new_path));
+                return "200";
+            }
+        }
+
+
 
     }
 
