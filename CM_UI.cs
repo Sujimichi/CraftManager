@@ -165,10 +165,7 @@ namespace CraftManager
                 search_criteria.Add("exclude_stock", true);
             }
             CraftData.filter_craft(search_criteria);
-            show_test = true;
         }
-
-        public bool show_test = false;
 
 
         //Main GUI draw method (called by onGUI, see DryUI in KatLib).  Broken up into smaller sections to ease digestion and help prevent heart burn.
@@ -192,10 +189,6 @@ namespace CraftManager
                 GUI.FocusControl(auto_focus_on);
                 auto_focus_on = null;
             } 
-            if(show_test){
-                show_test = false;
-                CraftManager.log("Im here bitches");
-            }
         }
 
         protected override void FooterContent(int window_id){
