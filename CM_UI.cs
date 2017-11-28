@@ -131,8 +131,9 @@ namespace CraftManager
             }
             save_menu_options.Add("all", "All");
 
-            Tags.load();
-            show();
+            new Tags();
+            Tags.load(active_save_dir);
+//            show();
         }
 
         protected override void on_show(){            
@@ -350,25 +351,29 @@ namespace CraftManager
 
 
                 scroll_pos["lhs"] = scroll(scroll_pos["lhs"], "side_panel.scroll", inner_width, main_section_height, scroll_width => {
-                    foreach(KeyValuePair<string, Tag> pair in Tags.all){
-                        Tag tag = pair.Value;
+                    foreach(string tag_name in Tags.names.Keys){
+//                    foreach(KeyValuePair<string, bool> tag in Tags.all){
+                        
 
                         style_override = "tag.section";
                         section((sec_w)=>{
-                            bool prev_state = tag.selected;
-                            tag.selected = GUILayout.Toggle(tag.selected, "", "tag.toggle.light");
-                            tag.selected = GUILayout.Toggle(tag.selected, tag.name + " - (" + tag.craft_count("filtered") + "/" + tag.craft_count("all") + ")", 
-                                "tag.toggle.label", width(scroll_width-(edit_tags ? 80f : 35f))
-                            );
-                            if(prev_state != tag.selected){
+                            bool prev_state = Tags.all[tag_name];
+                            bool state = Tags.all[tag_name];
+
+                            state = GUILayout.Toggle(state, "", "tag.toggle.light");
+                            state = GUILayout.Toggle(state, tag_name, "tag.toggle.label", width(scroll_width-(edit_tags ? 80f : 35f)));
+//                            Tags.instance.list[tag_name] = state;
+
+                            if(prev_state != state){
+                                Tags.toggle_tag(tag_name);
                                 filter_craft();                                    
                             }
                             if(edit_tags){
                                 button("e", "tag.edit_button", ()=>{
-                                    edit_tag_dialog(tag);
+//                                    edit_tag_dialog(tag);
                                 });
                                 button("X", "tag.delete_button.x", ()=>{
-                                    delete_tag_dialog(tag);
+//                                    delete_tag_dialog(tag);
                                 });
                             }
                         });
@@ -482,7 +487,7 @@ namespace CraftManager
                 new_tag_name = GUILayout.TextField(new_tag_name, width(200f));
 
                 button("Add", 40f, ()=>{                    
-                    Tags.add(new_tag_name);
+                    Tags.find_or_create_by(new_tag_name, active_save_dir);
                     new_tag_name = "";
                 });
                 fspace();
@@ -613,7 +618,7 @@ namespace CraftManager
                 section(()=>{
                     fspace();
                     button("Cancel", close_dialog);
-                    button("Delete", "button.delete", ()=>{Tags.remove(tag.name);resp="200";});
+                    button("Delete", "button.delete", ()=>{Tags.remove(tag.name, active_save_dir);resp="200";});
                 });
                 return resp;
             });
