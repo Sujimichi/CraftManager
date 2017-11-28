@@ -156,6 +156,7 @@ namespace CraftManager
         public int part_count { get; set; }
         public int crew_capacity{ get; set; }
         public bool missing_parts { get; set; }
+        public bool locked_parts { get; set; }  //This is an exception. locked_parts will be cached to the in-memory cache but not to the persistent cache.
         public bool stock_craft { get; set; }
         public float cost_dry { get; set; }
         public float cost_fuel { get; set; }
@@ -164,9 +165,9 @@ namespace CraftManager
         public float mass_fuel { get; set; }
         public float mass_total { get; set; }
 
-        public bool locked_parts { get; set; }
 
-
+        //part_name_list holds a unique list of the craft parts, but uses part_names as the getter and setter for it
+        //this enables part_names to be cached and reloaded from the cache and the getter and setters handle conversion between ',' sep string and List<string>
         public List<string> part_name_list = new List<string>();
         public string part_names {
             get{
@@ -176,12 +177,15 @@ namespace CraftManager
                 part_name_list.Clear();
                 foreach(string v in value.Split(',')){
                     part_name_list.AddUnique(v.Trim());
-                }
-                    
+                }                    
             }
         }
 
-
+        //Check to see if any of the crafts parts match the names of parts listed as locked (in the cache)
+        //which parts are locked can change during game play, but can't change while in the editors.  So the value for locked_parts
+        //is only cached in the in-memory cache (which is dropped between scene changes), so it will be rechecked when first loading
+        //craft after entering the editor, and its value will be cached in the in-memory cache so it doesn't need rechecking until the
+        //next scene change.
         public void check_locked_parts() {
             CraftManager.log("checking locked parts");
             locked_parts = false;
@@ -206,6 +210,8 @@ namespace CraftManager
 
         //Other Attributes
         public string new_name = "";
+
+
 
         //Initialize a new CraftData object. Takes a path to a .craft file and either populates it from attributes from the craft file
         //or loads information from the CraftDataCache
@@ -237,15 +243,22 @@ namespace CraftManager
             create_time = System.IO.File.GetCreationTime(path).ToBinary().ToString();
             last_updated_time = System.IO.File.GetLastWriteTime(path).ToBinary().ToString();
 
-            string thumbnail_path;
-            if(stock_craft){
-                save_dir = "Stock Craft";
-                thumbnail_path = Paths.joined(CraftManager.ksp_root, "Ships", "@thumbs", construction_type,  name + ".png");
-            } else{
-                save_dir = path.Replace(Paths.joined(CraftManager.ksp_root, "saves", ""), "").Split('/')[0];
-                thumbnail_path = Paths.joined(CraftManager.ksp_root, "thumbs/" + save_dir + "_" + construction_type + "_" + name + ".png");
-            }
 
+            save_dir = stock_craft ? "Stock Craft" : path.Replace(Paths.joined(CraftManager.ksp_root, "saves", ""), "").Split('/')[0];
+            load_thumbnail_image();
+//            thumbnail = ShipConstruction.GetThumbnail("/thumbs/" + save_dir + "_" + construction_type + "_" + name);
+        }
+
+        public string thumbnail_path(){
+            if(stock_craft){                
+                return Paths.joined(CraftManager.ksp_root, "Ships", "@thumbs", construction_type,  name + ".png");
+            } else{                
+                return Paths.joined(CraftManager.ksp_root, "thumbs/" + save_dir + "_" + construction_type + "_" + name + ".png");
+            }
+        }
+
+        public void load_thumbnail_image(){
+            string thumbnail_path = this.thumbnail_path();
             if(File.Exists(thumbnail_path)){
                 thumbnail = new Texture2D(1, 1, TextureFormat.RGBA32, false);
                 byte[] pic_data = File.ReadAllBytes(thumbnail_path);  //read image file
@@ -253,9 +266,7 @@ namespace CraftManager
             } else{
                 thumbnail = (Texture2D)StyleSheet.assets[construction_type + "_placeholder"];                
             }
-//            thumbnail = ShipConstruction.GetThumbnail("/thumbs/" + save_dir + "_" + construction_type + "_" + name);
         }
-
 
         //Parse .craft file and read info
         private void read_craft_info_from_file(){
@@ -361,14 +372,18 @@ namespace CraftManager
                         catch(Exception e){
                             return "Unable to rename file\n" + e.Message;
                         }
-                        List<string> tags = Tags.remove_from_all_tags(this); //remove old name from tags (returns any tag names it was in).
+                        FileInfo thumbnail_file = new FileInfo(thumbnail_path());
 
+                        List<string> tags = Tags.remove_from_all_tags(this); //remove old name from tags (returns any tag names it was in).
                         ConfigNode nodes = ConfigNode.Load(new_path);
                         nodes.SetValue("ship", new_name);
                         nodes.Save(new_path);
                         initialize(new_path, stock_craft);  //reprocess the craft file
                         Tags.tag_craft(this, tags); //add updated craft to the tags it was previously in.
-
+                        if(thumbnail_file.Exists){
+                            thumbnail_file.MoveTo(thumbnail_path());
+                            load_thumbnail_image();
+                        }
                         return "200";
                     } else{                    
                         return "error 404 - file not found";
