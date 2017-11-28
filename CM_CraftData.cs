@@ -335,7 +335,7 @@ namespace CraftManager
         }
 
         public List<string> tags(){
-            return Tags.tags_for(this);
+            return Tags.for_craft(this);
         }
 
         //Rename the craft (both name in the craft file and the file itself). Does checks before attempting rename to ensure valid name.
@@ -361,10 +361,17 @@ namespace CraftManager
                         catch(Exception e){
                             return "Unable to rename file\n" + e.Message;
                         }
+                        List<string> tags = Tags.for_craft(this);
+                        foreach(string tagname in tags){
+                            Tags.untag_craft(this, tagname);
+                        }
                         ConfigNode nodes = ConfigNode.Load(new_path);
                         nodes.SetValue("ship", new_name);
                         nodes.Save(new_path);
                         initialize(new_path, stock_craft);  //reprocess the craft file
+                        foreach(string tagname in tags){
+                            Tags.tag_craft(this, tagname);
+                        }
                         return "200";
                     } else{                    
                         return "error 404 - file not found";

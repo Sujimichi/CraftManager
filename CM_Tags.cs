@@ -121,7 +121,7 @@ namespace CraftManager
         }
 
         //get a list of tags for a given craft reference
-        public static List<string> tags_for(CraftData craft){
+        public static List<string> for_craft(CraftData craft){
             string craft_ref = craft_reference_key(craft);
             List<string> in_tags = new List<string>();
             foreach(KeyValuePair<string, Tag> d in all){

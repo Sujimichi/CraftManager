@@ -453,7 +453,7 @@ namespace CraftManager
                             });
                         });
                    
-                        foreach(string tag in Tags.tags_for(craft)){
+                        foreach(string tag in Tags.for_craft(craft)){
                             section(() =>{
                                 label(tag);    
                                 fspace();
