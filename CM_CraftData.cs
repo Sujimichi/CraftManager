@@ -361,17 +361,14 @@ namespace CraftManager
                         catch(Exception e){
                             return "Unable to rename file\n" + e.Message;
                         }
-                        List<string> tags = Tags.for_craft(this);
-                        foreach(string tagname in tags){
-                            Tags.untag_craft(this, tagname);
-                        }
+                        List<string> tags = Tags.remove_from_all_tags(this); //remove old name from tags (returns any tag names it was in).
+
                         ConfigNode nodes = ConfigNode.Load(new_path);
                         nodes.SetValue("ship", new_name);
                         nodes.Save(new_path);
                         initialize(new_path, stock_craft);  //reprocess the craft file
-                        foreach(string tagname in tags){
-                            Tags.tag_craft(this, tagname);
-                        }
+                        Tags.tag_craft(this, tags); //add updated craft to the tags it was previously in.
+
                         return "200";
                     } else{                    
                         return "error 404 - file not found";
@@ -383,7 +380,7 @@ namespace CraftManager
                 if(String.IsNullOrEmpty(new_name)){
                     return "name can not be blank";                    
                 }else{
-                    return "200"; //do nothing is name is unchanged.                           
+                    return "200"; //do nothing if name is unchanged.                           
                 }
             }
         }
@@ -391,6 +388,7 @@ namespace CraftManager
         public string delete(){
             if(File.Exists(path)){
                 File.Delete(path);
+                Tags.remove_from_all_tags(this);
                 if(CraftManager.main_ui){CraftManager.main_ui.refresh();}
                 return "200";
             } else{
@@ -435,12 +433,12 @@ namespace CraftManager
                 catch(Exception e){
                     return "Unable to move craft; " + e.Message;
                 }
+                List<string> tags = Tags.remove_from_all_tags(this);
+
                 File.Delete(path);
-                all_craft.Remove(this);
-                if(filtered.Contains(this)){
-                    filtered.Remove(this);
-                }
-                all_craft.Add(new CraftData(new_path));
+                initialize(new_path, stock_craft);
+                Tags.tag_craft(this, tags);
+                if(CraftManager.main_ui){CraftManager.main_ui.refresh();}
                 return "200";
             }
         }

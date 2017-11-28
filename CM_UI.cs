@@ -438,7 +438,7 @@ namespace CraftManager
                         });
                         section((w) => {
                             button("rename", rename_craft_dialog);
-                            button("delete", delete_craft_dialog);
+                            button("delete", "button.delete", delete_craft_dialog);
                         });
 
                         GUILayout.Space(15);
@@ -611,7 +611,7 @@ namespace CraftManager
                 section(()=>{
                     fspace();
                     button("Cancel", close_dialog);
-                    button("Delete", "tag.delete_button", ()=>{Tags.remove(tag.name);resp="200";});
+                    button("Delete", "button.delete", ()=>{Tags.remove(tag.name);resp="200";});
                 });
                 return resp;
             });
@@ -683,7 +683,7 @@ namespace CraftManager
                 section(()=>{
                     fspace();
                     button("Cancel", close_dialog);
-                    button("Delete", ()=>{
+                    button("Delete", "button.delete", ()=>{
                         resp = CraftData.selected_craft.delete();
                     });
                 });

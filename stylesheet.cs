@@ -114,6 +114,31 @@ namespace CraftManager
 
 
 
+            define_style("button.large", base_skin.button, s =>{
+                s.fontSize = 20;
+            });
+            define_style("button.delete", base_skin.button, s =>{
+                s.hover.textColor = Color.red;
+                s.normal.textColor = new Color(0.4f,0.2f,0.1f,1);
+            });
+
+            define_style("button.load", base_skin.button, s =>{
+                s.fontSize = 30;
+                s.normal.textColor = new Color(0.2f,0.3f,0.3f,1);
+                s.hover.textColor = new Color(0.6f,0.9f,0.3f,1);
+                s.margin = new RectOffset(0,0,10,15);
+            });
+            define_style("button.close", base_skin.button, s =>{
+                s.fontSize = 30;
+                s.normal.textColor = new Color(0.4f,0.2f,0.1f,1);
+                s.hover.textColor = new Color(0.8f,0.4f,0.2f,1);
+                s.margin = new RectOffset(0,0,10,15);
+            });
+
+ 
+
+
+
             define_style("craft_type_sel", base_skin.button, s =>{
                 s.fontSize = 20;
             });
@@ -179,34 +204,17 @@ namespace CraftManager
             define_style("tag.section", base_skin.label, s =>{
                 s.normal.background = textures["dark_background"];
             });
-            define_style("tag.delete_button", base_skin.button, s =>{
-                s.normal.textColor = Color.red;
-            });
-            define_style("tag.delete_button.x", "tag.delete_button", s =>{
+
+            define_style("tag.delete_button.x", "button.delete", s =>{
                 s.fixedWidth = 20f;
                 s.fixedHeight = 20f;
             });
-            define_style("tag.edit_button", "tag.delete_button.x", s =>{
-                s.normal.textColor = base_skin.button.normal.textColor;
+            define_style("tag.edit_button", base_skin.button, s =>{
+                s.fixedWidth = 20f;
+                s.fixedHeight = 20f;
             });
 
 
-            define_style("button.load", base_skin.button, s =>{
-                s.fontSize = 30;
-                s.normal.textColor = new Color(0.2f,0.3f,0.3f,1);
-                s.hover.textColor = new Color(0.6f,0.9f,0.3f,1);
-                s.margin = new RectOffset(0,0,10,15);
-            });
-            define_style("button.close", base_skin.button, s =>{
-                s.fontSize = 30;
-                s.normal.textColor = new Color(0.4f,0.2f,0.1f,1);
-                s.hover.textColor = new Color(0.8f,0.4f,0.2f,1);
-                s.margin = new RectOffset(0,0,10,15);
-            });
-
-            define_style("button.large", base_skin.button, s =>{
-                s.fontSize = 20;
-            });
 
 
             define_style("menu.background", base_skin.label, s =>{

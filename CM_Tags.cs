@@ -108,6 +108,11 @@ namespace CraftManager
             all[tag].add(craft_reference_key(craft));
             save();
         }
+        public static void tag_craft(CraftData craft, List<string> tags){
+            foreach(string tag_name in tags){
+                Tags.tag_craft(craft, tag_name);
+            }
+        }
 
         //remove a craft reference from a tag. Does not remove tag if it is empty afterwards.
         public static void untag_craft(CraftData craft, string tag){
@@ -118,6 +123,14 @@ namespace CraftManager
                 }
             }
             save();
+        }
+
+        public static List<string> remove_from_all_tags(CraftData craft){
+            List<string> tags = Tags.for_craft(craft);
+            foreach(string tagname in tags){
+                Tags.untag_craft(craft, tagname);
+            }
+            return tags;
         }
 
         //get a list of tags for a given craft reference
