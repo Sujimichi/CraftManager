@@ -14,6 +14,7 @@ namespace CraftManager
     {
 
         public string name;
+        public string new_name;
         public List<string> craft = new List<string>();
         public bool selected = false;
 
@@ -39,6 +40,22 @@ namespace CraftManager
             }
         }
 
+        public string rename(){
+            if(String.IsNullOrEmpty(new_name)){
+                return "Name cannot be blank";
+            } else if(new_name == name){
+                return "200"; //do nothing if name is unchanged
+            } else if(Tags.all.ContainsKey(new_name)){
+                return "A tag with this name already exists";
+            } else{                
+                Tags.all.Remove(name);
+                name = new_name;
+                Tags.all.Add(new_name, this);
+                Tags.save();
+                return "200";
+            }
+        }
+
         public int craft_count(string opt){
             if(opt == "filtered"){
                 return CraftData.filtered.FindAll(c => this.craft.Contains(Tags.craft_reference_key(c))).Count;
@@ -52,7 +69,7 @@ namespace CraftManager
     public class Tags
     {
 
-        public static string file_path = Paths.joined(CraftManager.ksp_root, "GameData", "CraftManager", "tag_data.json");
+        public static string file_path = Paths.joined(CraftManager.ksp_root, "GameData", "CraftManager", "craft.tags");
         public static Dictionary<string, Tag> all = new Dictionary<string, Tag>();
         public static Dictionary<string, string> names = new Dictionary<string, string>();
 
@@ -117,7 +134,7 @@ namespace CraftManager
 
 
         //convert Dictionary<string, List<string>> to ConfigNodes and write to file
-        private static void save(){
+        public static void save(){
             ConfigNode nodes = new ConfigNode();
             ConfigNode tag_nodes = new ConfigNode();
             names.Clear();

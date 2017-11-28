@@ -119,6 +119,6 @@
     </MonoDevelop>
   </ProjectExtensions>
   <ItemGroup>
-    <None Include="assets\tag_data.json" />
+    <None Include="assets\craft.tags" />
   </ItemGroup>
 </Project>

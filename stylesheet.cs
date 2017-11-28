@@ -107,25 +107,11 @@ namespace CraftManager
 
             define_style("hyperlink", base_skin.label, s =>{
                 s.normal.textColor = new Color(0.4f, 0.5f, 0.9f, 1); //roughly KerbalX Blue - #6E91EB
-                s.hover.textColor = Color.red; //can't seem to make this work            
-            });
-            define_style("hyperlink.h2", "hyperlink", s =>{
-                s.fontSize = 20;
-                s.fontStyle = FontStyle.Bold;
-                s.alignment = TextAnchor.UpperCenter;
-            });
-            define_style("hyperlink.h3", "hyperlink", s =>{
-                s.fontSize = 15;
-            });
-            define_style("hyperlink.footer", "hyperlink", s =>{
-                s.alignment = TextAnchor.LowerLeft;
-            });
-            define_style("hyperlink.small", "hyperlink", s =>{
-                s.fontSize = 12;
             });
             define_style("hyperlink.bold", "hyperlink", s =>{
                 s.fontStyle = FontStyle.Bold;
             });
+
 
 
             define_style("craft_type_sel", base_skin.button, s =>{
@@ -199,6 +185,9 @@ namespace CraftManager
             define_style("tag.delete_button.x", "tag.delete_button", s =>{
                 s.fixedWidth = 20f;
                 s.fixedHeight = 20f;
+            });
+            define_style("tag.edit_button", "tag.delete_button.x", s =>{
+                s.normal.textColor = base_skin.button.normal.textColor;
             });
 
 

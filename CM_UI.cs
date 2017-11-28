@@ -62,6 +62,9 @@ namespace CraftManager
         private Dictionary<string, Vector2> scroll_pos = new Dictionary<string, Vector2>(){
             {"lhs", new Vector2()}, {"rhs", new Vector2()}, {"main", new Vector2()}
         };
+        protected Rect scroll_relative_pos = new Rect(0, 0, 0, 0);
+
+
 
 
         //register events used to keep track of the save state of the craft.
@@ -100,8 +103,6 @@ namespace CraftManager
         });
         
 
-
-
         private void Start(){     
             CraftManager.log("Starting Main UI");
             CraftManager.main_ui = this;
@@ -111,13 +112,13 @@ namespace CraftManager
             //            draggable = false;
             footer = false;
 
-
-            EditorLogic.fetch.saveBtn.onClick.AddListener(on_save_click);
-            UnityEngine.UI.Button.ButtonClickedEvent c = new UnityEngine.UI.Button.ButtonClickedEvent();
+            EditorLogic.fetch.saveBtn.onClick.AddListener(on_save_click); //settup click event on the stock save button.
+            //override existing ations on stock load button and replace with call to toggle CM's UI.
+            UnityEngine.UI.Button.ButtonClickedEvent c = new UnityEngine.UI.Button.ButtonClickedEvent(); 
             c.AddListener(on_load_click);
             EditorLogic.fetch.loadBtn.onClick = c;
-            
 
+            //Initialize list of Save directories, used in save select menus.
             active_save_dir = HighLogic.SaveFolder;
             save_menu_options.Add(active_save_dir, "Current Save (" + active_save_dir + ")");
             foreach(string dir in Directory.GetDirectories(Paths.joined(CraftManager.ksp_root, "saves"))){
@@ -129,7 +130,7 @@ namespace CraftManager
             save_menu_options.Add("all", "All");
 
             Tags.load();
-//            show();
+            show();
         }
 
         protected override void on_show(){            
@@ -142,7 +143,7 @@ namespace CraftManager
         }
 
         //load/reload craft from the active_save_dir and apply any active filters
-        private void refresh(){
+        public void refresh(){
             CraftData.load_craft(active_save_dir=="all" ? null : active_save_dir);
             filter_craft();
         }
@@ -167,6 +168,14 @@ namespace CraftManager
             CraftData.filter_craft(search_criteria);
         }
 
+        protected void clear_search(){
+            search_string = "";
+            filter_craft();
+        }
+        protected void toggle_reverse_sort(){
+            reverse_sort = !reverse_sort;
+            filter_craft();
+        }
 
         //Main GUI draw method (called by onGUI, see DryUI in KatLib).  Broken up into smaller sections to ease digestion and help prevent heart burn.
         //The GUI is main in 5 sections, top and bottom sections span the full width, while the LHS, RHS and main sections are columns.
@@ -176,9 +185,9 @@ namespace CraftManager
                 GUILayout.Space(10);
                 scroll_relative_pos = GUILayoutUtility.GetLastRect();
                 section(window_width, inner_width =>{
-                    draw_left_hand_section(inner_width); //Tag list section
-                    draw_main_section(inner_width);      //Main craft list
-                    draw_right_hand_section(inner_width);//Craft details section
+                    draw_left_hand_section(inner_width * 0.2f); //Tag list section
+                    draw_main_section(inner_width * 0.55f);      //Main craft list
+                    draw_right_hand_section(inner_width * 0.25f);//Craft details section
                 });
                 draw_bottom_section(window_width);
             });
@@ -195,9 +204,9 @@ namespace CraftManager
         }
 
 
+        //**GUI Sections**//
 
-
-
+        //GUI Top Section
         protected void draw_top_section(float section_width){
             section(() =>{
                 //SPH, VAB, Subs select buttons
@@ -242,7 +251,7 @@ namespace CraftManager
 
         //The Main craft list
         protected void draw_main_section(float section_width){
-            v_section(section_width*0.55f, (inner_width)=>{
+            v_section(section_width, (inner_width)=>{
                 last_search = search_string;
                 section(()=>{
                     fspace();
@@ -274,7 +283,7 @@ namespace CraftManager
             });            
         }
 
-
+        //Individual Craft Content
         protected void draw_craft_list_item(CraftData craft, float section_width){
             section(section_width-(12f+18f), "craft.list_item" + (craft.selected ? ".selected" : ""), (inner_width)=>{ //subtractions from width to account for margins and scrollbar
                 section(inner_width-80f,()=>{
@@ -311,26 +320,24 @@ namespace CraftManager
                     GUILayout.Label(craft.thumbnail, width(70), height(70));
                 });
 
-            }, craft_area => {
-                if(craft_area.Contains(Event.current.mousePosition) && Event.current.type == EventType.MouseDown && Event.current.button == 0 ){                    
-                    if(craft.selected){
-                        craft.selected = false;
-                    }else{
-                        CraftData.select_craft(craft);
-                    }
-                    Event.current.Use();
+            }, evt => {
+                if(evt.single_click){
+                    CraftData.toggle_selected(craft);  
+                }
+                if(evt.double_click){
+                    load_craft( craft.construction_type=="Subassembly" ? "subload" : "load");
                 }
             });
         }
 
 
+        //Left Hand Section: Tags
         protected void draw_left_hand_section(float section_width){
-            v_section(section_width*0.2f, (inner_width) =>{
+            v_section(section_width, (inner_width) =>{
                 section((w)=>{
                     label("Tags", "h2");
-                    //                    tag_mode_reduce = GUILayout.Toggle(tag_mode_reduce, "reduce", "Button", width(60f));
-                    //                    tag_mode_reduce = !GUILayout.Toggle(!tag_mode_reduce, "extend", "Button", width(60f));
-
+//                    tag_mode_reduce = GUILayout.Toggle(tag_mode_reduce, "reduce", "Button", width(60f));
+//                    tag_mode_reduce = !GUILayout.Toggle(!tag_mode_reduce, "extend", "Button", width(60f));
                     fspace();
                     edit_tags = GUILayout.Toggle(edit_tags, "edit", "Button", width(40f) );
                 });
@@ -349,15 +356,18 @@ namespace CraftManager
                             bool prev_state = tag.selected;
                             tag.selected = GUILayout.Toggle(tag.selected, "", "tag.toggle.light");
                             tag.selected = GUILayout.Toggle(tag.selected, tag.name + " - (" + tag.craft_count("filtered") + "/" + tag.craft_count("all") + ")", 
-                                "tag.toggle.label", width(scroll_width-(edit_tags ? 60f : 35f))
+                                "tag.toggle.label", width(scroll_width-(edit_tags ? 80f : 35f))
                             );
                             if(prev_state != tag.selected){
                                 filter_craft();                                    
                             }
                             if(edit_tags){
-                                if(GUILayout.Button("X", "tag.delete_button.x")){
+                                button("e", "tag.edit_button", ()=>{
+                                    edit_tag_dialog(tag);
+                                });
+                                button("X", "tag.delete_button.x", ()=>{
                                     delete_tag_dialog(tag);
-                                }
+                                });
                             }
                         });
                     }
@@ -366,17 +376,15 @@ namespace CraftManager
         }
 
 
-        protected Rect scroll_relative_pos = new Rect(0, 0, 0, 0);
-
-
-
-
+        //Right Hand Section: Craft Details
         protected void draw_right_hand_section(float section_width){
-            v_section(section_width * 0.25f, (inner_width) =>{                
+            v_section(section_width, (inner_width) =>{                
                 label("Craft Details", "h2");
 
                 scroll_pos["rhs"] = scroll(scroll_pos["rhs"], "side_panel.scroll", inner_width, main_section_height, scroll_width => {
-                    if(CraftData.selected_craft != null){
+                    if(CraftData.selected_craft == null){
+                        label("Select a craft to see info about it", "h1.centered");
+                    }else{
                         GUILayout.Space(6);
                         CraftData craft = CraftData.selected_craft;                        
                         section(()=>{
@@ -424,7 +432,6 @@ namespace CraftManager
 
                         GUILayout.Space(15);
 
-          
                         section((w) => {
                             button("transfer", transfer_craft_dialog);
                             button("move/copy", move_copy_craft_dialog);
@@ -450,9 +457,7 @@ namespace CraftManager
                             section(() =>{
                                 label(tag);    
                                 fspace();
-                                button("x", "tag.delete_button.x", ()=>{
-                                    Tags.untag_craft(craft, tag);                                    
-                                });
+                                button("x", "tag.delete_button.x", ()=>{Tags.untag_craft(craft, tag);});
                             });
                         }                  
 
@@ -464,16 +469,12 @@ namespace CraftManager
                         section(() => {
                             label(craft.description);
                         });
-                        
-                        
-                    }else{
-                        
-                        label("Select a craft to see info about it", "h1.centered");
                     };
                 });
             });
         }
 
+        //Botton Section: Load buttons
         protected void draw_bottom_section(float section_width){
             section(section_width,(inner_width) =>{
                 new_tag_name = GUILayout.TextField(new_tag_name, width(200f));
@@ -510,261 +511,7 @@ namespace CraftManager
 
 
 
-
-
-        protected void clear_search(){
-            search_string = "";
-            filter_craft();
-        }
-        protected void toggle_reverse_sort(){
-            reverse_sort = !reverse_sort;
-            filter_craft();
-        }
-
-        //Handles loading the CraftData.selected_craft() into the editor. Takes a string which can either be "load", "merge" or "subload".
-        //"load" performs a normal craft load (checks save state of existing & clears existing content before loading)
-        //"merge" spawns a disconnected contruct of the craft along side an existing craft
-        //"subload" loads like merge, but retains select on the loaded craft so it can be placed (same as stock subassembly load).
-        protected void load_craft(string load_type, bool force = false){
-            if(CraftData.selected_craft != null){
-
-                if(load_type == "load"){                                       
-                    if(CraftData.craft_saved || force){
-                        CraftData.loading_craft = true;
-                        EditorLogic.LoadShipFromFile(CraftData.selected_craft.path);
-                        this.hide();
-                    } else {
-                        DryDialog dialog = show_dialog(d =>{
-                            style_override = "dialog.section";
-                            v_section(()=>{
-                                label("The Current Craft has unsaved changes", "h2");
-                                if(GUILayout.Button("Load Anyway")){
-                                    load_craft(load_type, true);
-                                    close_dialog();
-                                }
-                                GUILayout.Space(10);
-                                if(GUILayout.Button("Save Current Craft first")){
-                                    string path = ShipConstruction.GetSavePath(EditorLogic.fetch.ship.shipName);
-                                    EditorLogic.fetch.ship.SaveShip().Save(path);
-                                    load_craft(load_type, true);
-                                    close_dialog();
-                                }
-                                GUILayout.Space(10);
-                                if(GUILayout.Button("Cancel")){
-                                    close_dialog();
-                                }
-                            });
-                        });
-                        dialog.window_title = "Confirm Load";
-                        dialog.window_pos = new Rect(this.window_pos.x + (this.window_pos.width / 2) - (dialog.window_pos.width / 2), 
-                            this.window_pos.y + (this.window_pos.height / 2), 400, 80
-                        );
-                    }
-                } else if(load_type == "merge"){                    
-                    ShipConstruct ship = new ShipConstruct();
-                    ship.LoadShip(ConfigNode.Load(CraftData.selected_craft.path));
-                    EditorLogic.fetch.SpawnConstruct(ship);
-                    this.hide();
-                } else if(load_type == "subload"){
-                    ShipTemplate subassembly = new ShipTemplate();
-                    subassembly.LoadShip(ConfigNode.Load(CraftData.selected_craft.path));
-                    EditorLogic.fetch.SpawnTemplate(subassembly);
-                    this.hide();
-                }
-
-            }
-
-        }
-
-        protected void delete_tag_dialog(Tag tag){
-            close_dialog();
-            DryDialog dialog = show_dialog((d)=>{                
-                style_override = "dialog.section";
-                v_section(()=>{
-                    if(tag.craft_count("all") > 0){
-                        GUILayout.Label("This tag is used for " + tag.craft_count("all") + " craft.");
-                    }
-                    GUILayout.Label("Are you sure you want to delete this tag?");
-                    section(()=>{
-                        GUILayout.FlexibleSpace();
-                        if(GUILayout.Button("Cancel")){close_dialog();}
-                        if(GUILayout.Button("Delete", "tag.delete_button")){
-                            Tags.remove(tag.name);close_dialog();
-                        };
-                    });
-                });
-            });
-            dialog.window_pos.width = 400f;
-//            dialog.window_pos.height = 120f;
-            dialog.window_pos.x = Event.current.mousePosition.x + window_pos.x;
-            dialog.window_pos.y = Event.current.mousePosition.y + window_pos.y + 140;
-            dialog.window_title = "Confirm Tag Delete";       
-
-        }
-
-        protected void edit_description_dialog(){
-            if(CraftData.selected_craft.description == null){
-                CraftData.selected_craft.description = "";
-            }
-            string exception_message = null;
-            int focus_count = 5;
-            show_dialog(d =>{
-                d.window_title = "Edit Description";
-                style_override = "dialog.section";
-                v_section(() =>{
-                    label("Edit Description", "h2");
-                    if(!String.IsNullOrEmpty(exception_message)){label(exception_message, "error");}
-                    GUI.SetNextControlName("edit_description_field");
-                    CraftData.selected_craft.description = GUILayout.TextArea(CraftData.selected_craft.description);
-                    section(()=>{
-                        fspace();
-                        button("Cancel", close_dialog);
-                        button("Save", ()=>{
-                            string resp = CraftData.selected_craft.save_description();
-                            exception_message = resp;
-                            if(resp == "200"){
-                                close_dialog();
-                            }
-                        });
-                    });
-                });
-                if(focus_count > 0){
-                    auto_focus_on = "edit_description_field";
-                    focus_count--;
-                }
-            });
-        }
-
-        protected void rename_craft_dialog(){
-            CraftData.selected_craft.new_name = CraftData.selected_craft.name;
-            string exception_message = null;
-            int focus_count = 5;
-            show_dialog(d =>{
-                d.window_title = "Rename Craft";
-                style_override = "dialog.section";
-                v_section(() =>{
-                    label("rename: " + CraftData.selected_craft.name, "h2");
-                    if(!String.IsNullOrEmpty(exception_message)){label(exception_message, "error");}
-                    GUI.SetNextControlName("rename_craft_field");
-                    CraftData.selected_craft.new_name = GUILayout.TextField(CraftData.selected_craft.new_name);
-                    section(()=>{
-                        fspace();
-                        button("Cancel", close_dialog);
-                        button("Rename", ()=>{
-                            string resp = CraftData.selected_craft.rename();
-                            exception_message = resp;
-                            if(resp == "200"){
-                                close_dialog();
-                            }
-                        });
-                    });
-                });
-                if(focus_count > 0){
-                    auto_focus_on = "rename_craft_field";
-                    focus_count--;
-                }
-            });
-        }
-
-        protected void delete_craft_dialog(){
-            string exception_message = null;
-            show_dialog(d =>{
-                d.window_title = "Delete Craft?";
-                style_override = "dialog.section";
-                v_section(() =>{
-                    label("Delete " + CraftData.selected_craft.name + "?", "h2");
-                    label("Are you sure you want to do this?", "h2");
-                    if(!String.IsNullOrEmpty(exception_message)){label(exception_message, "error");}
-                    section(()=>{
-                        fspace();
-                        button("Cancel", close_dialog);
-                        button("Delete", ()=>{
-                            string resp = CraftData.selected_craft.delete();
-                            exception_message = resp;
-                            if(resp == "200"){
-                                close_dialog();
-                                refresh();
-                            }
-                        });
-                    });
-                });
-            });
-        }
-
-        protected void transfer_craft_dialog(){
-            string resp = "";
-            CraftData craft = CraftData.selected_craft;
-            show_dialog(d =>{
-                d.window_title = "Transfer Craft";
-                style_override = "dialog.section";
-                v_section(() =>{
-                    label("Transfer this craft to:", "h2");
-                    if(!String.IsNullOrEmpty(resp)){label(resp, "error");}
-                    section(()=>{
-                        if(craft.construction_type != "SPH"){
-                            button("The SPH", ()=>{ resp = craft.transfer_to(EditorFacility.SPH); });
-                        }
-                        if(craft.construction_type != "VAB"){
-                            button("The VAB", ()=>{ resp = craft.transfer_to(EditorFacility.VAB); });
-                        }
-                        if(craft.construction_type != "Subassembly"){
-                            button("Subassemblies", ()=>{ resp = craft.transfer_to(EditorFacility.None); });
-                        }
-                        if(resp == "200"){
-                            close_dialog();
-                        }
-                    });
-                    section(()=>{
-                        fspace();
-                        button("Cancel", close_dialog);                    
-                    });
-                });
-            });
-        }
-
-        protected void move_copy_craft_dialog(){
-            CraftData craft = CraftData.selected_craft;
-            string resp = "";
-            string selected_save = "";
-            Dictionary<string, string> move_copy_save_menu = new Dictionary<string, string>(save_menu_options);
-            List<string> keys = new List<string>(move_copy_save_menu.Keys);
-            string key = keys.Find(k => (k.Equals(craft.save_dir) || k.Equals("Current Save (" + craft.save_dir + ")")));
-            move_copy_save_menu.Remove(key);
-            move_copy_save_menu.Remove("all");
-
-            show_dialog(d =>{
-                d.window_title = "Transfer Craft";
-                style_override = "dialog.section";
-                v_section(() =>{
-                    label("Move or Copy this craft to another save:", "h2");
-                    if(!String.IsNullOrEmpty(resp)){label(resp, "error");}
-
-                    section(()=>{
-                        GUILayout.Space(d.window_pos.width*0.3f);
-                        dropdown("Select Save", "copy_transfer_save_menu", move_copy_save_menu, d, d.window_pos.width*0.4f, "button.large", "menu.background", "menu.item", (selected_save_name) => {
-                            resp = "";
-                            selected_save = selected_save_name;
-                        });           
-                    });
-                    section(()=>{
-                        label("Selected Save: ", "h2");
-                        label(selected_save, "h2");
-                    });
-                    section(()=>{
-                        button("Move", "button.large", ()=>{resp = craft.move_copy_to(selected_save, true);});
-                        button("Copy", "button.large", ()=>{resp = craft.move_copy_to(selected_save, false);});
-                    });
-                    if(resp == "200"){
-                        close_dialog();
-                        refresh();
-                    }
-                    section(()=>{
-                        fspace();
-                        button("Cancel", close_dialog);                    
-                    });
-                });
-            });            
-        }
+        //**Helpers**//
 
         //called when clicking on the craft 'type' (VAB,SPH etc) buttons. unselects the other buttons unless ctrl is being held (enabling multiple select)
         //and ensures that at least one button is selected.
@@ -795,8 +542,246 @@ namespace CraftManager
             filter_craft();
         }
 
+        //Handles loading the CraftData.selected_craft() into the editor. Takes a string which can either be "load", "merge" or "subload".
+        //"load" performs a normal craft load (checks save state of existing & clears existing content before loading)
+        //"merge" spawns a disconnected contruct of the craft along side an existing craft
+        //"subload" loads like merge, but retains select on the loaded craft so it can be placed (same as stock subassembly load).
+        protected void load_craft(string load_type, bool force = false){
+            if(CraftData.selected_craft != null){
+
+                if(load_type == "load"){                                       
+                    if(CraftData.craft_saved || force){
+                        CraftData.loading_craft = true;
+                        EditorLogic.LoadShipFromFile(CraftData.selected_craft.path);
+                        this.hide();
+                    } else {
+                        load_craft_confirm_dialog(load_type);
+                    }
+                } else if(load_type == "merge"){                    
+                    ShipConstruct ship = new ShipConstruct();
+                    ship.LoadShip(ConfigNode.Load(CraftData.selected_craft.path));
+                    EditorLogic.fetch.SpawnConstruct(ship);
+                    this.hide();
+                } else if(load_type == "subload"){
+                    ShipTemplate subassembly = new ShipTemplate();
+                    subassembly.LoadShip(ConfigNode.Load(CraftData.selected_craft.path));
+                    EditorLogic.fetch.SpawnTemplate(subassembly);
+                    this.hide();
+                }
+
+            }
+
+        }
+
+
+
+        //**Dialogs**//
+
+        //Various popup windows. All these dialogs use the 'show_dialog' method which is lurking below them
+        //The show_dialog method takes care of all common aspects, leaving these dialog methods DRY and minimal
+        //The delegate passed to show_dialog is expected to return a string (resp), This is used to pass back
+        //error messages or a success status code ("200").  If "200" is returned the dialog will be closed, 
+        //any other string will be shown as an error message to the user.
+
+        protected void load_craft_confirm_dialog(string load_type){
+            string resp = "";
+            show_dialog("Confirm Load", "The Current Craft has unsaved changes", d =>{
+                section(()=>{                    
+                    button("Load Anyway", "button.large", ()=>{
+                        load_craft(load_type, true); resp = "200";
+                    });
+                    button("Save Current Craft first", "button.large", ()=>{
+                        string path = ShipConstruction.GetSavePath(EditorLogic.fetch.ship.shipName);
+                        EditorLogic.fetch.ship.SaveShip().Save(path);
+                        load_craft(load_type, true); resp = "200";
+                    });                    
+                });
+                GUILayout.Space(10);
+                button("Cancel", close_dialog);
+                return resp;
+            });
+        }
+
+        protected void delete_tag_dialog(Tag tag){
+            string resp = "";
+            DryDialog dialog = show_dialog("Confirm Tag Delete", "Are you sure you want to delete this tag?", d =>{
+                if(tag.craft_count("all") > 0){
+                    GUILayout.Label("This tag is used for " + tag.craft_count("all") + " craft.");
+                }
+                section(()=>{
+                    fspace();
+                    button("Cancel", close_dialog);
+                    button("Delete", "tag.delete_button", ()=>{Tags.remove(tag.name);resp="200";});
+                });
+                return resp;
+            });
+            dialog.window_pos.width = 400f;
+            dialog.window_pos.x = Event.current.mousePosition.x + window_pos.x;
+            dialog.window_pos.y = Event.current.mousePosition.y + window_pos.y + 140;
+        }
+
+        protected void edit_tag_dialog(Tag tag){
+            string resp = "";
+            tag.new_name = tag.name;
+            DryDialog dialog = show_dialog("Edit Tag", "Edit Tag: " + tag.name, d =>{
+                GUI.SetNextControlName("dialog_focus_field");
+                tag.new_name = GUILayout.TextField(tag.new_name);
+                section(()=>{
+                    fspace();
+                    button("Cancel", close_dialog);
+                    button("Save", ()=>{
+                        resp = tag.rename();
+                    });
+                });
+                return resp;
+            });
+            dialog.window_pos.width = 400f;
+            dialog.window_pos.x = Event.current.mousePosition.x + window_pos.x;
+            dialog.window_pos.y = Event.current.mousePosition.y + window_pos.y + 140;
+        }
+
+        protected void edit_description_dialog(){
+            if(CraftData.selected_craft.description == null){
+                CraftData.selected_craft.description = "";
+            }
+            string resp = "";
+            show_dialog("Edit Description", "Edit Description", d =>{
+                GUI.SetNextControlName("dialog_focus_field");
+                CraftData.selected_craft.description = GUILayout.TextArea(CraftData.selected_craft.description);
+                section(()=>{
+                    fspace();
+                    button("Cancel", close_dialog);
+                    button("Save", ()=>{
+                        resp = CraftData.selected_craft.save_description();
+                    });
+                });
+                return resp;
+            });
+        }
+
+        protected void rename_craft_dialog(){
+            CraftData.selected_craft.new_name = CraftData.selected_craft.name;
+            string resp = "";
+            show_dialog("Rename Craft", "rename: " + CraftData.selected_craft.name, d =>{
+                GUI.SetNextControlName("dialog_focus_field");
+                CraftData.selected_craft.new_name = GUILayout.TextField(CraftData.selected_craft.new_name);
+                section(()=>{
+                    fspace();
+                    button("Cancel", close_dialog);
+                    button("Rename", ()=>{
+                        resp = CraftData.selected_craft.rename();
+                    });
+                });
+
+                return resp;
+            });
+        }
+
+        protected void delete_craft_dialog(){
+            string resp = "";
+            show_dialog("Delete Craft?", "Delete " + CraftData.selected_craft.name + "?\nAre you sure you want to do this?", d =>{                
+                section(()=>{
+                    fspace();
+                    button("Cancel", close_dialog);
+                    button("Delete", ()=>{
+                        resp = CraftData.selected_craft.delete();
+                    });
+                });
+                return resp;
+            });
+        }
+
+        protected void transfer_craft_dialog(){
+            string resp = "";
+            CraftData craft = CraftData.selected_craft;
+            show_dialog("Transfer Craft", "Transfer this craft to:", d =>{
+                section(()=>{
+                    if(craft.construction_type != "SPH"){
+                        button("The SPH", "button.large", ()=>{ resp = craft.transfer_to(EditorFacility.SPH); });
+                    }
+                    if(craft.construction_type != "VAB"){
+                        button("The VAB", "button.large", ()=>{ resp = craft.transfer_to(EditorFacility.VAB); });
+                    }
+                    if(craft.construction_type != "Subassembly"){
+                        button("Subassemblies", "button.large", ()=>{ resp = craft.transfer_to(EditorFacility.None); });
+                    }
+                });
+                section(()=>{
+                    fspace();
+                    button("Cancel", close_dialog);                    
+                });
+                return resp;
+            });
+        }
+
+        protected void move_copy_craft_dialog(){
+            CraftData craft = CraftData.selected_craft;
+            string resp = "";
+            string selected_save = "";
+            Dictionary<string, string> move_copy_save_menu = new Dictionary<string, string>(save_menu_options);
+            List<string> keys = new List<string>(move_copy_save_menu.Keys);
+            string key = keys.Find(k => (k.Equals(craft.save_dir) || k.Equals("Current Save (" + craft.save_dir + ")")));
+            move_copy_save_menu.Remove(key);
+            move_copy_save_menu.Remove("all");
+
+            show_dialog("Move/Copy Craft", "Move or Copy this craft to another save:", d =>{
+                section(()=>{
+                    GUILayout.Space(d.window_pos.width*0.3f);
+                    dropdown("Select Save", "copy_transfer_save_menu", move_copy_save_menu, d, d.window_pos.width*0.4f, "button.large", "menu.background", "menu.item", (selected_save_name) => {
+                        resp = "";
+                        selected_save = selected_save_name;
+                    });           
+                });
+                section(()=>{
+                    label("Selected Save: ", "h2");
+                    label(selected_save, "h2");
+                });
+                section(()=>{
+                    button("Move", "button.large", ()=>{resp = craft.move_copy_to(selected_save, true);});
+                    button("Copy", "button.large", ()=>{resp = craft.move_copy_to(selected_save, false);});
+                });
+                section(()=>{
+                    fspace();
+                    button("Cancel", close_dialog);                    
+                });
+                return resp;
+            });            
+        }
+
+        //Dialog Handler
+        //All the above dialogs are created with this function and it handles all their common aspects.
+
+        public delegate string InnerDialogContent(DryUI dialog);
+        protected DryDialog show_dialog(string title, string heading, InnerDialogContent content){
+            close_dialog();
+            DryDialog dialog = gameObject.AddOrGetComponent<DryDialog>();
+            string resp = "";
+            int focus_count = 5;
+            DialogContent dc = new DialogContent(d =>{
+                style_override = "dialog.section";
+                v_section(()=>{                    
+                    label(heading, "h2");
+                    if(!String.IsNullOrEmpty(resp)){label(resp, "error");}
+                    resp = content(d);
+                });
+                if(resp == "200"){
+                    close_dialog();
+                }
+                if(focus_count > 0){
+                    auto_focus_on = "dialog_focus_field";
+                    focus_count--;
+                }
+            });
+            dialog.window_title = title;
+            dialog.window_pos = new Rect(
+                this.window_pos.x + (this.window_pos.width / 2) - (500 / 2), 
+                this.window_pos.y + (this.window_pos.height / 3), 500, 80
+            );
+            dialog.content = dc;
+            return dialog;
+        }
+
 
     }
-
 }
 

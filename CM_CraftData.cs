@@ -124,6 +124,14 @@ namespace CraftManager
             }
         }
 
+        public static void toggle_selected(CraftData craft){
+            if(craft.selected){
+                craft.selected = false;
+            }else{
+                CraftData.select_craft(craft);
+            }
+        }
+
         public static CraftData selected_craft { 
             get { 
                 return filtered.Find(c => c.selected == true);
@@ -368,7 +376,7 @@ namespace CraftManager
                 if(String.IsNullOrEmpty(new_name)){
                     return "name can not be blank";                    
                 }else{
-                    return "name must be different";                                       
+                    return "200"; //do nothing is name is unchanged.                           
                 }
             }
         }
@@ -376,6 +384,7 @@ namespace CraftManager
         public string delete(){
             if(File.Exists(path)){
                 File.Delete(path);
+                if(CraftManager.main_ui){CraftManager.main_ui.refresh();}
                 return "200";
             } else{
                 return "error 404 - file not found";
@@ -450,12 +459,13 @@ namespace CraftManager
                     return "A Craft with this name alread exists in " + new_save_dir;
                 } else{
                     FileInfo file = new FileInfo(path);
-                    try{
+                    try{                        
                         if(move){
                             file.MoveTo(new_path);
                         }else{                        
                             file.CopyTo(new_path);
                         }
+                        if(CraftManager.main_ui){CraftManager.main_ui.refresh();}
                         return "200";
                     }
                     catch(Exception e){
