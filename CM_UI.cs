@@ -114,9 +114,11 @@ namespace CraftManager
 
             EditorLogic.fetch.saveBtn.onClick.AddListener(on_save_click); //settup click event on the stock save button.
             //override existing ations on stock load button and replace with call to toggle CM's UI.
-            UnityEngine.UI.Button.ButtonClickedEvent c = new UnityEngine.UI.Button.ButtonClickedEvent(); 
-            c.AddListener(on_load_click);
-            EditorLogic.fetch.loadBtn.onClick = c;
+            if(CraftManager.replace_editor_load_button){
+                UnityEngine.UI.Button.ButtonClickedEvent c = new UnityEngine.UI.Button.ButtonClickedEvent(); 
+                c.AddListener(on_load_click);
+                EditorLogic.fetch.loadBtn.onClick = c;
+            }
 
             //Initialize list of Save directories, used in save select menus.
             active_save_dir = HighLogic.SaveFolder;

@@ -25,6 +25,10 @@ namespace CraftManager
     [KSPAddon(KSPAddon.Startup.MainMenu, false)]
     public class CraftManager : MonoBehaviour
     {
+        //Settings
+        internal static bool use_stock_toolbar = true;
+        internal static bool replace_editor_load_button = false;
+
 
         //Interface Instances
         internal static CM_UI main_ui = null;
@@ -32,12 +36,15 @@ namespace CraftManager
         //Toolbar Buttons
         internal static ApplicationLauncherButton main_ui_toolbar_button   = null;
 
+        //Helpers
         public static string ksp_root = KSPUtil.ApplicationRootPath.Replace("/KSP_Data/../","");
 
 
         private void Awake(){
-            GameEvents.onGUIApplicationLauncherReady.Add(add_to_toolbar);
-            GameEvents.onGUIApplicationLauncherDestroyed.Add(remove_from_toolbar);
+            if(CraftManager.use_stock_toolbar){
+                GameEvents.onGUIApplicationLauncherReady.Add(add_to_toolbar);
+                GameEvents.onGUIApplicationLauncherDestroyed.Add(remove_from_toolbar);
+            }
             GameEvents.onGameSceneLoadRequested.Add(scene_load_request);           
         }
 
@@ -69,8 +76,8 @@ namespace CraftManager
 
         //remove any existing buttons from the toolbar
         private void remove_from_toolbar(){
-            CraftManager.log("Removing buttons from toolbar");
             if(CraftManager.main_ui_toolbar_button){
+                CraftManager.log("Removing buttons from toolbar");
                 ApplicationLauncher.Instance.RemoveModApplication(CraftManager.main_ui_toolbar_button);
                 CraftManager.main_ui_toolbar_button = null;
             }

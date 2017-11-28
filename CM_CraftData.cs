@@ -249,11 +249,16 @@ namespace CraftManager
 //            thumbnail = ShipConstruction.GetThumbnail("/thumbs/" + save_dir + "_" + construction_type + "_" + name);
         }
 
+        //return the path to the craft's thumbnail based on craft properties. Overload method provides means to generate a 
+        //different thumbnail path without changing the crafts properties.
         public string thumbnail_path(){
-            if(stock_craft){                
-                return Paths.joined(CraftManager.ksp_root, "Ships", "@thumbs", construction_type,  name + ".png");
-            } else{                
-                return Paths.joined(CraftManager.ksp_root, "thumbs/" + save_dir + "_" + construction_type + "_" + name + ".png");
+            return thumbnail_path(stock_craft ? "stock" : save_dir, construction_type, name);
+        }
+        public string thumbnail_path(string save_folder, string construct_type, string craft_name){
+            if(save_folder == "stock"){
+                return Paths.joined(CraftManager.ksp_root, "Ships", "@thumbs", construct_type,  craft_name + ".png");
+            } else{
+                return Paths.joined(CraftManager.ksp_root, "thumbs/" + save_folder + "_" + construct_type + "_" + craft_name + ".png");
             }
         }
 
@@ -373,7 +378,6 @@ namespace CraftManager
                             return "Unable to rename file\n" + e.Message;
                         }
                         FileInfo thumbnail_file = new FileInfo(thumbnail_path());
-
                         List<string> tags = Tags.remove_from_all_tags(this); //remove old name from tags (returns any tag names it was in).
                         ConfigNode nodes = ConfigNode.Load(new_path);
                         nodes.SetValue("ship", new_name);
@@ -403,6 +407,10 @@ namespace CraftManager
         public string delete(){
             if(File.Exists(path)){
                 File.Delete(path);
+                FileInfo thumbnail_file = new FileInfo(thumbnail_path());
+                if(thumbnail_file.Exists){
+                    thumbnail_file.Delete();
+                }
                 Tags.remove_from_all_tags(this);
                 if(CraftManager.main_ui){CraftManager.main_ui.refresh();}
                 return "200";
@@ -449,10 +457,15 @@ namespace CraftManager
                     return "Unable to move craft; " + e.Message;
                 }
                 List<string> tags = Tags.remove_from_all_tags(this);
+                FileInfo thumbnail_file = new FileInfo(thumbnail_path());
 
                 File.Delete(path);
                 initialize(new_path, stock_craft);
                 Tags.tag_craft(this, tags);
+                if(thumbnail_file.Exists){
+                    thumbnail_file.MoveTo(thumbnail_path());
+                    load_thumbnail_image();
+                }
                 if(CraftManager.main_ui){CraftManager.main_ui.refresh();}
                 return "200";
             }
@@ -479,11 +492,14 @@ namespace CraftManager
                     return "A Craft with this name alread exists in " + new_save_dir;
                 } else{
                     FileInfo file = new FileInfo(path);
+                    FileInfo thumbnail_file = new FileInfo(thumbnail_path());
                     try{                        
                         if(move){
                             file.MoveTo(new_path);
+                            thumbnail_file.MoveTo(thumbnail_path(new_save_dir, this.construction_type, this.name));
                         }else{                        
                             file.CopyTo(new_path);
+                            thumbnail_file.CopyTo(thumbnail_path(new_save_dir, this.construction_type, this.name));
                         }
                         if(CraftManager.main_ui){CraftManager.main_ui.refresh();}
                         return "200";
