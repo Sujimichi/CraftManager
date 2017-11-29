@@ -387,7 +387,7 @@ namespace CraftManager
                             return "Unable to rename file\n" + e.Message;
                         }
                         FileInfo thumbnail_file = new FileInfo(thumbnail_path());
-                        List<string> tags = Tags.remove_from_all_tags(this); //remove old name from tags (returns any tag names it was in).
+                        List<string> tags = Tags.untag_craft(this); //remove old name from tags (returns any tag names it was in).
                         ConfigNode nodes = ConfigNode.Load(new_path);
                         nodes.SetValue("ship", new_name);
                         nodes.Save(new_path);
@@ -420,7 +420,7 @@ namespace CraftManager
                 if(thumbnail_file.Exists){
                     thumbnail_file.Delete();
                 }
-                Tags.remove_from_all_tags(this);
+                Tags.untag_craft(this);
                 if(CraftManager.main_ui){CraftManager.main_ui.refresh();}
                 return "200";
             } else{
@@ -465,7 +465,7 @@ namespace CraftManager
                 catch(Exception e){
                     return "Unable to move craft; " + e.Message;
                 }
-                List<string> tags = Tags.remove_from_all_tags(this);
+                List<string> tags = Tags.untag_craft(this);
                 FileInfo thumbnail_file = new FileInfo(thumbnail_path());
 
                 File.Delete(path);

@@ -40,6 +40,7 @@ namespace CraftManager
 
         private string auto_focus_on = null;
         private string new_tag_name = "";
+        public string tag_sort_by = "craft_count";
         private bool edit_tags = false;
         private bool tag_mode_reduce = true;
         private bool expand_details = false;
@@ -167,6 +168,7 @@ namespace CraftManager
                 search_criteria.Add("exclude_stock", true);
             }
             CraftData.filter_craft(search_criteria);
+            Tags.sort_tag_list();
         }
 
         protected void clear_search(){
@@ -360,8 +362,8 @@ namespace CraftManager
                     foreach(string tag_name in Tags.names){
                         style_override = "tag.section";
                         section((sec_w)=>{
-                            prev_state = Tags.all[tag_name];
-                            state = Tags.all[tag_name];
+                            state = Tags.is_selected(tag_name);
+                            prev_state = state;
 
                             state = GUILayout.Toggle(state, "", "tag.toggle.light");
                             state = GUILayout.Toggle(
