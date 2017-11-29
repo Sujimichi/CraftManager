@@ -106,8 +106,8 @@ namespace CraftManager
             define_style("alert", base_skin.label, s =>{
                 s.normal.textColor = new Color(0.8f,0.3f,0.2f,1);
             });
-            define_style("alert.h2", "alert", s =>{               
-                s.fontSize = 20;
+            define_style("alert.h3", "alert", s =>{               
+                s.fontSize = 15;
             });
 
 

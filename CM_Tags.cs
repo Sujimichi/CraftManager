@@ -12,25 +12,15 @@ namespace CraftManager
 
     public class Tag
     {
-
         public string name;
-        public string new_name;
         public string save_dir;
         public List<string> craft = new List<string>();
-//        public bool selected = false;
 
         public Tag(string tag_name, string save_name){
             name = tag_name;
             save_dir = save_name;
             Tags.instance.data.Add(this);
         }
-
-//        public Tag(string tag_name, string save_name, List<string> assign_craft){
-//            name = tag_name;
-//            save_dir = save_name;
-//            craft = assign_craft;
-//            Tags.instance.data.Add(this);
-//        }
 
         public void add(string craft_ref){
             if(!craft.Contains(craft_ref)){
@@ -49,39 +39,50 @@ namespace CraftManager
     public class Tags
     {
 
-        public List<Tag> data = new List<Tag>();
-        public Dictionary<string, bool> list = new Dictionary<string, bool>();
-        public Dictionary<string, string> name_list = new Dictionary<string, string>();
+        public List<Tag> data = new List<Tag>(); //Holds all the loaded tags
+        //holds a reference to each loaded tag's name and if they are selected or not
+        //this list is used to draw the list of tags in the UI and enables multiple tags of the same name in different saves to be merged together.
+        public Dictionary<string, bool> list = new Dictionary<string, bool>(); 
+//        public Dictionary<string, string> name_list = new Dictionary<string, string>(); 
+        public List<string> names_list = new List<string>(); //Holds the naames of Tags (used to draw the dropdown menus).
 
         public Tags(){
-            Tags.instance = this;    
+            Tags.instance = this;  
         }
+
+        //Static Stuff Below (keep yourself grounded).
 
         public static Tags instance;
 
+        //Accessor Methods
         public static Dictionary<string, bool> all {
-            get{
-                return Tags.instance.list;
-            }
+            get{ return Tags.instance.list; }
         }
-        public static Dictionary<string, string> names {
-            get{
-                return Tags.instance.name_list;
-            }
+        public static List<string> names {
+            get{ return Tags.instance.names_list; }
         }
 
+        //return the reference used to identify a craft; ie SPH_myRocket 
         public static string craft_reference_key(CraftData craft){            
             return craft.construction_type + "_" + craft.name;
         }
 
+        //returns the path to the .tags file for a given save dir
         public static string tag_file_path(string save_dir){
             return Paths.joined(CraftManager.ksp_root, "saves", save_dir, "craft.tags");
         }
 
 
+        //Finds a Tag given a name and save dir
         public static Tag find(string tag_name, string save_dir){
-            return Tags.instance.data.Find(t => (t.name == tag_name && t.save_dir == save_dir));
+            if(save_dir == "all"){
+                return Tags.instance.data.Find(t => (t.name == tag_name));
+            } else{
+                return Tags.instance.data.Find(t => (t.name == tag_name && t.save_dir == save_dir));
+            }
         }
+
+        //Find all tags which match a name in either a given save or in all saves if save_dir is given as "all"
         public static List<Tag> find_all(string tag_name, string save_dir){
             if(save_dir == "all"){
                 return Tags.instance.data.FindAll(t => (t.name == tag_name));
@@ -90,7 +91,11 @@ namespace CraftManager
             }                
         }
 
+        //returns a matching Tag or creates a new on if none was fond.
         public static Tag find_or_create_by(string tag_name, string save_dir, bool save_on_create = true){            
+            if(String.IsNullOrEmpty(tag_name)){
+                return null;
+            }
             Tag tag = Tags.find(tag_name, save_dir);
             if(tag == null){
                 tag = new Tag(tag_name, save_dir);
@@ -101,12 +106,12 @@ namespace CraftManager
             return tag;
         }
 
+        //Remove a Tag from a save or from all saves if save_dir is "all"
         public static string remove(string tag_name, string save_dir){          
             List<Tag> tags = Tags.find_all(tag_name, save_dir);                
             foreach(Tag tag in tags){
                 Tags.instance.data.Remove(tag);
             }
-//            Tags.instance.data.RemoveAll(t => (t.name == tag_name && t.save_dir == save_dir)); //should only have to remove 1 instance, but this ensures all matching are removed (and it could be written as one line)
             Tags.save();
             return "200";
         }
@@ -116,7 +121,7 @@ namespace CraftManager
                 return "Name cannot be blank";
             } else if(new_tag_name == cur_tag_name){
                 return "200"; //do nothing if name is unchanged
-            } else if(Tags.all.ContainsKey(new_tag_name)){
+            } else if(Tags.names.Contains(new_tag_name)){
                 return "A tag with this name already exists";
             } else{                
                 List<Tag> tags = Tags.find_all(cur_tag_name, save_dir);                
@@ -205,32 +210,36 @@ namespace CraftManager
             return count;
         }
 
+
+
         public static void update_lists(){
             Dictionary<string, bool> new_list = new Dictionary<string, bool>();
-            Dictionary<string, string> new_name_list = new Dictionary<string, string>();
+            List<string> new_name_list = new List<string>();
 
             foreach(Tag tag in Tags.instance.data){
                 if(!new_list.ContainsKey(tag.name)){
                     bool cur_val = Tags.instance.list.ContainsKey(tag.name) ? Tags.instance.list[tag.name] : false;
                     new_list.Add(tag.name, cur_val);
                 }
-                if(!new_name_list.ContainsKey(tag.name)){
-                    new_name_list.Add(tag.name, tag.name);
-                }
+                new_name_list.AddUnique(tag.name);
             }
             Tags.instance.list = new_list;
-            Tags.instance.name_list = new_name_list;
+            Tags.instance.names_list = new_name_list;
+            Tags.instance.names_list.Sort((x,y) => x.CompareTo(y));
         }
 
 
 
         public static void load(string save_name){
+            if(Tags.instance == null){
+                new Tags();
+            }
+
             List<string> save_dirs = new List<string> { save_name };
 
             Tags.instance.data.Clear();
             if(save_name == "all"){
                 save_dirs = CraftData.save_names();
-            } else{
             }
             foreach(string save_dir in save_dirs){
                 CraftManager.log("loading tags for " + save_dir);
@@ -287,138 +296,7 @@ namespace CraftManager
             Tags.update_lists();
         }
 
-
-
-
-
-
-
-
     }
-
-
-//    public class Tags_old
-//    {
-//
-//        public static string file_path = Paths.joined(CraftManager.ksp_root, "GameData", "CraftManager", "craft.tags");
-//        public static Dictionary<string, Tag> all = new Dictionary<string, Tag>();
-//        public static Dictionary<string, string> names = new Dictionary<string, string>();
-//
-//
-//
-//        public static string craft_reference_key(CraftData craft){            
-//            return craft.construction_type + "_" + craft.name;
-//        }
-//
-//        public static List<string> selected_tags(){
-//            List<Tag> tags = new List<Tag>(Tags.all.Values);
-//            List<string> s_tags = new List<string>();
-//            foreach(Tag t in tags.FindAll(tag => tag.selected)){
-//                s_tags.Add(t.name);
-//            }
-//            return s_tags;
-//        }
-//
-//        //add a new tag. 
-//        public static void add(string tag){
-//            if(!all.ContainsKey(tag)){
-//                all.Add(tag, new Tag(tag));
-//                save();
-//            }
-//        }
-//
-//        //remove a tag (and all included craft references)
-//        public static void remove(string tag){
-//            if(all.ContainsKey(tag)){
-//                all.Remove(tag);
-//                save();
-//            }
-//        }
-//
-//        //add a craft reference to a tag. creates the tag if it doesn't exist
-//        public static void tag_craft(CraftData craft, string tag){
-//            add(tag); //ensure tag exists, doesn't do anything if tag exists
-//            all[tag].add(craft_reference_key(craft));
-//            save();
-//        }
-//        public static void tag_craft(CraftData craft, List<string> tags){
-//            foreach(string tag_name in tags){
-//                Tags.tag_craft(craft, tag_name);
-//            }
-//        }
-//
-//        //remove a craft reference from a tag. Does not remove tag if it is empty afterwards.
-//        public static void untag_craft(CraftData craft, string tag){
-//            if(all.ContainsKey(tag)){
-//                string craft_ref = craft_reference_key(craft);
-//                if(all[tag].craft.Contains(craft_ref)){
-//                    all[tag].remove(craft_ref);
-//                }
-//            }
-//            save();
-//        }
-//
-//        public static List<string> remove_from_all_tags(CraftData craft){
-//            List<string> tags = Tags.for_craft(craft);
-//            foreach(string tagname in tags){
-//                Tags.untag_craft(craft, tagname);
-//            }
-//            return tags;
-//        }
-//
-//        //get a list of tags for a given craft reference
-//        public static List<string> for_craft(CraftData craft){
-//            string craft_ref = craft_reference_key(craft);
-//            List<string> in_tags = new List<string>();
-//            foreach(KeyValuePair<string, Tag> d in all){
-//                if(d.Value.craft.Contains(craft_ref)){
-//                    in_tags.Add(d.Key);
-//                }
-//            }
-//            return in_tags;
-//        }
-//
-//
-//        //convert Dictionary<string, List<string>> to ConfigNodes and write to file
-//        public static void save(){
-//            ConfigNode nodes = new ConfigNode();
-//            ConfigNode tag_nodes = new ConfigNode();
-//            names.Clear();
-//
-//            foreach(KeyValuePair<string, Tag> pair in all){
-//                ConfigNode node = new ConfigNode();
-//                names.Add(pair.Key, pair.Key);
-//                node.AddValue("tag_name", pair.Key);
-//                foreach(string craft_ref in pair.Value.craft){
-//                    node.AddValue("craft", craft_ref);
-//                }
-//                tag_nodes.AddNode("TAG", node);
-//            }
-//            nodes.AddNode("TAGS", tag_nodes);
-//            nodes.Save(file_path);
-//        }
-//
-//        //read ConfigNodes from file and convert to Dictonary<string, List<string>>
-//        public static void load(){
-//            all.Clear();
-//            names.Clear();
-//            ConfigNode raw_data = ConfigNode.Load(file_path);
-//            ConfigNode tag_nodes = raw_data.GetNode("TAGS");
-//
-//            foreach(ConfigNode tag_node in tag_nodes.nodes){
-//                string tag_name = tag_node.GetValue("tag_name");
-//                string[] craft = tag_node.GetValues("craft");
-//                Tag tag = new Tag(tag_name, new List<string>(craft));
-//                names.Add(tag_name, tag_name);
-//                all.Add(tag_name, tag);
-//            }
-//        }
-//
-//
-//    }
-
-
-
 
 }
 

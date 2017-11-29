@@ -121,7 +121,6 @@ namespace CraftManager
             }
 
             //Initialize list of Save directories, used in save select menus.
-//            change_save(HighLogic.SaveFolder);
             active_save_dir = HighLogic.SaveFolder;
             save_menu_options.Add(active_save_dir, "Current Save (" + active_save_dir + ")");
             foreach(string dir_name in CraftData.save_names()){
@@ -131,7 +130,6 @@ namespace CraftManager
             }
             save_menu_options.Add("all", "All");
 
-            new Tags();
             Tags.load(active_save_dir);
 //            show();
         }
@@ -359,7 +357,7 @@ namespace CraftManager
 
 
                 scroll_pos["lhs"] = scroll(scroll_pos["lhs"], "side_panel.scroll", inner_width, main_section_height, scroll_width => {
-                    foreach(string tag_name in Tags.names.Keys){
+                    foreach(string tag_name in Tags.names){
                         style_override = "tag.section";
                         section((sec_w)=>{
                             prev_state = Tags.all[tag_name];
