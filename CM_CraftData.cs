@@ -138,7 +138,16 @@ namespace CraftManager
             } 
         }
 
-
+        public static List<string> save_names(){
+            List<string> dirs = new List<string>();
+            foreach(string dir in Directory.GetDirectories(Paths.joined(CraftManager.ksp_root, "saves"))){
+                string dir_name = dir.Replace(Paths.joined(CraftManager.ksp_root, "saves"), "").Replace("/","");
+                if(dir_name != "training" && dir_name != "scenarios"){
+                    dirs.Add(dir_name);
+                }
+            }
+            return dirs;
+        }
 
 
         //**Instance Methods/Variables**//
@@ -187,7 +196,7 @@ namespace CraftManager
         //craft after entering the editor, and its value will be cached in the in-memory cache so it doesn't need rechecking until the
         //next scene change.
         public void check_locked_parts() {
-            CraftManager.log("checking locked parts");
+//            CraftManager.log("checking locked parts");
             locked_parts = false;
             foreach(string p_name in part_name_list){
                 if(cache.locked_parts.Contains(p_name)){
@@ -276,7 +285,7 @@ namespace CraftManager
         //Parse .craft file and read info
         private void read_craft_info_from_file(){
             name = Path.GetFileNameWithoutExtension(path);
-            CraftManager.log("Loading craft data from file for " + name);
+//            CraftManager.log("Loading craft data from file for " + name);
 
             ConfigNode data = ConfigNode.Load(path);
             ConfigNode[] parts = data.GetNodes();

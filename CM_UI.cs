@@ -121,11 +121,11 @@ namespace CraftManager
             }
 
             //Initialize list of Save directories, used in save select menus.
+//            change_save(HighLogic.SaveFolder);
             active_save_dir = HighLogic.SaveFolder;
             save_menu_options.Add(active_save_dir, "Current Save (" + active_save_dir + ")");
-            foreach(string dir in Directory.GetDirectories(Paths.joined(CraftManager.ksp_root, "saves"))){
-                string dir_name = dir.Replace(Paths.joined(CraftManager.ksp_root, "saves"), "").Replace("/","");
-                if(dir_name != "training" && dir_name != "scenarios" && dir_name != active_save_dir){
+            foreach(string dir_name in CraftData.save_names()){
+                if(dir_name != active_save_dir){
                     save_menu_options.Add(dir_name, dir_name);
                 }
             }
@@ -179,6 +179,14 @@ namespace CraftManager
             reverse_sort = !reverse_sort;
             filter_craft();
         }
+        protected void change_save(string save_name){
+            active_save_dir = save_name;
+            save_menu_width = GUI.skin.button.CalcSize(new GUIContent("Save: " + active_save_dir)).x;
+//            new Tags();
+            Tags.load(active_save_dir);
+            refresh();
+        }
+
 
         //Main GUI draw method (called by onGUI, see DryUI in KatLib).  Broken up into smaller sections to ease digestion and help prevent heart burn.
         //The GUI is main in 5 sections, top and bottom sections span the full width, while the LHS, RHS and main sections are columns.
@@ -207,6 +215,8 @@ namespace CraftManager
         }
 
 
+
+
         //**GUI Sections**//
 
         //GUI Top Section
@@ -223,11 +233,7 @@ namespace CraftManager
                 if(save_menu_width == 0){
                     save_menu_width = GUI.skin.button.CalcSize(new GUIContent("Save: " + active_save_dir)).x;
                 }
-                dropdown("Save: " + active_save_dir, "save_menu", save_menu_options, this, save_menu_width, (resp) => {
-                    active_save_dir = resp;
-                    save_menu_width = GUI.skin.button.CalcSize(new GUIContent("Save: " + active_save_dir)).x;
-                    refresh();
-                });
+                dropdown("Save: " + active_save_dir, "save_menu", save_menu_options, this, save_menu_width, change_save);
             });
             section(() =>{
                 label("Search Craft:", "h2");
@@ -335,6 +341,8 @@ namespace CraftManager
 
 
         //Left Hand Section: Tags
+        bool prev_state = false;
+        bool state = false;
         protected void draw_left_hand_section(float section_width){
             v_section(section_width, (inner_width) =>{
                 section((w)=>{
@@ -352,17 +360,16 @@ namespace CraftManager
 
                 scroll_pos["lhs"] = scroll(scroll_pos["lhs"], "side_panel.scroll", inner_width, main_section_height, scroll_width => {
                     foreach(string tag_name in Tags.names.Keys){
-//                    foreach(KeyValuePair<string, bool> tag in Tags.all){
-                        
-
                         style_override = "tag.section";
                         section((sec_w)=>{
-                            bool prev_state = Tags.all[tag_name];
-                            bool state = Tags.all[tag_name];
+                            prev_state = Tags.all[tag_name];
+                            state = Tags.all[tag_name];
 
                             state = GUILayout.Toggle(state, "", "tag.toggle.light");
-                            state = GUILayout.Toggle(state, tag_name, "tag.toggle.label", width(scroll_width-(edit_tags ? 80f : 35f)));
-//                            Tags.instance.list[tag_name] = state;
+                            state = GUILayout.Toggle(
+                                state, tag_name + " - (" + Tags.craft_count_for(tag_name,"filtered") + ")", 
+                                "tag.toggle.label", width(scroll_width-(edit_tags ? 80f : 35f))
+                            );
 
                             if(prev_state != state){
                                 Tags.toggle_tag(tag_name);
@@ -370,10 +377,10 @@ namespace CraftManager
                             }
                             if(edit_tags){
                                 button("e", "tag.edit_button", ()=>{
-//                                    edit_tag_dialog(tag);
+                                    edit_tag_dialog(tag_name);
                                 });
                                 button("X", "tag.delete_button.x", ()=>{
-//                                    delete_tag_dialog(tag);
+                                    delete_tag_dialog(tag_name);
                                 });
                             }
                         });
@@ -609,16 +616,24 @@ namespace CraftManager
             });
         }
 
-        protected void delete_tag_dialog(Tag tag){
+        protected void delete_tag_dialog(string tag_name){            
             string resp = "";
+            int craft_count = Tags.craft_count_for(tag_name, "all");
             DryDialog dialog = show_dialog("Confirm Tag Delete", "Are you sure you want to delete this tag?", d =>{
-                if(tag.craft_count("all") > 0){
-                    GUILayout.Label("This tag is used for " + tag.craft_count("all") + " craft.");
+                
+                if(craft_count > 0){
+                    GUILayout.Label("This tag is used for " + craft_count + " craft.");
+                    label("deleting tags will not delete any craft");
+                }
+                if(active_save_dir == "all"){
+                    label("You are viewing craft from all saves, this tag will be deleted in each of your saves.", "alert.h3");
                 }
                 section(()=>{
                     fspace();
                     button("Cancel", close_dialog);
-                    button("Delete", "button.delete", ()=>{Tags.remove(tag.name, active_save_dir);resp="200";});
+                    button("Delete", "button.delete", ()=>{
+                        resp = Tags.remove(tag_name, active_save_dir);
+                    });
                 });
                 return resp;
             });
@@ -627,17 +642,20 @@ namespace CraftManager
             dialog.window_pos.y = Event.current.mousePosition.y + window_pos.y + 140;
         }
 
-        protected void edit_tag_dialog(Tag tag){
+        protected void edit_tag_dialog(string tag_name){
             string resp = "";
-            tag.new_name = tag.name;
-            DryDialog dialog = show_dialog("Edit Tag", "Edit Tag: " + tag.name, d =>{
+            string new_tag_name = tag_name;
+            DryDialog dialog = show_dialog("Edit Tag", "Edit Tag: " + tag_name, d =>{
+                if(active_save_dir == "all"){
+                    label("You are viewing craft from all saves, this will rename this tag in each of your saves.", "alert.h3");
+                }
                 GUI.SetNextControlName("dialog_focus_field");
-                tag.new_name = GUILayout.TextField(tag.new_name);
+                new_tag_name = GUILayout.TextField(new_tag_name);
                 section(()=>{
                     fspace();
                     button("Cancel", close_dialog);
                     button("Save", ()=>{
-                        resp = tag.rename();
+                        resp = Tags.rename(tag_name, new_tag_name, active_save_dir);
                     });
                 });
                 return resp;

@@ -1,0 +1,19 @@
+TAGS
+{
+	TAG
+	{
+		tag_name = DefaultThing
+	}
+	TAG
+	{
+		tag_name = SpaceplaneDEF
+	}
+	TAG
+	{
+		tag_name = DefLander
+	}
+	TAG
+	{
+		tag_name = LKO
+	}
+}
