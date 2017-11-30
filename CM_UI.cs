@@ -753,8 +753,8 @@ namespace CraftManager
             move_copy_save_menu.Remove(key);
             move_copy_save_menu.Remove("all");
 
-            show_dialog("Move/Copy Craft", "Move or Copy this craft to another save:", d =>{
-                section((inner_width)=>{
+            show_dialog("Move/Copy Craft", "Move or Copy this craft to another save:", false, d =>{
+                section(500f, (inner_width)=>{
                     GUILayout.Space(inner_width*0.3f);
                     dropdown("Select Save", "copy_transfer_save_menu", move_copy_save_menu, d, inner_width*0.4f, "button.large", "menu.background", "menu.item", (selected_save_name) => {
                         resp = "";
@@ -777,56 +777,62 @@ namespace CraftManager
             });            
         }
 
+
         //Dialog Handler
-        //All the above dialogs are created with this function and it handles all their common aspects and renders them as modal dialogs.
+        //All the above dialogs are created with this function and it handles all their common aspects and cam render them as modal dialogs.
         //It's a bit of a hacky solution. Its renders a full screen size window with GUI.ModalWindow which is skinned to appear as a box, 
         //and then renders a box which is skinned to look like a window in the middle. So the effect is a shaded out screen with a dialog
-        //in the middle.
+        //in the middle and only the dialog can be interacted with.
 
         public delegate string InnerDialogContent(DryUI dialog);
 
         protected DryDialog show_dialog(string title, string heading, InnerDialogContent content){
-            return show_dialog(title, heading, Screen.height / 3, this.window_pos.x + (this.window_pos.width / 2) - (500 / 2), 500f, content);
+            return show_dialog(title, heading, Screen.height / 3, this.window_pos.x + (this.window_pos.width / 2) - (500 / 2), 500f, true, content);
+        }
+        protected DryDialog show_dialog(string title, string heading, bool modal, InnerDialogContent content){
+            return show_dialog(title, heading, Screen.height / 3, this.window_pos.x + (this.window_pos.width / 2) - (500 / 2), 500f, modal, content);
+        }
+        protected DryDialog show_dialog(string title, string heading, float top, float left, float dialog_width, InnerDialogContent content){
+            return show_dialog(title, heading, top, left, dialog_width, false, content);
         }
 
-        protected DryDialog show_dialog(string title, string heading, float top, float left, float dialog_width, InnerDialogContent content){
+        protected DryDialog show_dialog(string title, string heading, float top, float left, float dialog_width, bool modal, InnerDialogContent content){
             close_dialog();
-            DryDialog dialog = gameObject.AddOrGetComponent<DryDialog>();
-            dialog.window_title = "Craft Manager";
-            dialog.window_pos = new Rect(0, 0, Screen.width, Screen.height);
-            dialog.draggable = false;
-
             string resp = "";
             int focus_count = 5;
-
-
+            
             DialogContent dc = new DialogContent(d =>{
-                GUILayout.Space(top);
-                section(d.window_pos.width, ()=>{
-                    GUILayout.Space(left);
-                    GUILayout.BeginVertical("Window", width(dialog_width), height(80f), GUILayout.ExpandHeight(true));
-                    GUI.Label(new Rect(left, top, dialog_width, 20f), title, "modal.title");
-                    style_override = "dialog.section";
-                    v_section(()=>{                    
-                        label(heading, "h2");
-                        if(!String.IsNullOrEmpty(resp)){label(resp, "error");}
-                        resp = content(d);
-                    });
-                    if(resp == "200"){
-                        close_dialog();
-                    }
-                    if(focus_count > 0){
-                        auto_focus_on = "dialog_focus_field";
-                        focus_count--;
-                    }
-                    GUILayout.EndVertical();
+                style_override = "dialog.section";
+                v_section(()=>{                    
+                    label(heading, "h2");
+                    if(!String.IsNullOrEmpty(resp)){label(resp, "error");}
+                    resp = content(d);
                 });
-                d.modal = true;
+                if(resp == "200"){
+                    close_dialog();
+                }
+                if(focus_count > 0){
+                    auto_focus_on = "dialog_focus_field";
+                    focus_count--;
+                }
             });
-            dialog.content = dc;
-            return dialog;
-        }
 
+            if(modal){                
+                ModalDialog dialog = gameObject.AddOrGetComponent<ModalDialog>();
+                dialog.dialog_pos = new Rect(left, top, dialog_width, 80f);
+                dialog.window_title = title;
+                dialog.content = dc;
+                return dialog;
+
+            } else{
+                DryDialog dialog = gameObject.AddOrGetComponent<DryDialog>();
+                dialog.window_pos = new Rect(left, top, dialog_width, 80f);
+                dialog.window_title = title;
+                dialog.content = dc;
+                return dialog;
+
+            }
+        }
 
     }
 }
