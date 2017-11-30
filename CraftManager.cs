@@ -10,6 +10,9 @@
   - don't load stock craft until option for stock switched on
   - enable enter key to compelte in dialogs
   - KerbalX Integreation
+
+    TODO BUGS
+    - description field does not save chars after new line. Newline used in game is some other char
 */
 
 using System;

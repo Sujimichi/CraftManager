@@ -628,7 +628,7 @@ namespace CraftManager
             int craft_count = Tags.craft_count_for(tag_name, "all");
             float top = Event.current.mousePosition.y + window_pos.y + 140;
             float left = Event.current.mousePosition.x + window_pos.x;
-            show_dialog("Delete Tag", "Are you sure you want to delete this tag?", top, left, 400f, d =>{
+            show_dialog("Delete Tag", "Are you sure you want to delete this tag?", top, left, 400f, true, d =>{
                 
                 if(craft_count > 0){
                     GUILayout.Label("This tag is used for " + craft_count + " craft.");
@@ -640,8 +640,8 @@ namespace CraftManager
                 section(()=>{
                     fspace();
                     button("Cancel", close_dialog);
-                    button("Delete", "button.delete", ()=>{
-                        resp = Tags.remove(tag_name, active_save_dir);
+                    resp = submit("Delete", "button.delete", ()=>{
+                        return Tags.remove(tag_name, active_save_dir);
                     });
                 });
                 return resp;
@@ -653,7 +653,7 @@ namespace CraftManager
             string new_tag_name = tag_name;
             float top = Event.current.mousePosition.y + window_pos.y + 140;
             float left = Event.current.mousePosition.x + window_pos.x;
-            show_dialog("Edit Tag", "Edit Tag: " + tag_name, top, left, 400f, d =>{
+            show_dialog("Edit Tag", "Edit Tag: " + tag_name, top, left, 400f, true, d =>{
                 if(active_save_dir == "all"){
                     label("You are viewing craft from all saves, this will rename this tag in each of your saves.", "alert.h3");
                 }
@@ -662,8 +662,8 @@ namespace CraftManager
                 section(()=>{
                     fspace();
                     button("Cancel", close_dialog);
-                    button("Save", ()=>{
-                        resp = Tags.rename(tag_name, new_tag_name, active_save_dir);
+                    resp = submit("Save", ()=>{
+                        return Tags.rename(tag_name, new_tag_name, active_save_dir);
                     });
                 });
                 return resp;
@@ -675,15 +675,16 @@ namespace CraftManager
                 CraftData.selected_craft.description = "";
             }
             string resp = "";
+            float area_height = 0;
             show_dialog("Edit Description", "Edit Description", d =>{
                 GUI.SetNextControlName("dialog_focus_field");
-                CraftData.selected_craft.description = GUILayout.TextArea(CraftData.selected_craft.description);
+                area_height = skin.textArea.CalcHeight(new GUIContent(CraftData.selected_craft.description), d.window_pos.width)+10;
+                if(area_height < 150f){area_height=150f;}
+                CraftData.selected_craft.description = GUILayout.TextArea(CraftData.selected_craft.description, height(area_height));
                 section(()=>{
                     fspace();
                     button("Cancel", close_dialog);
-                    button("Save", ()=>{
-                        resp = CraftData.selected_craft.save_description();
-                    });
+                    resp = submit("Save", CraftData.selected_craft.save_description);
                 });
                 return resp;
             });
@@ -698,14 +699,12 @@ namespace CraftManager
                 section(()=>{
                     fspace();
                     button("Cancel", close_dialog);
-                    button("Rename", ()=>{
-                        resp = CraftData.selected_craft.rename();
-                    });
+                    resp = submit("Rename", CraftData.selected_craft.rename);
                 });
-
                 return resp;
             });
         }
+
 
         protected void delete_craft_dialog(){
             string resp = "";
@@ -713,9 +712,7 @@ namespace CraftManager
                 section(()=>{
                     fspace();
                     button("Cancel", close_dialog);
-                    button("Delete", "button.delete", ()=>{
-                        resp = CraftData.selected_craft.delete();
-                    });
+                    resp = submit("Delete", "button.delete", CraftData.selected_craft.delete);
                 });
                 return resp;
             });
@@ -809,12 +806,16 @@ namespace CraftManager
                     if(!String.IsNullOrEmpty(resp)){label(resp, "error");}
                     resp = content(d);
                 });
-                if(resp == "200"){
-                    close_dialog();
-                }
                 if(focus_count > 0){
                     auto_focus_on = "dialog_focus_field";
                     focus_count--;
+                }
+                if(resp == "200"){
+                    close_dialog();
+                }
+                Event e = Event.current;
+                if (e.type == EventType.keyDown && e.keyCode == KeyCode.Escape) {
+                    close_dialog();
                 }
             });
 
@@ -832,6 +833,28 @@ namespace CraftManager
                 dialog.content = dc;
                 return dialog;
 
+            }
+        }
+
+        bool submit_clicked = false;
+        protected delegate string SubmitAction();
+        protected string submit(string button_label, SubmitAction submit_action){
+            return submit(button_label, "Button", submit_action);
+        }
+        protected string submit(string button_label, GUIStyle button_style, SubmitAction submit_action){
+            submit_clicked = false;
+            button(button_label, button_style, () =>{
+                submit_clicked = true;    
+            });
+            Event e = Event.current;
+            if (GUI.GetNameOfFocusedControl() == "dialog_focus_field" && e.type == EventType.keyDown && e.keyCode == KeyCode.Return) {
+                submit_clicked = true;
+                e.Use();
+            }
+            if(submit_clicked){
+                return submit_action();
+            } else{
+                return "";
             }
         }
 
