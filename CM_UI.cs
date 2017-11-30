@@ -133,7 +133,7 @@ namespace CraftManager
             save_menu_options.Add("all", "All");
 
             Tags.load(active_save_dir);
-            show();
+//            show();
         }
 
         protected override void on_show(){            
@@ -335,6 +335,7 @@ namespace CraftManager
                     CraftData.toggle_selected(craft);  
                 }
                 if(evt.double_click){
+                    CraftData.select_craft(craft);
                     load_craft( craft.construction_type=="Subassembly" ? "subload" : "load");
                 }
             });

@@ -8,6 +8,7 @@
 /* TODO List
   - Skip locked part checking in sandbox
   - don't load stock craft until option for stock switched on
+  - enable enter key to compelte in dialogs
   - KerbalX Integreation
 */
 
