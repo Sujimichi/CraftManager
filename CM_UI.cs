@@ -721,18 +721,50 @@ namespace CraftManager
         protected void transfer_craft_dialog(){
             string resp = "";
             CraftData craft = CraftData.selected_craft;
+
+            bool switch_to_editor = false;
+            Dictionary<string, EditorFacility> lookup = new Dictionary<string, EditorFacility>{
+                {"SPH", EditorFacility.SPH}, {"VAB",EditorFacility.VAB},{"Subassembly",EditorFacility.None}
+            };
+            int selected_transfer_option = -1;
+            List<string> transfer_opts = new List<string>();
+
+            if(craft.construction_type != "SPH"){transfer_opts.Add("SPH");}
+            if(craft.construction_type != "VAB"){transfer_opts.Add("VAB");}
+            if(craft.construction_type != "Subassembly"){transfer_opts.Add("Subassembly");}
+            string[] transfer_options = transfer_opts.ToArray();
+            string opt = null;  
+
             show_dialog("Transfer Craft", "Transfer this craft to:", d =>{
                 section(()=>{
-                    if(craft.construction_type != "SPH"){
-                        button("The SPH", "button.large", ()=>{ resp = craft.transfer_to(EditorFacility.SPH); });
-                    }
-                    if(craft.construction_type != "VAB"){
-                        button("The VAB", "button.large", ()=>{ resp = craft.transfer_to(EditorFacility.VAB); });
-                    }
-                    if(craft.construction_type != "Subassembly"){
-                        button("Subassemblies", "button.large", ()=>{ resp = craft.transfer_to(EditorFacility.None); });
-                    }
+                    selected_transfer_option = GUILayout.SelectionGrid(selected_transfer_option, transfer_options, 2, "button.large");
                 });
+
+                GUILayout.Space(10);
+                if(selected_transfer_option == -1){
+                    label("Select one of the above options and then click confirm");
+                }else{
+                    opt = transfer_options[selected_transfer_option];
+                    label("Click Confirm to make this craft a " + opt + (opt=="Subassembly" ? "." : " craft."), "h2");
+                    if(opt != "Subassembly"){
+                        section(()=>{
+                            switch_to_editor = GUILayout.Toggle(switch_to_editor, "");
+                            button("Switch to " + opt + " and load craft", "bold", ()=>{
+                                switch_to_editor = !switch_to_editor;    
+                            });
+                        });
+                    }
+                }
+                gui_state(selected_transfer_option != -1, ()=>{
+                    resp = submit("Confirm", "button.large", ()=>{                        
+                        string response =  craft.transfer_to(lookup[opt]);
+                        if(switch_to_editor){
+                            EditorDriver.StartAndLoadVessel(craft.path, lookup[opt]);
+                        }
+                        return response;
+                    });
+                });
+                GUILayout.Space(10);
                 section(()=>{
                     fspace();
                     button("Cancel", close_dialog);                    
