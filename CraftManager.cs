@@ -6,12 +6,14 @@
 //Branch: master
 
 /* TODO List
+  - persistent sorts
   - Skip locked part checking in sandbox
   - don't load stock craft until option for stock switched on
   - KerbalX Integreation
 
     TODO BUGS
     - description field does not save chars after new line. Newline used in game is some other char
+    - change blk click to check that it is the same craft that is selected on the second click
 */
 
 using System;

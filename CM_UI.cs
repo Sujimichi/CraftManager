@@ -9,6 +9,28 @@ using KatLib;
 
 namespace CraftManager
 {
+
+    [KSPAddon(KSPAddon.Startup.EditorAny, false)]
+    public class CM_KeyShortCuts : MonoBehaviour
+    {
+        public void Update(){
+            if(!CraftManager.main_ui.visible){
+                if(Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl)){
+                    if(Input.GetKeyDown(KeyCode.O)){
+                        CraftManager.main_ui.show();
+                    } else if(Input.GetKeyDown(KeyCode.S)){
+                        if(EditorLogic.fetch.saveBtn.enabled){
+                            EditorLogic.fetch.saveBtn.onClick.Invoke();
+                            ScreenMessages.PostScreenMessage("Craft Saved!");
+                        }
+                    } else if(Input.GetKeyDown(KeyCode.N)){
+                        EditorLogic.fetch.newBtn.onClick.Invoke();
+                    }
+                }
+            }
+        }
+    }
+
     [KSPAddon(KSPAddon.Startup.EditorAny, false)]
     public class CM_UI : DryUI
     {
@@ -192,6 +214,7 @@ namespace CraftManager
         //Main GUI draw method (called by onGUI, see DryUI in KatLib).  Broken up into smaller sections to ease digestion and help prevent heart burn.
         //The GUI is main in 5 sections, top and bottom sections span the full width, while the LHS, RHS and main sections are columns.
         protected override void WindowContent(int win_id){
+            key_event_handler();
             v_section(()=>{                
                 draw_top_section(window_width);     
                 GUILayout.Space(10);
@@ -208,13 +231,69 @@ namespace CraftManager
             if(!String.IsNullOrEmpty(auto_focus_on)){  
                 GUI.FocusControl(auto_focus_on);
                 auto_focus_on = null;
-            } 
+            }
+
         }
 
         protected override void FooterContent(int window_id){
             GUILayout.Label("hello, this is footer");
         }
 
+        protected bool ctrl_down = false;
+        protected void key_event_handler(){
+            if(Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl)){
+                ctrl_down = true;
+            } else{
+                ctrl_down = false;
+            }
+            Event e = Event.current;
+            if(e.type == EventType.keyDown && e.keyCode == KeyCode.Escape) {
+                e.Use();
+                this.hide();
+            }
+
+            if(e.type == EventType.keyDown){
+                if(GUI.GetNameOfFocusedControl() != "main_search_field" && ctrl_down && e.keyCode == KeyCode.F){
+                    GUI.FocusControl("main_search_field");
+                    e.Use();
+                }
+                if(GUI.GetNameOfFocusedControl() != "main_search_field" && CraftData.selected_craft != null){
+                    if(e.keyCode == KeyCode.R){
+                        rename_craft_dialog();
+                        e.Use();
+                    } else if(e.keyCode == KeyCode.T){
+                        transfer_craft_dialog();
+                        e.Use();
+                    } else if(e.keyCode == KeyCode.UpArrow){
+                        jump_to_craft(CraftData.filtered.IndexOf(CraftData.selected_craft) - 1);
+                        e.Use();
+                    } else if(e.keyCode == KeyCode.DownArrow){
+                        jump_to_craft(CraftData.filtered.IndexOf(CraftData.selected_craft) + 1);
+                        e.Use();
+                    } else if(e.keyCode == KeyCode.Return){                       
+                        load_craft(CraftData.selected_craft.construction_type == "Subassembly" ? "subload" : "load");
+                    }                
+
+                } else if(GUI.GetNameOfFocusedControl() == "main_search_field" && e.keyCode == KeyCode.Tab){
+                    GUIUtility.keyboardControl = 0;
+                    jump_to_craft(0);
+                    e.Use();            
+                }
+            }
+        }
+
+
+
+        protected void jump_to_craft(int index){            
+            if(index < 0){
+                index = 0;
+            } else if(index > CraftData.filtered.Count-1){
+                index = CraftData.filtered.Count - 1;
+            }
+            CraftData.select_craft(CraftData.filtered[index]);
+            scroll_pos["main"] = new Vector2(scroll_pos["main"].x, CraftData.selected_craft.list_position - (main_section_height*0.4f));
+
+        }
 
 
 
@@ -260,6 +339,7 @@ namespace CraftManager
 
 
         //The Main craft list
+        float item_last_height = 0;
         protected void draw_main_section(float section_width){
             v_section(section_width, (inner_width)=>{
                 last_search = search_string;
@@ -279,8 +359,13 @@ namespace CraftManager
 
 
                 scroll_pos["main"] = scroll(scroll_pos["main"], "craft.list_container", inner_width, main_section_height, craft_list_width => {
+                    item_last_height = 0;
                     foreach(CraftData craft in CraftData.filtered){
                         draw_craft_list_item(craft, craft_list_width);
+                        if(Event.current.type == EventType.Repaint){
+                            craft.list_position = item_last_height;
+                            item_last_height += GUILayoutUtility.GetLastRect().height + 5; //+5 for margin
+                        }
                     }
                 });
 //                Rect scroller = GUILayoutUtility.GetLastRect();
@@ -323,8 +408,9 @@ namespace CraftManager
                             label("some parts are missing", "craft.missing_parts");
                         }
                     });
-
                 });
+
+
                 section(80f,()=>{
                     fspace();
                     GUILayout.Label(craft.thumbnail, width(70), height(70));
@@ -332,6 +418,7 @@ namespace CraftManager
 
             }, evt => {
                 if(evt.single_click){
+                    GUIUtility.keyboardControl = 0;
                     CraftData.toggle_selected(craft);  
                 }
                 if(evt.double_click){
@@ -538,7 +625,7 @@ namespace CraftManager
         //and ensures that at least one button is selected.
         private void type_select(string key, bool val){
             GUIUtility.keyboardControl = 0; //take focus away from text fields so that ctrl hold can be detected
-            if(!Input.GetKey(KeyCode.LeftControl)){
+            if(!ctrl_down){
                 selected_types["SPH"] = false;
                 selected_types["VAB"] = false;
                 selected_types["Subassemblies"] = false;
@@ -728,7 +815,6 @@ namespace CraftManager
             };
             int selected_transfer_option = -1;
             List<string> transfer_opts = new List<string>();
-
             if(craft.construction_type != "SPH"){transfer_opts.Add("SPH");}
             if(craft.construction_type != "VAB"){transfer_opts.Add("VAB");}
             if(craft.construction_type != "Subassembly"){transfer_opts.Add("Subassembly");}
@@ -830,23 +916,32 @@ namespace CraftManager
             close_dialog();
             string resp = "";
             int focus_count = 5;
-            
+
+            //wrapper for the given content which adds some of the common functionality
             DialogContent dc = new DialogContent(d =>{
+
+                //close on escape key press
+                Event e = Event.current;
+                if (e.type == EventType.keyDown && e.keyCode == KeyCode.Escape) {
+                    close_dialog();
+                }
+                    
+                //main dialog
                 style_override = "dialog.section";
                 v_section(()=>{                    
                     label(heading, "h2");
                     if(!String.IsNullOrEmpty(resp)){label(resp, "error");}
                     resp = content(d);
                 });
+
+                //autofocus on textfield/area
                 if(focus_count > 0){
                     auto_focus_on = "dialog_focus_field";
                     focus_count--;
                 }
+
+                //close dialog on OK response
                 if(resp == "200"){
-                    close_dialog();
-                }
-                Event e = Event.current;
-                if (e.type == EventType.keyDown && e.keyCode == KeyCode.Escape) {
                     close_dialog();
                 }
             });
@@ -868,6 +963,11 @@ namespace CraftManager
             }
         }
 
+
+        //Submit Button Helper
+        //string response = submit("text", "style", ()=>{ return shit_that_happens_on_submit })
+        //creates a button which performs whatever actions are describe in the delegate passed to the function
+        //and also sets up detection of enter key press which will call the same actions.
         bool submit_clicked = false;
         protected delegate string SubmitAction();
         protected string submit(string button_label, SubmitAction submit_action){
@@ -883,6 +983,7 @@ namespace CraftManager
                 submit_clicked = true;
                 e.Use();
             }
+   
             if(submit_clicked){
                 return submit_action();
             } else{
@@ -892,4 +993,3 @@ namespace CraftManager
 
     }
 }
-
