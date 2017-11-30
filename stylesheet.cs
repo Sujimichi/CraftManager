@@ -110,7 +110,13 @@ namespace CraftManager
                 s.fontSize = 15;
             });
 
+            define_style("modal.title", base_skin.label, s =>{
+                s.fontStyle = FontStyle.Bold;
+                s.fontSize = 18;
+                s.alignment = TextAnchor.MiddleCenter;
+                s.padding.top = 10;
 
+            });
 
 
             define_style("hyperlink", base_skin.label, s =>{
@@ -125,6 +131,14 @@ namespace CraftManager
             define_style("button.large", base_skin.button, s =>{
                 s.fontSize = 20;
             });
+            define_style("button.tight", base_skin.button, s =>{
+                s.margin = new RectOffset(0,0,0,0);
+            });
+            define_style("button.tight.right_margin", "button.tight", s =>{
+                s.margin = new RectOffset(0,0,0,0);
+                s.margin.right = base_skin.button.margin.right;
+            });
+
             define_style("button.delete", base_skin.button, s =>{
                 s.hover.textColor = Color.red;
                 s.normal.textColor = new Color(0.4f,0.2f,0.1f,1);
@@ -134,13 +148,27 @@ namespace CraftManager
                 s.fontSize = 30;
                 s.normal.textColor = new Color(0.2f,0.3f,0.3f,1);
                 s.hover.textColor = new Color(0.6f,0.9f,0.3f,1);
-                s.margin = new RectOffset(0,0,10,15);
+                s.margin = new RectOffset(0,0,15,15);
             });
             define_style("button.close", base_skin.button, s =>{
                 s.fontSize = 30;
                 s.normal.textColor = new Color(0.4f,0.2f,0.1f,1);
                 s.hover.textColor = new Color(0.8f,0.4f,0.2f,1);
-                s.margin = new RectOffset(0,0,10,15);
+                s.margin = new RectOffset(0,8,15,15);
+            });
+
+
+            define_style("button.continue_with_save", "button.large", s =>{
+                s.normal.textColor = new Color(0.2f,0.3f,0.3f,1);
+                s.hover.textColor = new Color(0.6f,0.9f,0.3f,1);
+            });
+            define_style("button.continue_no_save", "button.large", s =>{
+                s.normal.textColor = new Color(0.4f,0.2f,0.1f,1);
+                s.hover.textColor = new Color(0.8f,0.4f,0.2f,1);
+            });
+            define_style("button.cancel_load", "button.large", s =>{
+                s.normal.textColor = new Color(0.2f, 0.3f, 0.5f, 1);
+                s.hover.textColor = new Color(0.1f, 0.4f, 0.9f, 1);
             });
 
  

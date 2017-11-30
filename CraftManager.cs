@@ -6,7 +6,8 @@
 //Branch: master
 
 /* TODO List
-  - make tag_data store save specific (maybe have tags which can be global and tags which are save specific);
+  - Skip locked part checking in sandbox
+  - don't load stock craft until option for stock switched on
   - KerbalX Integreation
 */
 

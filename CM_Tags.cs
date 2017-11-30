@@ -277,7 +277,7 @@ namespace CraftManager
             
         }
 
-
+        //Saves Tag data to config node craft.tags file.  
         public static void save(){
             //First group the tags by the save which they belong to
             Dictionary<string, List<Tag>> tags_by_save = new Dictionary<string, List<Tag>>();

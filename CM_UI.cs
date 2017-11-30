@@ -30,6 +30,7 @@ namespace CraftManager
         private Dictionary<string, string> sort_options = new Dictionary<string, string>{
             {"name", "Name"}, {"cost", "Cost"}, {"crew_capacity", "Crew Capacity"}, {"mass", "Mass"}, {"part_count", "Part Count"}, {"stage_count", "Stages"}, {"date_created", "Created"}, {"date_updated", "Updated"}
         };
+        private Dictionary<string, string> tag_sort_options = new Dictionary<string, string> { {"name", "Name"}, {"craft_count", "Craft Count"} };
 
         private float save_menu_width = 0;
         private float sort_menu_width = 0;
@@ -132,7 +133,7 @@ namespace CraftManager
             save_menu_options.Add("all", "All");
 
             Tags.load(active_save_dir);
-//            show();
+            show();
         }
 
         protected override void on_show(){            
@@ -248,7 +249,7 @@ namespace CraftManager
                 section(()=>{
                     bool prev_exstcr = exclude_stock_craft;
                     exclude_stock_craft = !GUILayout.Toggle(!exclude_stock_craft, "");
-                    button("include Stock Craft", "Label", ()=>{exclude_stock_craft = !exclude_stock_craft;});
+                    button("include Stock Craft", "bold", ()=>{exclude_stock_craft = !exclude_stock_craft;});
                     if(exclude_stock_craft != prev_exstcr){
                         filter_craft();
                     }
@@ -268,12 +269,12 @@ namespace CraftManager
                     if(sort_menu_width == 0){
                         sort_menu_width = GUI.skin.button.CalcSize(new GUIContent("Sort: " + sort_options[sort_opt])).x;
                     }
-                    dropdown("Sort: " + sort_options[sort_opt], "sort_menu", sort_options, this, sort_menu_width, (resp) => {
+                    dropdown("Sort: " + sort_options[sort_opt], "sort_menu", sort_options, this, sort_menu_width, "button.tight", (resp) => {
                         sort_opt = resp;
                         sort_menu_width = GUI.skin.button.CalcSize(new GUIContent("Sort: " + sort_options[sort_opt])).x;
                         filter_craft();
                     });
-                    button((reverse_sort ? "/\\" : "\\/"), 22f, toggle_reverse_sort);
+                    button((reverse_sort ? "/\\" : "\\/"), "button.tight.right_margin", 22f, toggle_reverse_sort);
                 });
 
 
@@ -350,7 +351,11 @@ namespace CraftManager
 //                    tag_mode_reduce = GUILayout.Toggle(tag_mode_reduce, "reduce", "Button", width(60f));
 //                    tag_mode_reduce = !GUILayout.Toggle(!tag_mode_reduce, "extend", "Button", width(60f));
                     fspace();
-                    edit_tags = GUILayout.Toggle(edit_tags, "edit", "Button", width(40f) );
+                    edit_tags = GUILayout.Toggle(edit_tags, "edit", "button.tight", width(40f) );
+                    dropdown("\\/", "tag_sort_menu", tag_sort_options, this, 20f, "button.tight.right_margin", resp => {
+                        tag_sort_by = resp;
+                        Tags.sort_tag_list();
+                    });
                 });
 
 
@@ -368,7 +373,7 @@ namespace CraftManager
                             state = GUILayout.Toggle(state, "", "tag.toggle.light");
                             state = GUILayout.Toggle(
                                 state, tag_name + " - (" + Tags.craft_count_for(tag_name,"filtered") + ")", 
-                                "tag.toggle.label", width(scroll_width-(edit_tags ? 80f : 35f))
+                                "tag.toggle.label", width(scroll_width-(edit_tags ? 82f : 35f))
                             );
 
                             if(prev_state != state){
@@ -490,13 +495,14 @@ namespace CraftManager
 
         //Botton Section: Load buttons
         protected void draw_bottom_section(float section_width){
-            section(section_width,(inner_width) =>{
+            
+            section(() =>{
                 new_tag_name = GUILayout.TextField(new_tag_name, width(200f));
-
                 button("Add", 40f, ()=>{                    
                     Tags.find_or_create_by(new_tag_name, active_save_dir);
                     new_tag_name = "";
                 });
+
                 fspace();
 
                 gui_state(CraftData.selected_craft != null, ()=>{                    
@@ -510,7 +516,7 @@ namespace CraftManager
                         load_button_width = 300f;
                         load_menu_options = load_menu_options_submode;
                     }
-
+                    
                     button(load_button_text, "button.load", load_button_width, ()=>{ load_craft(load_button_action);});
                     dropdown("\\/", "load_menu", load_menu_options, this, 30f, "button.load", "menu.background", "menu.item", resp => {
                         load_craft(resp);
@@ -601,17 +607,17 @@ namespace CraftManager
             string resp = "";
             show_dialog("Confirm Load", "The Current Craft has unsaved changes", d =>{
                 section(()=>{                    
-                    button("Load Anyway", "button.large", ()=>{
-                        load_craft(load_type, true); resp = "200";
-                    });
-                    button("Save Current Craft first", "button.large", ()=>{
+                    button("Save Current Craft first", "button.continue_with_save", ()=>{
                         string path = ShipConstruction.GetSavePath(EditorLogic.fetch.ship.shipName);
                         EditorLogic.fetch.ship.SaveShip().Save(path);
                         load_craft(load_type, true); resp = "200";
                     });                    
+                    button("Continue Without Saving", "button.continue_no_save", ()=>{
+                        load_craft(load_type, true); resp = "200";
+                    });
                 });
                 GUILayout.Space(10);
-                button("Cancel", close_dialog);
+                button("Cancel", "button.cancel_load", close_dialog);
                 return resp;
             });
         }
@@ -619,7 +625,9 @@ namespace CraftManager
         protected void delete_tag_dialog(string tag_name){            
             string resp = "";
             int craft_count = Tags.craft_count_for(tag_name, "all");
-            DryDialog dialog = show_dialog("Confirm Tag Delete", "Are you sure you want to delete this tag?", d =>{
+            float top = Event.current.mousePosition.y + window_pos.y + 140;
+            float left = Event.current.mousePosition.x + window_pos.x;
+            show_dialog("Delete Tag", "Are you sure you want to delete this tag?", top, left, 400f, d =>{
                 
                 if(craft_count > 0){
                     GUILayout.Label("This tag is used for " + craft_count + " craft.");
@@ -637,15 +645,14 @@ namespace CraftManager
                 });
                 return resp;
             });
-            dialog.window_pos.width = 400f;
-            dialog.window_pos.x = Event.current.mousePosition.x + window_pos.x;
-            dialog.window_pos.y = Event.current.mousePosition.y + window_pos.y + 140;
         }
 
         protected void edit_tag_dialog(string tag_name){
             string resp = "";
             string new_tag_name = tag_name;
-            DryDialog dialog = show_dialog("Edit Tag", "Edit Tag: " + tag_name, d =>{
+            float top = Event.current.mousePosition.y + window_pos.y + 140;
+            float left = Event.current.mousePosition.x + window_pos.x;
+            show_dialog("Edit Tag", "Edit Tag: " + tag_name, top, left, 400f, d =>{
                 if(active_save_dir == "all"){
                     label("You are viewing craft from all saves, this will rename this tag in each of your saves.", "alert.h3");
                 }
@@ -660,9 +667,6 @@ namespace CraftManager
                 });
                 return resp;
             });
-            dialog.window_pos.width = 400f;
-            dialog.window_pos.x = Event.current.mousePosition.x + window_pos.x;
-            dialog.window_pos.y = Event.current.mousePosition.y + window_pos.y + 140;
         }
 
         protected void edit_description_dialog(){
@@ -750,9 +754,9 @@ namespace CraftManager
             move_copy_save_menu.Remove("all");
 
             show_dialog("Move/Copy Craft", "Move or Copy this craft to another save:", d =>{
-                section(()=>{
-                    GUILayout.Space(d.window_pos.width*0.3f);
-                    dropdown("Select Save", "copy_transfer_save_menu", move_copy_save_menu, d, d.window_pos.width*0.4f, "button.large", "menu.background", "menu.item", (selected_save_name) => {
+                section((inner_width)=>{
+                    GUILayout.Space(inner_width*0.3f);
+                    dropdown("Select Save", "copy_transfer_save_menu", move_copy_save_menu, d, inner_width*0.4f, "button.large", "menu.background", "menu.item", (selected_save_name) => {
                         resp = "";
                         selected_save = selected_save_name;
                     });           
@@ -774,34 +778,51 @@ namespace CraftManager
         }
 
         //Dialog Handler
-        //All the above dialogs are created with this function and it handles all their common aspects.
+        //All the above dialogs are created with this function and it handles all their common aspects and renders them as modal dialogs.
+        //It's a bit of a hacky solution. Its renders a full screen size window with GUI.ModalWindow which is skinned to appear as a box, 
+        //and then renders a box which is skinned to look like a window in the middle. So the effect is a shaded out screen with a dialog
+        //in the middle.
 
         public delegate string InnerDialogContent(DryUI dialog);
+
         protected DryDialog show_dialog(string title, string heading, InnerDialogContent content){
+            return show_dialog(title, heading, Screen.height / 3, this.window_pos.x + (this.window_pos.width / 2) - (500 / 2), 500f, content);
+        }
+
+        protected DryDialog show_dialog(string title, string heading, float top, float left, float dialog_width, InnerDialogContent content){
             close_dialog();
             DryDialog dialog = gameObject.AddOrGetComponent<DryDialog>();
+            dialog.window_title = "Craft Manager";
+            dialog.window_pos = new Rect(0, 0, Screen.width, Screen.height);
+            dialog.draggable = false;
+
             string resp = "";
             int focus_count = 5;
+
+
             DialogContent dc = new DialogContent(d =>{
-                style_override = "dialog.section";
-                v_section(()=>{                    
-                    label(heading, "h2");
-                    if(!String.IsNullOrEmpty(resp)){label(resp, "error");}
-                    resp = content(d);
+                GUILayout.Space(top);
+                section(d.window_pos.width, ()=>{
+                    GUILayout.Space(left);
+                    GUILayout.BeginVertical("Window", width(dialog_width), height(80f), GUILayout.ExpandHeight(true));
+                    GUI.Label(new Rect(left, top, dialog_width, 20f), title, "modal.title");
+                    style_override = "dialog.section";
+                    v_section(()=>{                    
+                        label(heading, "h2");
+                        if(!String.IsNullOrEmpty(resp)){label(resp, "error");}
+                        resp = content(d);
+                    });
+                    if(resp == "200"){
+                        close_dialog();
+                    }
+                    if(focus_count > 0){
+                        auto_focus_on = "dialog_focus_field";
+                        focus_count--;
+                    }
+                    GUILayout.EndVertical();
                 });
-                if(resp == "200"){
-                    close_dialog();
-                }
-                if(focus_count > 0){
-                    auto_focus_on = "dialog_focus_field";
-                    focus_count--;
-                }
+                d.modal = true;
             });
-            dialog.window_title = title;
-            dialog.window_pos = new Rect(
-                this.window_pos.x + (this.window_pos.width / 2) - (500 / 2), 
-                this.window_pos.y + (this.window_pos.height / 3), 500, 80
-            );
             dialog.content = dc;
             return dialog;
         }
