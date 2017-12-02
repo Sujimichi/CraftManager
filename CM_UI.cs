@@ -136,6 +136,7 @@ namespace CraftManager
             visible = false;
             //            draggable = false;
             footer = false;
+            prevent_click_through = false; //disable the standard click through prevention. show and hide will add control locks which are not based on mouse pos.
 
             EditorLogic.fetch.saveBtn.onClick.AddListener(on_save_click); //settup click event on the stock save button.
             //override existing ations on stock load button and replace with call to toggle CM's UI.
@@ -163,10 +164,13 @@ namespace CraftManager
             stock_craft_loaded = false;
             refresh();
             auto_focus_on = "main_search_field";
+            InputLockManager.SetControlLock(window_id.ToString());
+
         }
 
         protected override void on_hide(){
             close_dialog(); //incase any dialogs have been left open
+            InputLockManager.RemoveControlLock(window_id.ToString());
         }
 
         //load/reload craft from the active_save_dir and apply any active filters
@@ -253,36 +257,27 @@ namespace CraftManager
             } else{
                 ctrl_down = false;
             }
+
             Event e = Event.current;
-            if(e.type == EventType.keyDown && e.keyCode == KeyCode.Escape) {
-                e.Use();
-                this.hide();
-            }
 
             if(e.type == EventType.keyDown){
-                if(GUI.GetNameOfFocusedControl() != "main_search_field" && ctrl_down && e.keyCode == KeyCode.F){
+                if(e.type == EventType.keyDown && e.keyCode == KeyCode.Escape) {
+                    e.Use();
+                    this.hide();
+                }else if(GUI.GetNameOfFocusedControl() != "main_search_field" && ctrl_down && e.keyCode == KeyCode.F){
                     GUI.FocusControl("main_search_field");
                     e.Use();
-                }
-                if(GUI.GetNameOfFocusedControl() != "main_search_field" && CraftData.selected_craft != null){
-                    if(e.keyCode == KeyCode.R){
-                        rename_craft_dialog();
-                        e.Use();
-                    } else if(e.keyCode == KeyCode.T){
-                        transfer_craft_dialog();
-                        e.Use();
-                    } else if(e.keyCode == KeyCode.UpArrow){
-                        jump_to_craft(CraftData.filtered.IndexOf(CraftData.selected_craft) - 1);
-                        e.Use();
-                    } else if(e.keyCode == KeyCode.DownArrow){
-                        jump_to_craft(CraftData.filtered.IndexOf(CraftData.selected_craft) + 1);
-                        e.Use();
-                    } else if(e.keyCode == KeyCode.Return){                       
+                } else if(e.keyCode == KeyCode.UpArrow){
+                    jump_to_craft(CraftData.filtered.IndexOf(CraftData.selected_craft) - 1);
+                    e.Use();
+                } else if(e.keyCode == KeyCode.DownArrow){
+                    jump_to_craft(CraftData.filtered.IndexOf(CraftData.selected_craft) + 1);
+                    e.Use();
+                }else if(GUI.GetNameOfFocusedControl() != "main_search_field" && CraftData.selected_craft != null){
+                    if(e.keyCode == KeyCode.Return){                       
                         load_craft(CraftData.selected_craft.construction_type == "Subassembly" ? "subload" : "load");
                     }                
-
                 } else if(GUI.GetNameOfFocusedControl() == "main_search_field" && e.keyCode == KeyCode.Tab){
-                    GUIUtility.keyboardControl = 0;
                     jump_to_craft(0);
                     e.Use();            
                 }
@@ -291,7 +286,8 @@ namespace CraftManager
 
 
 
-        protected void jump_to_craft(int index){            
+        protected void jump_to_craft(int index){   
+            GUIUtility.keyboardControl = 0;
             if(index < 0){
                 index = 0;
             } else if(index > CraftData.filtered.Count-1){
