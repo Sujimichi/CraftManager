@@ -7,13 +7,13 @@
 
 /* TODO List
   - persistent sorts
-  - Skip locked part checking in sandbox
-  - don't load stock craft until option for stock switched on
+  - Tagders - Tags as folders, different mode which limits each craft to one tag and only one tag can be selected at at time.
   - KerbalX Integreation
 
     TODO BUGS
     - description field does not save chars after new line. Newline used in game is some other char
     - change blk click to check that it is the same craft that is selected on the second click
+    - R and T shortcuts interfer with adding new tags, might remove those shortcuts
 */
 
 using System;
@@ -51,7 +51,7 @@ namespace CraftManager
                 GameEvents.onGUIApplicationLauncherReady.Add(add_to_toolbar);
                 GameEvents.onGUIApplicationLauncherDestroyed.Add(remove_from_toolbar);
             }
-            GameEvents.onGameSceneLoadRequested.Add(scene_load_request);           
+            GameEvents.onGameSceneLoadRequested.Add(scene_load_request);    
         }
 
         //Trigger the creation of custom Skin (copy of default skin with various custom styles added to it, see stylesheet.cs)

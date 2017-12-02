@@ -63,11 +63,12 @@ namespace CraftManager
 
         private string auto_focus_on = null;
         private string new_tag_name = "";
-        public string tag_sort_by = "craft_count";
+        public string tag_sort_by = "name";
         private bool edit_tags = false;
         private bool tag_mode_reduce = true;
         private bool expand_details = false;
-        private bool exclude_stock_craft = true;
+        public bool exclude_stock_craft = true;
+        public bool stock_craft_loaded = false;
 
         string load_button_text = "Load";
         string load_button_action = "load";
@@ -159,6 +160,7 @@ namespace CraftManager
         }
 
         protected override void on_show(){            
+            stock_craft_loaded = false;
             refresh();
             auto_focus_on = "main_search_field";
         }
@@ -169,7 +171,8 @@ namespace CraftManager
 
         //load/reload craft from the active_save_dir and apply any active filters
         public void refresh(){
-            CraftData.load_craft(active_save_dir=="all" ? null : active_save_dir);
+            CraftManager.log("Refreshing data");
+            CraftData.load_craft_from_files(active_save_dir=="all" ? null : active_save_dir);
             filter_craft();
         }
 
@@ -177,6 +180,10 @@ namespace CraftManager
         //Collect any currently active filters into a Dictionary<string, object> which can then be passed to 
         //filter_craft on CraftData (which does the actual filtering work).
         private void filter_craft(){
+            if(!exclude_stock_craft && !stock_craft_loaded){
+                CraftData.load_stock_craft_from_files();
+            }
+
             Dictionary<string, object> search_criteria = new Dictionary<string, object>();
             search_criteria.Add("search", search_string);
             search_criteria.Add("type", selected_types);
@@ -187,9 +194,8 @@ namespace CraftManager
             }
             search_criteria.Add("sort", sort_opt);
             search_criteria.Add("reverse_sort", reverse_sort);
-            if(exclude_stock_craft){
-                search_criteria.Add("exclude_stock", true);
-            }
+            search_criteria.Add("exclude_stock", exclude_stock_craft);
+
             CraftData.filter_craft(search_criteria);
             Tags.sort_tag_list();
         }
@@ -198,14 +204,15 @@ namespace CraftManager
             search_string = "";
             filter_craft();
         }
+
         protected void toggle_reverse_sort(){
             reverse_sort = !reverse_sort;
             filter_craft();
         }
+
         protected void change_save(string save_name){
             active_save_dir = save_name;
             save_menu_width = GUI.skin.button.CalcSize(new GUIContent("Save: " + active_save_dir)).x;
-//            new Tags();
             Tags.load(active_save_dir);
             refresh();
         }

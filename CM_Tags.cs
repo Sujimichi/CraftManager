@@ -265,10 +265,8 @@ namespace CraftManager
                 foreach(ConfigNode tag_node in tag_nodes.nodes){
                     string tag_name = tag_node.GetValue("tag_name");
                     string[] craft = tag_node.GetValues("craft");
-                    CraftManager.log("tag: " + tag_name);
                     Tag tag = Tags.find_or_create_by(tag_name, save_dir, false);
                     foreach(string craft_ref in craft){
-                        CraftManager.log("adding craft " + craft_ref);
                         tag.craft.AddUnique(craft_ref);
                     }
                 }

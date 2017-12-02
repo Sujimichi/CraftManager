@@ -25,7 +25,7 @@ namespace CraftManager
         public CraftDataCache(){
             CraftManager.log("Initializing Cache");
             if(File.Exists(cache_path)){
-                CraftManager.log("loading cached craft data from file");
+                CraftManager.log("loading persistent cache from file");
                 load(); 
             }
 
@@ -83,6 +83,7 @@ namespace CraftManager
         public bool try_fetch(CraftData craft){
             if(craft_data.ContainsKey(craft.path) && craft_data[craft.path].GetValue("checksum") == craft.checksum && craft_data[craft.path].GetValue("part_sig") ==installed_part_sig){
                 try{
+                    
                     ConfigNode node = craft_data[craft.path];                    
                     foreach(var prop in craft.GetType().GetProperties()){               
                         if(prop.CanWrite){                            

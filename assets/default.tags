@@ -2,18 +2,22 @@ TAGS
 {
 	TAG
 	{
-		tag_name = DefaultThing
+		tag_name = Landers
 	}
 	TAG
 	{
-		tag_name = SpaceplaneDEF
+		tag_name = Spaceplanes
 	}
 	TAG
 	{
-		tag_name = DefLander
+		tag_name = Lifters
 	}
 	TAG
 	{
 		tag_name = LKO
 	}
+    TAG
+    {
+        tag_name = Comms
+    }
 }

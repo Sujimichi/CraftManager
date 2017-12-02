@@ -25,10 +25,11 @@ namespace CraftManager
         }
 
 
-        public static void load_craft(string save_dir = null){
+        public static void load_craft_from_files(string save_dir = null){
             if(cache == null){
                 cache = new CraftDataCache();                
             }
+            CraftManager.log("Loading Craft Files");
 
             string[] craft_file_paths;
             if(save_dir == null){
@@ -38,15 +39,23 @@ namespace CraftManager
             }
 
             all_craft.Clear();
-            foreach(string path in craft_file_paths){
+            foreach(string path in craft_file_paths){                
                 all_craft.Add(new CraftData(path));
             }
 
+            if(CraftManager.main_ui && !CraftManager.main_ui.exclude_stock_craft){
+                load_stock_craft_from_files();
+            }
+        }
+
+        public static void load_stock_craft_from_files(){            
+            CraftManager.log("Loading Stock Craft");
             foreach(string path in Directory.GetFiles(Paths.joined(CraftManager.ksp_root, "Ships"), "*.craft", SearchOption.AllDirectories)){
                 all_craft.Add(new CraftData(path, true));
             }
-                
-
+            if(CraftManager.main_ui){
+                CraftManager.main_ui.stock_craft_loaded = true;
+            };
         }
 
 
@@ -55,7 +64,8 @@ namespace CraftManager
 //            if(criteria.ContainsKey("save_dir")){
 //                filtered = filtered.FindAll(craft => craft.save_dir == (string)criteria["save_dir"]);
 //            }
-            if(criteria.ContainsKey("exclude_stock")){
+
+            if((bool)criteria["exclude_stock"]){
                 filtered = filtered.FindAll(craft => !craft.stock_craft);
             }
             if(criteria.ContainsKey("search")){
@@ -198,9 +208,11 @@ namespace CraftManager
         public void check_locked_parts() {
 //            CraftManager.log("checking locked parts");
             locked_parts = false;
-            foreach(string p_name in part_name_list){
-                if(cache.locked_parts.Contains(p_name)){
-                    locked_parts = true;
+            if(HighLogic.CurrentGame.Mode != Game.Modes.SANDBOX){
+                foreach(string p_name in part_name_list){
+                    if(cache.locked_parts.Contains(p_name)){
+                        locked_parts = true;
+                    }
                 }
             }
             locked_parts_checked = true;
@@ -235,17 +247,23 @@ namespace CraftManager
             stock_craft = stock;
             locked_parts_checked = false;
 
+            bool cache_after_load = false;
+
             //attempt to load craft data from the cache. If unable to fetch from cache then load 
             //craft data from the .craft file and cache the loaded info.
             if(!cache.try_fetch(this)){
                 read_craft_info_from_file();
                 check_locked_parts();
                 part_sig = cache.installed_part_sig;
-                cache.write(this);
+                cache_after_load = true;
             }
-            //HighLogic.CurrentGame.Mode == Game.Modes.SANDBOX
+                
             if(!locked_parts_checked){
                 check_locked_parts();
+                cache_after_load = true;
+            }
+
+            if(cache_after_load){
                 cache.write(this);
             }
 
@@ -460,7 +478,7 @@ namespace CraftManager
             } else{
                 try{
                     ConfigNode nodes = ConfigNode.Load(path);
-                    nodes.SetValue("type", (facility == EditorFacility.None ? "Subassembly" : facility.ToString()));
+                    nodes.SetValue("type", facility.ToString());
                     nodes.Save(new_path);
                 }
                 catch(Exception e){
