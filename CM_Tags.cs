@@ -102,6 +102,17 @@ namespace CraftManager
             return tag;
         }
 
+        public static string create(string tag_name, string save_dir){
+            if(String.IsNullOrEmpty(tag_name)){
+                return "Tag Name cannot be blank";
+            } else if(names.Contains(tag_name)){
+                return "A tag with this name already exists";
+            } else{
+                Tags.find_or_create_by(tag_name, save_dir);
+                return "200";
+            }
+        }
+
         //Remove a Tag from a save or from all saves if save_dir is "all"
         public static string remove(string tag_name, string save_dir){          
             List<Tag> tags = Tags.find_all(tag_name, save_dir);                

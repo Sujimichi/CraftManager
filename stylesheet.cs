@@ -227,7 +227,14 @@ namespace CraftManager
 
             define_style("side_panel.scroll", "craft.list_container", s =>{
             });
+            define_style("side_panel.scroll.tags", "side_panel.scroll", s =>{
+                s.normal.background = base_skin.label.normal.background;
+                s.margin = new RectOffset(0,0,0,0);
+            });
 
+            define_style("tags.list_outer", base_skin.box, s =>{
+                s.padding = new RectOffset(0,0,0,0);
+            });
 
             define_style("tag.toggle.light", base_skin.toggle, s =>{
                 s.padding = new RectOffset(0, 0, 0, 0);

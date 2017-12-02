@@ -54,6 +54,7 @@ namespace CraftManager
         };
         private Dictionary<string, string> tag_sort_options = new Dictionary<string, string> { {"name", "Name"}, {"craft_count", "Craft Count"} };
 
+        private float[] col_widths = new float[]{0.2f,0.55f,0.25f};
         private float save_menu_width = 0;
         private float sort_menu_width = 0;
 
@@ -62,7 +63,6 @@ namespace CraftManager
         
 
         private string auto_focus_on = null;
-        private string new_tag_name = "";
         public string tag_sort_by = "name";
         private bool edit_tags = false;
         private bool tag_mode_reduce = true;
@@ -157,7 +157,7 @@ namespace CraftManager
             save_menu_options.Add("all", "All");
 
             Tags.load(active_save_dir);
-//            show();
+            show();
         }
 
         protected override void on_show(){            
@@ -231,9 +231,9 @@ namespace CraftManager
                 GUILayout.Space(10);
                 scroll_relative_pos = GUILayoutUtility.GetLastRect();
                 section(window_width, inner_width =>{
-                    draw_left_hand_section(inner_width * 0.2f); //Tag list section
-                    draw_main_section(inner_width * 0.55f);      //Main craft list
-                    draw_right_hand_section(inner_width * 0.25f);//Craft details section
+                    draw_left_hand_section(inner_width * col_widths[0]); //Tag list section
+                    draw_main_section(inner_width * col_widths[1]);      //Main craft list
+                    draw_right_hand_section(inner_width * col_widths[2]);//Craft details section
                 });
                 draw_bottom_section(window_width);
             });
@@ -433,11 +433,25 @@ namespace CraftManager
 
 
         //Left Hand Section: Tags
-        bool prev_state = false;
-        bool state = false;
+        protected bool tag_prev_state = false;
+        protected bool tag_state = false;
+        protected float tag_content_height = 0;
+        protected float last_tag_content_height = 0;
+        protected float tag_margin_offset = 0;
+        protected float tag_scroll_height = 0;
+
         protected void draw_left_hand_section(float section_width){
+            tag_scroll_height = main_section_height-40f;    
+
+            //adjustments to tag list width depending on if the edit buttons are shown and if the scroll bar is shown.
+            tag_content_height = 0;
+            tag_margin_offset = (edit_tags ? 82f : 35f);
+            if(last_tag_content_height > tag_scroll_height){
+                tag_margin_offset+=18f;
+            }
+            
             v_section(section_width, (inner_width) =>{
-                section((w)=>{
+                section(()=>{
                     label("Tags", "h2");
 //                    tag_mode_reduce = GUILayout.Toggle(tag_mode_reduce, "reduce", "Button", width(60f));
 //                    tag_mode_reduce = !GUILayout.Toggle(!tag_mode_reduce, "extend", "Button", width(60f));
@@ -450,39 +464,51 @@ namespace CraftManager
                 });
 
 
-//                float tag_sec_height = GUI.skin.GetStyle("tag.toggle.label").CalcSize(new GUIContent("foo")).x * Tags.all.Count;
-//                label("list: " + tag_sec_height + " scroll: " + main_section_height + " item: " + GUI.skin.GetStyle("tag.toggle.label").CalcSize(new GUIContent("foo")).x);
 
+                v_section(inner_width, "tags.list_outer", (tag_list_width) => {                    
+                    scroll_pos["lhs"] = scroll(scroll_pos["lhs"], "side_panel.scroll.tags", inner_width, tag_scroll_height, scroll_width => {
+                        foreach(string tag_name in Tags.names){
+                            style_override = "tag.section";
+                            section((sec_w)=>{
+                                tag_state = Tags.is_selected(tag_name);
+                                tag_prev_state = tag_state;
+                                
+                                tag_state = GUILayout.Toggle(tag_state, "", "tag.toggle.light");
+                                tag_state = GUILayout.Toggle(
+                                    tag_state, tag_name + " - (" + Tags.craft_count_for(tag_name,"filtered") + ")", 
+                                    "tag.toggle.label", width(scroll_width-tag_margin_offset)
+                                );
+                                
+                                if(tag_prev_state != tag_state){
+                                    Tags.toggle_tag(tag_name);
+                                    filter_craft();                                    
+                                }
+                                if(edit_tags){
+                                    button("e", "tag.edit_button", ()=>{
+                                        edit_tag_dialog(tag_name);
+                                    });
+                                    button("X", "tag.delete_button.x", ()=>{
+                                        delete_tag_dialog(tag_name);
+                                    });
+                                }
+                            });
 
-                scroll_pos["lhs"] = scroll(scroll_pos["lhs"], "side_panel.scroll", inner_width, main_section_height, scroll_width => {
-                    foreach(string tag_name in Tags.names){
-                        style_override = "tag.section";
-                        section((sec_w)=>{
-                            state = Tags.is_selected(tag_name);
-                            prev_state = state;
-
-                            state = GUILayout.Toggle(state, "", "tag.toggle.light");
-                            state = GUILayout.Toggle(
-                                state, tag_name + " - (" + Tags.craft_count_for(tag_name,"filtered") + ")", 
-                                "tag.toggle.label", width(scroll_width-(edit_tags ? 82f : 35f))
-                            );
-
-                            if(prev_state != state){
-                                Tags.toggle_tag(tag_name);
-                                filter_craft();                                    
+                            if(Event.current.type == EventType.Repaint){                                
+                                tag_content_height += GUILayoutUtility.GetLastRect().height+5; //+5 for margin
                             }
-                            if(edit_tags){
-                                button("e", "tag.edit_button", ()=>{
-                                    edit_tag_dialog(tag_name);
-                                });
-                                button("X", "tag.delete_button.x", ()=>{
-                                    delete_tag_dialog(tag_name);
-                                });
-                            }
-                        });
-                    }
+                        }
+                    });
+                    section(tag_list_width, 40f, ()=>{                        
+                        fspace();
+                        button("+", 30f, create_tag_dialog);
+                    });
                 });
+
+
             });
+            if(tag_content_height != last_tag_content_height && tag_content_height != 0){
+                last_tag_content_height = tag_content_height-2;
+            }
         }
 
 
@@ -588,12 +614,6 @@ namespace CraftManager
         protected void draw_bottom_section(float section_width){
             
             section(() =>{
-                new_tag_name = GUILayout.TextField(new_tag_name, width(200f));
-                button("Add", 40f, ()=>{                    
-                    Tags.find_or_create_by(new_tag_name, active_save_dir);
-                    new_tag_name = "";
-                });
-
                 fspace();
 
                 gui_state(CraftData.selected_craft != null, ()=>{                    
@@ -709,6 +729,29 @@ namespace CraftManager
                 });
                 GUILayout.Space(10);
                 button("Cancel", "button.cancel_load", close_dialog);
+                return resp;
+            });
+        }
+
+        protected void create_tag_dialog(){
+            float dialog_width = 400f;
+//            float top = Event.current.mousePosition.y + window_pos.y-100f;// + 140;
+//            float left = Event.current.mousePosition.x + this.window_pos.x - dialog_width;
+            float top = scroll_relative_pos.y + main_section_height;
+            float left = scroll_relative_pos.x + window_width * col_widths[0];
+            string resp = "";
+            string new_tag_name = "";
+            show_dialog("Create Tag", "", top, left, dialog_width, true, d =>{
+                GUI.SetNextControlName("dialog_focus_field");
+                new_tag_name = GUILayout.TextField(new_tag_name);
+                section((w)=>{
+                    fspace();
+                    button("Cancel", close_dialog);
+                    resp = submit("Save", ()=>{
+                        return Tags.create(new_tag_name, active_save_dir);
+
+                    });
+                });
                 return resp;
             });
         }
@@ -917,12 +960,13 @@ namespace CraftManager
 
         protected DryDialog show_dialog(string title, string heading, float top, float left, float dialog_width, bool modal, InnerDialogContent content){
             close_dialog();
-            string resp = "";
+            string response = "";
+            string err_msg = "";
             int focus_count = 5;
-
+            CraftManager.log("Dialog starting");
+            CraftManager.log(response);
             //wrapper for the given content which adds some of the common functionality
-            DialogContent dc = new DialogContent(d =>{
-
+            DialogContent dc = new DialogContent(d =>{               
                 //close on escape key press
                 Event e = Event.current;
                 if (e.type == EventType.keyDown && e.keyCode == KeyCode.Escape) {
@@ -931,20 +975,25 @@ namespace CraftManager
                     
                 //main dialog
                 style_override = "dialog.section";
-                v_section(()=>{                    
-                    label(heading, "h2");
-                    if(!String.IsNullOrEmpty(resp)){label(resp, "error");}
-                    resp = content(d);
+                v_section(()=>{          
+                    if(!String.IsNullOrEmpty(heading)){
+                        label(heading, "h2");
+                    }
+                    if(!String.IsNullOrEmpty(err_msg)){label(err_msg, "error");}    //display error message if any
+                    response = content(d);                                          //render main dialog content which will return a response string.
+                    if(!String.IsNullOrEmpty(response) && response != "200"){       //collect any error message returned (as next pass response will be empty again).
+                        err_msg = response;
+                    }
                 });
 
-                //autofocus on textfield/area
+                //autofocus on textfield/area - the reason for the focous_count countdown is because we only want to focus on the field just after creating the dialog
+                //but one the first (few) passes it doesn't appear to be ready, so this slightly hacky solution keeps setting the focus for first 5 passes.  
                 if(focus_count > 0){
                     auto_focus_on = "dialog_focus_field";
                     focus_count--;
                 }
-
                 //close dialog on OK response
-                if(resp == "200"){
+                if(response == "200"){
                     close_dialog();
                 }
             });
