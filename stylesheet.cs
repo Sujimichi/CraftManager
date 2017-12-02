@@ -132,10 +132,11 @@ namespace CraftManager
                 s.fontSize = 20;
             });
             define_style("button.tight", base_skin.button, s =>{
-                s.margin = new RectOffset(0,0,0,0);
+//                s.margin = new RectOffset(0,0,0,0);
+                s.margin.left = 0;
+                s.margin.right = 0;
             });
-            define_style("button.tight.right_margin", "button.tight", s =>{
-                s.margin = new RectOffset(0,0,0,0);
+            define_style("button.tight.right_margin", "button.tight", s =>{                
                 s.margin.right = base_skin.button.margin.right;
             });
 

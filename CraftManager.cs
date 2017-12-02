@@ -12,9 +12,11 @@
 
     TODO BUGS
     - description field does not save chars after new line. Newline used in game is some other char
-    - change blk click to check that it is the same craft that is selected on the second click
-    - R and T shortcuts interfer with adding new tags, might remove those shortcuts
     - invalid operation exception when selecting tags. modifying data in foreach?
+    - add tag dropdown menu gets wide right border if lots of tags (or maybe a long tag).
+    FIXED:
+    - change blk click to check that it is the same craft that is selected on the second click (fixed in KatLib);
+    - R and T shortcuts interfer with adding new tags, might remove those shortcuts (removed shortcuts)
     - when opened with ctrl+o click through prevention doesn't work until window is clicked
 */
 

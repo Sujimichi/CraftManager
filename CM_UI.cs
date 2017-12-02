@@ -70,6 +70,15 @@ namespace CraftManager
         public bool exclude_stock_craft = true;
         public bool stock_craft_loaded = false;
 
+        private bool tag_prev_state = false;
+        private bool tag_state = false;
+        private float tag_content_height = 0;
+        private float last_tag_content_height = 0;
+        private float tag_margin_offset = 0;
+        private float tag_scroll_height = 0;
+
+        private bool ctrl_key_down = false;
+
         string load_button_text = "Load";
         string load_button_action = "load";
         float load_button_width = 120f;
@@ -173,11 +182,29 @@ namespace CraftManager
             InputLockManager.RemoveControlLock(window_id.ToString());
         }
 
+
         //load/reload craft from the active_save_dir and apply any active filters
         public void refresh(){
             CraftManager.log("Refreshing data");
             CraftData.load_craft_from_files(active_save_dir=="all" ? null : active_save_dir);
             filter_craft();
+        }
+
+        protected void clear_search(){
+            search_string = "";
+            filter_craft();
+        }
+
+        protected void toggle_reverse_sort(){
+            reverse_sort = !reverse_sort;
+            filter_craft();
+        }
+
+        protected void change_save(string save_name){
+            active_save_dir = save_name;
+            save_menu_width = GUI.skin.button.CalcSize(new GUIContent("Save: " + active_save_dir)).x;
+            Tags.load(active_save_dir);
+            refresh();
         }
 
 
@@ -204,22 +231,6 @@ namespace CraftManager
             Tags.sort_tag_list();
         }
 
-        protected void clear_search(){
-            search_string = "";
-            filter_craft();
-        }
-
-        protected void toggle_reverse_sort(){
-            reverse_sort = !reverse_sort;
-            filter_craft();
-        }
-
-        protected void change_save(string save_name){
-            active_save_dir = save_name;
-            save_menu_width = GUI.skin.button.CalcSize(new GUIContent("Save: " + active_save_dir)).x;
-            Tags.load(active_save_dir);
-            refresh();
-        }
 
 
         //Main GUI draw method (called by onGUI, see DryUI in KatLib).  Broken up into smaller sections to ease digestion and help prevent heart burn.
@@ -250,55 +261,7 @@ namespace CraftManager
             GUILayout.Label("hello, this is footer");
         }
 
-        protected bool ctrl_down = false;
-        protected void key_event_handler(){
-            if(Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl)){
-                ctrl_down = true;
-            } else{
-                ctrl_down = false;
-            }
-
-            Event e = Event.current;
-
-            if(e.type == EventType.keyDown){
-                if(e.type == EventType.keyDown && e.keyCode == KeyCode.Escape) {
-                    e.Use();
-                    this.hide();
-                }else if(GUI.GetNameOfFocusedControl() != "main_search_field" && ctrl_down && e.keyCode == KeyCode.F){
-                    GUI.FocusControl("main_search_field");
-                    e.Use();
-                } else if(e.keyCode == KeyCode.UpArrow){
-                    jump_to_craft(CraftData.filtered.IndexOf(CraftData.selected_craft) - 1);
-                    e.Use();
-                } else if(e.keyCode == KeyCode.DownArrow){
-                    jump_to_craft(CraftData.filtered.IndexOf(CraftData.selected_craft) + 1);
-                    e.Use();
-                }else if(GUI.GetNameOfFocusedControl() != "main_search_field" && CraftData.selected_craft != null){
-                    if(e.keyCode == KeyCode.Return){                       
-                        load_craft(CraftData.selected_craft.construction_type == "Subassembly" ? "subload" : "load");
-                    }                
-                } else if(GUI.GetNameOfFocusedControl() == "main_search_field" && e.keyCode == KeyCode.Tab){
-                    jump_to_craft(0);
-                    e.Use();            
-                }
-            }
-        }
-
-
-
-        protected void jump_to_craft(int index){   
-            GUIUtility.keyboardControl = 0;
-            if(index < 0){
-                index = 0;
-            } else if(index > CraftData.filtered.Count-1){
-                index = CraftData.filtered.Count - 1;
-            }
-            CraftData.select_craft(CraftData.filtered[index]);
-            scroll_pos["main"] = new Vector2(scroll_pos["main"].x, CraftData.selected_craft.list_position - (main_section_height*0.4f));
-
-        }
-
-
+       
 
         //**GUI Sections**//
 
@@ -433,12 +396,7 @@ namespace CraftManager
 
 
         //Left Hand Section: Tags
-        protected bool tag_prev_state = false;
-        protected bool tag_state = false;
-        protected float tag_content_height = 0;
-        protected float last_tag_content_height = 0;
-        protected float tag_margin_offset = 0;
-        protected float tag_scroll_height = 0;
+
 
         protected void draw_left_hand_section(float section_width){
             tag_scroll_height = main_section_height-40f;    
@@ -456,14 +414,11 @@ namespace CraftManager
 //                    tag_mode_reduce = GUILayout.Toggle(tag_mode_reduce, "reduce", "Button", width(60f));
 //                    tag_mode_reduce = !GUILayout.Toggle(!tag_mode_reduce, "extend", "Button", width(60f));
                     fspace();
-                    edit_tags = GUILayout.Toggle(edit_tags, "edit", "button.tight", width(40f) );
-                    dropdown("\\/", "tag_sort_menu", tag_sort_options, this, 20f, "button.tight.right_margin", resp => {
+                    dropdown("Sort", "tag_sort_menu", tag_sort_options, this, 50f, resp => {
                         tag_sort_by = resp;
                         Tags.sort_tag_list();
                     });
                 });
-
-
 
                 v_section(inner_width, "tags.list_outer", (tag_list_width) => {                    
                     scroll_pos["lhs"] = scroll(scroll_pos["lhs"], "side_panel.scroll.tags", inner_width, tag_scroll_height, scroll_width => {
@@ -500,6 +455,7 @@ namespace CraftManager
                     });
                     section(tag_list_width, 40f, ()=>{                        
                         fspace();
+                        edit_tags = GUILayout.Toggle(edit_tags, "edit", "button", width(40f) );
                         button("+", 30f, create_tag_dialog);
                     });
                 });
@@ -648,7 +604,7 @@ namespace CraftManager
         //and ensures that at least one button is selected.
         private void type_select(string key, bool val){
             GUIUtility.keyboardControl = 0; //take focus away from text fields so that ctrl hold can be detected
-            if(!ctrl_down){
+            if(!ctrl_key_down){
                 selected_types["SPH"] = false;
                 selected_types["VAB"] = false;
                 selected_types["Subassemblies"] = false;
@@ -735,8 +691,6 @@ namespace CraftManager
 
         protected void create_tag_dialog(){
             float dialog_width = 400f;
-//            float top = Event.current.mousePosition.y + window_pos.y-100f;// + 140;
-//            float left = Event.current.mousePosition.x + this.window_pos.x - dialog_width;
             float top = scroll_relative_pos.y + main_section_height;
             float left = scroll_relative_pos.x + window_width * col_widths[0];
             string resp = "";
@@ -1031,7 +985,7 @@ namespace CraftManager
                 submit_clicked = true;    
             });
             Event e = Event.current;
-            if (GUI.GetNameOfFocusedControl() == "dialog_focus_field" && e.type == EventType.keyDown && e.keyCode == KeyCode.Return) {
+            if (GUI.GetNameOfFocusedControl() == "dialog_focus_field" && e.type == EventType.keyDown && (e.keyCode == KeyCode.Return || e.keyCode == KeyCode.KeypadEnter)) {
                 submit_clicked = true;
                 e.Use();
             }
@@ -1041,6 +995,57 @@ namespace CraftManager
             } else{
                 return "";
             }
+        }
+
+
+
+
+        protected void key_event_handler(){
+            if(Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl)){
+                ctrl_key_down = true;
+            } else{
+                ctrl_key_down = false;
+            }
+
+            Event e = Event.current;
+
+            if(e.type == EventType.keyDown){
+                if(e.type == EventType.keyDown && e.keyCode == KeyCode.Escape) {
+                    e.Use();
+                    this.hide();
+                }else if(GUI.GetNameOfFocusedControl() != "main_search_field" && ctrl_key_down && e.keyCode == KeyCode.F){
+                    GUI.FocusControl("main_search_field");
+                    e.Use();
+                }else if(GUI.GetNameOfFocusedControl() != "main_search_field" && ctrl_key_down && e.keyCode == KeyCode.T){
+                    create_tag_dialog();
+                    e.Use();
+                } else if(e.keyCode == KeyCode.UpArrow){
+                    jump_to_craft(CraftData.filtered.IndexOf(CraftData.selected_craft) - 1);
+                    e.Use();
+                } else if(e.keyCode == KeyCode.DownArrow){
+                    jump_to_craft(CraftData.filtered.IndexOf(CraftData.selected_craft) + 1);
+                    e.Use();
+
+                }else if(GUI.GetNameOfFocusedControl() != "main_search_field" && CraftData.selected_craft != null){
+                    if(e.keyCode == KeyCode.Return || e.keyCode == KeyCode.KeypadEnter){                       
+                        load_craft(CraftData.selected_craft.construction_type == "Subassembly" ? "subload" : "load");
+                    }                
+                } else if(GUI.GetNameOfFocusedControl() == "main_search_field" && e.keyCode == KeyCode.Tab){
+                    jump_to_craft(0);
+                    e.Use();            
+                }
+            }
+        }
+
+        protected void jump_to_craft(int index){   
+            GUIUtility.keyboardControl = 0;
+            if(index < 0){
+                index = 0;
+            } else if(index > CraftData.filtered.Count-1){
+                index = CraftData.filtered.Count - 1;
+            }
+            CraftData.select_craft(CraftData.filtered[index]);
+            scroll_pos["main"] = new Vector2(scroll_pos["main"].x, CraftData.selected_craft.list_position - (main_section_height*0.4f));
         }
 
     }
