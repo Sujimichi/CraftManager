@@ -7,8 +7,9 @@
 
 /* TODO List
   - persistent sorts
+  - settings and settings UI
   - Tagders - Tags as folders, different mode which limits each craft to one tag and only one tag can be selected at at time.
-  - KerbalX Integreation
+  - KerbalX Integration
 
     TODO BUGS
     - description field does not save chars after new line. Newline used in game is some other char

@@ -377,7 +377,7 @@ namespace CraftManager
                             label("cost: " + humanize(craft.cost_total), "craft.cost");
                         });
                         if(craft.locked_parts){
-                            label("craft has part which hasn't been unlocked yet", "craft.locked_parts");
+                            label("This craft has locked parts", "craft.locked_parts");
                         }
                         if(craft.missing_parts){
                             label("some parts are missing", "craft.missing_parts");

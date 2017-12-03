@@ -218,6 +218,7 @@ namespace CraftManager
             locked_parts_checked = true;
         }
 
+
         //Attribues which are always set from craft file/path, not loaded from cache
         public Texture2D thumbnail;
         public string create_time;
