@@ -309,31 +309,39 @@ namespace CraftManager
         Rect craft_scroll_section = new Rect();
         protected void draw_main_section(float section_width){
             v_section(section_width, (inner_width)=>{
-                last_search = search_string;
+
+                //sort menu
                 section(()=>{
                     fspace();
-
-                    if(sort_menu_width == 0){
+                    if(sort_menu_width == 0){ //calculate the initial sort menu button width. should only happen on the first pass
                         sort_menu_width = GUI.skin.button.CalcSize(new GUIContent("Sort: " + sort_options[sort_opt])).x;
                     }
+                    //render dropdown menu of sort options
                     dropdown("Sort: " + sort_options[sort_opt], "sort_menu", sort_options, this, sort_menu_width, "button.tight", (resp) => {
                         sort_opt = resp;
-                        sort_menu_width = GUI.skin.button.CalcSize(new GUIContent("Sort: " + sort_options[sort_opt])).x;
+                        sort_menu_width = GUI.skin.button.CalcSize(new GUIContent("Sort: " + sort_options[sort_opt])).x; //recalculate the sort menu button width
                         filter_craft();
                     });
-                    button((reverse_sort ? "/\\" : "\\/"), "button.tight.right_margin", 22f, toggle_reverse_sort);
+                    button((reverse_sort ? "/\\" : "\\/"), "button.tight.right_margin", 22f, toggle_reverse_sort); //TODO replace with proper icons.
                 });
 
+                //Main craft list scrolling section
                 scroll_pos["main"] = scroll(scroll_pos["main"], "craft.list_container", inner_width, main_section_height, craft_list_width => {
                     item_last_height = 0;
                     foreach(CraftData craft in CraftData.filtered){
-                        draw_craft_list_item(craft, craft_list_width);
+                        draw_craft_list_item(craft, craft_list_width); //render each craft
+
+                        //this is used to get the top offset position of each item in the craft list and that is stored on the CraftData object
+                        //facilitates maintaining focus on list items when using the up/down arrow keys to scroll.
                         if(Event.current.type == EventType.Repaint){
                             craft.list_position = item_last_height;
                             item_last_height += GUILayoutUtility.GetLastRect().height + 5; //+5 for margin
                         }
                     }
                 });
+
+                //an attempt at enabling the user to drag the craft list up and down. it works, but can be a bit laggy (but then so is the stock list when dragged)
+                //and I can't make it so the user can drag it fast and let go and have it keep sliding. 
                 craft_scroll_section = GUILayoutUtility.GetLastRect();
                 if(craft_scroll_section.Contains(Event.current.mousePosition)){
                     if(Event.current.button == 0 && Event.current.type == EventType.MouseDrag){
@@ -397,8 +405,6 @@ namespace CraftManager
 
 
         //Left Hand Section: Tags
-
-
         protected void draw_left_hand_section(float section_width){
             tag_scroll_height = main_section_height-40f;    
 
@@ -423,7 +429,8 @@ namespace CraftManager
 
                 v_section(inner_width, "tags.list_outer", (tag_list_width) => {                    
                     scroll_pos["lhs"] = scroll(scroll_pos["lhs"], "side_panel.scroll.tags", inner_width, tag_scroll_height, scroll_width => {
-                        foreach(string tag_name in Tags.names){
+                        for(int i=0; i < Tags.names.Count-1; i++){
+                            string tag_name = Tags.names[i];
                             style_override = "tag.section";
                             section((sec_w)=>{
                                 tag_state = Tags.is_selected(tag_name);
