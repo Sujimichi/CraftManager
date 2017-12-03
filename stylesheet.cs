@@ -185,8 +185,6 @@ namespace CraftManager
                 s.normal.textColor = Color.green;
             });
 
-
-
             define_style("craft.list_container", base_skin.scrollView, s =>{
                 s.padding = new RectOffset(5, 5, 0, 0);    
             });            
@@ -260,6 +258,10 @@ namespace CraftManager
 
 
 
+            define_style("menu.container", base_skin.box, s =>{
+                s.normal.background = base_skin.label.normal.background;
+                s.border = new RectOffset(0,0,0,0);
+            });
 
             define_style("menu.background", base_skin.label, s =>{
                 s.normal.background = textures["dark_background"];
@@ -268,6 +270,7 @@ namespace CraftManager
                 s.padding = new RectOffset(0,0,0,0);
                 s.margin = new RectOffset(0,0,0,0);
                 s.border = new RectOffset(0,0,0,0);
+                s.normal.background = base_skin.label.normal.background;
             });
             define_style("menu.item", base_skin.button, s =>{
                 s.normal.background = (Texture2D)textures["dark_background"];

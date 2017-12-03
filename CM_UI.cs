@@ -143,7 +143,7 @@ namespace CraftManager
             window_title = "Craft Manager";
             window_pos = new Rect((Screen.width/2) - (window_width/2) + 100, 80, window_width, main_section_height);
             visible = false;
-            //            draggable = false;
+            draggable = false;
             footer = false;
             prevent_click_through = false; //disable the standard click through prevention. show and hide will add control locks which are not based on mouse pos.
 
@@ -306,6 +306,7 @@ namespace CraftManager
 
         //The Main craft list
         float item_last_height = 0;
+        Rect craft_scroll_section = new Rect();
         protected void draw_main_section(float section_width){
             v_section(section_width, (inner_width)=>{
                 last_search = search_string;
@@ -323,7 +324,6 @@ namespace CraftManager
                     button((reverse_sort ? "/\\" : "\\/"), "button.tight.right_margin", 22f, toggle_reverse_sort);
                 });
 
-
                 scroll_pos["main"] = scroll(scroll_pos["main"], "craft.list_container", inner_width, main_section_height, craft_list_width => {
                     item_last_height = 0;
                     foreach(CraftData craft in CraftData.filtered){
@@ -334,19 +334,20 @@ namespace CraftManager
                         }
                     }
                 });
-//                Rect scroller = GUILayoutUtility.GetLastRect();
-//                if(scroller.Contains(Event.current.mousePosition)){
-//                    if(Event.current.button == 1 && Event.current.type == EventType.MouseDrag){
-//                        scroll_pos["main"] += Event.current.delta;
-//                        Event.current.Use();
-//                    }
-//                }
+                craft_scroll_section = GUILayoutUtility.GetLastRect();
+                if(craft_scroll_section.Contains(Event.current.mousePosition)){
+                    if(Event.current.button == 0 && Event.current.type == EventType.MouseDrag){
+                        CraftManager.log(Event.current.delta.ToString());
+                        scroll_pos["main"] -= Event.current.delta;
+                        Event.current.Use();
+                    }
+                }
             });            
         }
 
         //Individual Craft Content
         protected void draw_craft_list_item(CraftData craft, float section_width){
-            section(section_width-(12f+18f), "craft.list_item" + (craft.selected ? ".selected" : ""), (inner_width)=>{ //subtractions from width to account for margins and scrollbar
+            section(section_width-(30f), "craft.list_item" + (craft.selected ? ".selected" : ""), (inner_width)=>{ //subtractions from width to account for margins and scrollbar
                 section(inner_width-80f,()=>{
                     v_section(()=>{
                         section(()=>{
