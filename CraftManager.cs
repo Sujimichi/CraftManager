@@ -6,13 +6,13 @@
 //Branch: master
 
 /* TODO List
-  - persistent sorts
   - settings and settings UI
   - Tagders - Tags as folders, different mode which limits each craft to one tag and only one tag can be selected at at time.
   - KerbalX Integration
 
     TODO BUGS
     - description field does not save chars after new line. Newline used in game is some other char
+    - can create tags when in all saves mode
     FIXED:
     - invalid operation exception when selecting tags. modifying data in foreach?
     - add tag dropdown menu gets wide right border if lots of tags (or maybe a long tag).
@@ -33,6 +33,18 @@ using KatLib;
 namespace CraftManager
 {
 
+    public class CraftManagerWindow : DryUI
+    {
+        protected override void OnGUI(){
+            if(this.skin == null){
+                this.skin = CraftManager.skin;
+            }
+            GUI.skin = skin;
+            base.OnGUI();
+            GUI.skin = null;
+        }
+    }
+
     [KSPAddon(KSPAddon.Startup.MainMenu, false)]
     public class CraftManager : MonoBehaviour
     {
@@ -51,6 +63,8 @@ namespace CraftManager
         //Helpers
         public static string ksp_root = KSPUtil.ApplicationRootPath.Replace("/KSP_Data/../","");
 
+        internal static GUISkin skin = null;
+
 
         private void Awake(){
             settings = new CMSettings();
@@ -63,8 +77,8 @@ namespace CraftManager
 
         //Trigger the creation of custom Skin (copy of default skin with various custom styles added to it, see stylesheet.cs)
         private void OnGUI(){
-            if(DryUI.skin == null){
-                DryUI.skin = new StyleSheet(HighLogic.Skin).skin;
+            if(CraftManager.skin == null){
+                CraftManager.skin = new StyleSheet(HighLogic.Skin).skin;
 //                DryUI.skin = new StyleSheet(GUI.skin).skin; //works but isn't as clear.
             }
         }

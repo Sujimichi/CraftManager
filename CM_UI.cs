@@ -32,7 +32,7 @@ namespace CraftManager
     }
 
     [KSPAddon(KSPAddon.Startup.EditorAny, false)]
-    public class CM_UI : DryUI
+    public class CM_UI : CraftManagerWindow
     {
 
         private float main_section_height = Screen.height - 400f;
@@ -974,6 +974,7 @@ namespace CraftManager
                 dialog.dialog_pos = new Rect(left, top, dialog_width, 80f);
                 dialog.window_title = title;
                 dialog.content = dc;
+                dialog.skin = CraftManager.skin;
                 return dialog;
 
             } else{
@@ -981,6 +982,7 @@ namespace CraftManager
                 dialog.window_pos = new Rect(left, top, dialog_width, 80f);
                 dialog.window_title = title;
                 dialog.content = dc;
+                dialog.skin = CraftManager.skin;
                 return dialog;
 
             }
