@@ -37,14 +37,12 @@ namespace CraftManager
 
         private float main_section_height = Screen.height - 400f;
         private float window_width  = 1000f;
+        private float[] col_widths = new float[]{0.2f,0.55f,0.25f};
+
 
         private string current_save_dir = HighLogic.SaveFolder;
         private string active_save_dir;
 
-
-        private string search_string = "";
-        private string last_search = "";
-        
         private Dictionary<string, string> save_menu_options = new Dictionary<string, string>();
         private Dictionary<string, string> load_menu_options = new Dictionary<string, string>();
         private Dictionary<string, string> load_menu_options_default = new Dictionary<string, string> { { "merge", "Merge" }, { "subload", "Load as Subassembly" } };
@@ -53,35 +51,7 @@ namespace CraftManager
             {"name", "Name"}, {"cost", "Cost"}, {"crew_capacity", "Crew Capacity"}, {"mass", "Mass"}, {"part_count", "Part Count"}, {"stage_count", "Stages"}, {"date_created", "Created"}, {"date_updated", "Updated"}
         };
         private Dictionary<string, string> tag_sort_options = new Dictionary<string, string> { {"name", "Name"}, {"craft_count", "Craft Count"} };
-
-        private float[] col_widths = new float[]{0.2f,0.55f,0.25f};
-        private float save_menu_width = 0;
-        private float sort_menu_width = 0;
-
-        private string sort_opt = "name";
-        private bool reverse_sort = false;
-        
-
-        private string auto_focus_on = null;
-        public string tag_sort_by = "name";
-        private bool edit_tags = false;
-        private bool tag_mode_reduce = true;
-        private bool expand_details = false;
-        public bool exclude_stock_craft = true;
-        public bool stock_craft_loaded = false;
-
-        private bool tag_prev_state = false;
-        private bool tag_state = false;
-        private float tag_content_height = 0;
-        private float last_tag_content_height = 0;
-        private float tag_margin_offset = 0;
-        private float tag_scroll_height = 0;
-
-        private bool ctrl_key_down = false;
-
-        string load_button_text = "Load";
-        string load_button_action = "load";
-        float load_button_width = 120f;
+        private List<string> tag_filter_modes = new List<string> { "AND", "OR" };
 
         private Dictionary<string, bool> selected_types = new Dictionary<string, bool>(){
             {"SPH",EditorDriver.editorFacility.CompareTo(EditorFacility.SPH)==0},
@@ -92,12 +62,40 @@ namespace CraftManager
         protected List<string> selected_type_keys = new List<string>(){"SPH", "VAB", "Subassemblies"};
 
 
+        private string sort_opt = CraftManager.settings.get("craft_sort");
+        private bool reverse_sort = bool.Parse(CraftManager.settings.get("craft_sort_reverse"));
+        public bool exclude_stock_craft = bool.Parse(CraftManager.settings.get("exclude_stock_craft"));
+        public string tag_sort_by = CraftManager.settings.get("sort_tags_by");
+        public string tag_filter_mode = CraftManager.settings.get("tag_filter_mode"); //"AND"; // OR
+
+        string load_button_text = "Load";
+        string load_button_action = "load";
+
+        private string search_string = "";
+        private string last_search = "";
+
+        float load_button_width = 120f;
+        private float save_menu_width = 0; //autoset based on content width
+        private float sort_menu_width = 0;
+
+        private string auto_focus_on = null;
+        public bool stock_craft_loaded = false;
+        private bool edit_tags = false;
+        private bool expand_details = false;
+        private bool tag_prev_state = false;
+        private bool tag_state = false;
+        private float tag_content_height = 0;
+        private float last_tag_content_height = 0;
+        private float tag_margin_offset = 0;
+        private float tag_scroll_height = 0;
+        private bool ctrl_key_down = false;
+
+
         //collection of Vector2 objects to track scroll positions
         private Dictionary<string, Vector2> scroll_pos = new Dictionary<string, Vector2>(){
             {"lhs", new Vector2()}, {"rhs", new Vector2()}, {"main", new Vector2()}
         };
-        protected Rect scroll_relative_pos = new Rect(0, 0, 0, 0);
-
+        protected Rect scroll_relative_pos = new Rect(0, 0, 0, 0); //used to track the position of scroll sections. needed to render dropdown menus inside scroll section.
 
 
 
@@ -166,6 +164,7 @@ namespace CraftManager
             save_menu_options.Add("all", "All");
 
             Tags.load(active_save_dir);
+            CraftManager.log(CraftManager.settings.get("craft_sort"));
             show();
         }
 
@@ -195,9 +194,17 @@ namespace CraftManager
             filter_craft();
         }
 
+        protected void select_sort_option(string option){
+            sort_opt = option;
+            sort_menu_width = GUI.skin.button.CalcSize(new GUIContent("Sort: " + sort_options[sort_opt])).x; //recalculate the sort menu button width
+            filter_craft();
+            CraftManager.settings.set("craft_sort", sort_opt);
+        }
+
         protected void toggle_reverse_sort(){
             reverse_sort = !reverse_sort;
             filter_craft();
+            CraftManager.settings.set("craft_sort_reverse", reverse_sort.ToString());
         }
 
         protected void change_save(string save_name){
@@ -207,6 +214,17 @@ namespace CraftManager
             refresh();
         }
 
+        protected void change_tag_sort(string sort_by){
+            tag_sort_by = sort_by;
+            Tags.sort_tag_list();
+            CraftManager.settings.set("sort_tags_by", tag_sort_by);
+        }
+
+        protected void change_tag_filter_mode(string mode){
+            tag_filter_mode = mode;
+            filter_craft();
+            CraftManager.settings.set("tag_filter_mode", tag_filter_mode);
+        }
 
         //Collect any currently active filters into a Dictionary<string, object> which can then be passed to 
         //filter_craft on CraftData (which does the actual filtering work).
@@ -221,7 +239,7 @@ namespace CraftManager
             List<string> s_tags = Tags.selected_tags();
             if(s_tags.Count > 0){
                 search_criteria.Add("tags", s_tags);
-                search_criteria.Add("tag_mode_reduce", tag_mode_reduce);
+                search_criteria.Add("tag_filter_mode", tag_filter_mode);
             }
             search_criteria.Add("sort", sort_opt);
             search_criteria.Add("reverse_sort", reverse_sort);
@@ -297,11 +315,11 @@ namespace CraftManager
                     button("include Stock Craft", "bold", ()=>{exclude_stock_craft = !exclude_stock_craft;});
                     if(exclude_stock_craft != prev_exstcr){
                         filter_craft();
+                        CraftManager.settings.set("exclude_stock_craft", exclude_stock_craft.ToString());
                     }
                 });
             });
         }
-
 
 
         //The Main craft list
@@ -317,11 +335,7 @@ namespace CraftManager
                         sort_menu_width = GUI.skin.button.CalcSize(new GUIContent("Sort: " + sort_options[sort_opt])).x;
                     }
                     //render dropdown menu of sort options
-                    dropdown("Sort: " + sort_options[sort_opt], "sort_menu", sort_options, this, sort_menu_width, "button.tight", (resp) => {
-                        sort_opt = resp;
-                        sort_menu_width = GUI.skin.button.CalcSize(new GUIContent("Sort: " + sort_options[sort_opt])).x; //recalculate the sort menu button width
-                        filter_craft();
-                    });
+                    dropdown("Sort: " + sort_options[sort_opt], "sort_menu", sort_options, this, sort_menu_width, "button.tight", select_sort_option);
                     button((reverse_sort ? "/\\" : "\\/"), "button.tight.right_margin", 22f, toggle_reverse_sort); //TODO replace with proper icons.
                 });
 
@@ -352,6 +366,7 @@ namespace CraftManager
                 }
             });            
         }
+
 
         //Individual Craft Content
         protected void draw_craft_list_item(CraftData craft, float section_width){
@@ -384,8 +399,6 @@ namespace CraftManager
                         }
                     });
                 });
-
-
                 section(80f,()=>{
                     fspace();
                     GUILayout.Label(craft.thumbnail, width(70), height(70));
@@ -418,13 +431,8 @@ namespace CraftManager
             v_section(section_width, (inner_width) =>{
                 section(()=>{
                     label("Tags", "h2");
-//                    tag_mode_reduce = GUILayout.Toggle(tag_mode_reduce, "reduce", "Button", width(60f));
-//                    tag_mode_reduce = !GUILayout.Toggle(!tag_mode_reduce, "extend", "Button", width(60f));
                     fspace();
-                    dropdown("Sort", "tag_sort_menu", tag_sort_options, this, 50f, resp => {
-                        tag_sort_by = resp;
-                        Tags.sort_tag_list();
-                    });
+                    dropdown("Sort", "tag_sort_menu", tag_sort_options, this, 50f, change_tag_sort);
                 });
 
                 v_section(inner_width, "tags.list_outer", (tag_list_width) => {                    
@@ -438,7 +446,7 @@ namespace CraftManager
                                 
                                 tag_state = GUILayout.Toggle(tag_state, "", "tag.toggle.light");
                                 tag_state = GUILayout.Toggle(
-                                    tag_state, tag_name + " - (" + Tags.craft_count_for(tag_name,"filtered") + ")", 
+                                    tag_state, tag_name + " - (" + Tags.craft_count_for(tag_name,(tag_filter_mode=="AND" ? "filtered" : "raw_count")) + ")", 
                                     "tag.toggle.label", width(scroll_width-tag_margin_offset)
                                 );
                                 
@@ -461,9 +469,10 @@ namespace CraftManager
                             }
                         }
                     });
-                    section(tag_list_width, 40f, ()=>{                        
+                    section(tag_list_width, 40f, ()=>{       
+                        dropdown("Mode", "tag_filter_mode_menu", tag_filter_modes, this, 40f, change_tag_filter_mode);
                         fspace();
-                        edit_tags = GUILayout.Toggle(edit_tags, "edit", "button", width(40f) );
+                        edit_tags = GUILayout.Toggle(edit_tags, "edit", "button", width(50f) );
                         button("+", 30f, create_tag_dialog);
                     });
                 });

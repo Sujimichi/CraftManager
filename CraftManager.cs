@@ -37,6 +37,7 @@ namespace CraftManager
     public class CraftManager : MonoBehaviour
     {
         //Settings
+        internal static CMSettings settings;
         internal static bool use_stock_toolbar = true;
         internal static bool replace_editor_load_button = false;
 
@@ -52,6 +53,7 @@ namespace CraftManager
 
 
         private void Awake(){
+            settings = new CMSettings();
             if(CraftManager.use_stock_toolbar){
                 GameEvents.onGUIApplicationLauncherReady.Add(add_to_toolbar);
                 GameEvents.onGUIApplicationLauncherDestroyed.Add(remove_from_toolbar);

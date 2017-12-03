@@ -212,10 +212,14 @@ namespace CraftManager
             List<Tag> tags = Tags.find_all(tag_name);
             int count = 0;
             if(mode == "filtered"){
-                foreach(Tag tag in tags){
-                    count += CraftData.filtered.FindAll(c => tag.save_dir==c.save_dir && tag.craft.Contains(Tags.craft_reference_key(c)) ).Count;
+                foreach(Tag tag in tags){                    
+                    count += CraftData.filtered.FindAll(c => tag.save_dir == c.save_dir && tag.craft.Contains(Tags.craft_reference_key(c))).Count;
                 }
-            }else{
+            } else if(mode == "raw_count"){
+                foreach(Tag tag in tags){                    
+                    count += tag.craft.Count;
+                }
+            } else {
                 foreach(Tag tag in tags){                    
                     count += CraftData.all_craft.FindAll(c => tag.save_dir==c.save_dir && tag.craft.Contains(Tags.craft_reference_key(c))).Count;
                 }

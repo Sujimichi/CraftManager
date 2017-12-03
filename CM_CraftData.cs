@@ -83,11 +83,10 @@ namespace CraftManager
             }
             if(criteria.ContainsKey("tags")){
                 List<string> s_tags = (List<string>)criteria["tags"];
-                if((bool)criteria["tag_mode_reduce"]){
-                    foreach(string tag in s_tags){
-                        filtered = filtered.FindAll(craft => craft.tags().Contains(tag));
-                    }
-                } else{
+                CraftManager.log("tag filter mode: " + (string)criteria["tag_filter_mode"]);
+                string tag_filter_mode = (string)criteria["tag_filter_mode"];
+                if(tag_filter_mode == "OR"){
+                    CraftManager.log("or mode");                    
                     filtered = filtered.FindAll(craft =>{
                         bool sel = false;
                         foreach(string tag in craft.tags()){
@@ -97,6 +96,11 @@ namespace CraftManager
                         }
                         return sel;
                     });
+                } else{
+                    CraftManager.log("AND mode");                    
+                    foreach(string tag in s_tags){
+                        filtered = filtered.FindAll(craft => craft.tags().Contains(tag));
+                    }
                 }
             }
             if(criteria.ContainsKey("sort")){
