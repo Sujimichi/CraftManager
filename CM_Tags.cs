@@ -22,17 +22,16 @@ namespace CraftManager
             Tags.instance.data.Add(this);
         }
 
-        public void add(string craft_ref){
-            if(!craft.Contains(craft_ref)){
-                craft.Add(craft_ref);
-            }
+        public void add(CraftData craft){
+            this.craft.AddUnique(Tags.craft_reference_key(craft));
+            Tags.save();
         }
 
-        public void remove(string craft_ref){
-            if(craft.Contains(craft_ref)){
-                craft.Remove(craft_ref);
-            }
-        }
+//        public void remove(string craft_ref){
+//            if(craft.Contains(craft_ref)){
+//                craft.Remove(craft_ref);
+//            }
+//        }
     }
 
 
@@ -102,13 +101,16 @@ namespace CraftManager
             return tag;
         }
 
-        public static string create(string tag_name, string save_dir){
+        public static string create(string tag_name, string save_dir, CraftData craft = null){
             if(String.IsNullOrEmpty(tag_name)){
                 return "Tag Name cannot be blank";
             } else if(names.Contains(tag_name)){
                 return "A tag with this name already exists";
             } else{
-                Tags.find_or_create_by(tag_name, save_dir);
+                Tag tag = Tags.find_or_create_by(tag_name, save_dir);
+                if(craft != null){
+                    tag.add(craft);
+                }
                 return "200";
             }
         }
@@ -143,8 +145,7 @@ namespace CraftManager
         //Associate a craft with a tag. Will create a Tag with the given name if it doesn't already exist
         public static void tag_craft(CraftData craft, string tag_name){
             Tag tag = Tags.find_or_create_by(tag_name, craft.save_dir);
-            tag.craft.AddUnique(craft_reference_key(craft));
-            Tags.save();
+            tag.add(craft);
         }
         //Associate a craft with a set of tags. Creates Tags as needed
         public static void tag_craft(CraftData craft, List<string> tags){

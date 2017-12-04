@@ -43,15 +43,16 @@ namespace CraftManager
         private string current_save_dir = HighLogic.SaveFolder;
         private string active_save_dir;
 
-        private Dictionary<string, string> save_menu_options = new Dictionary<string, string>();
-        private Dictionary<string, string> load_menu_options = new Dictionary<string, string>();
-        private Dictionary<string, string> load_menu_options_default = new Dictionary<string, string> { { "merge", "Merge" }, { "subload", "Load as Subassembly" } };
-        private Dictionary<string, string> load_menu_options_submode = new Dictionary<string, string> { { "merge", "Merge" }, { "load", "Load as Craft" } };
-        private Dictionary<string, string> sort_options = new Dictionary<string, string>{
+        private DropdownMenuData save_menu_options = new DropdownMenuData();
+        private DropdownMenuData tags_menu_content = new DropdownMenuData();
+        private DropdownMenuData load_menu_options_default = new DropdownMenuData(new Dictionary<string, string> { { "merge", "Merge" }, { "subload", "Load as Subassembly" } });
+        private DropdownMenuData load_menu_options_submode = new DropdownMenuData(new Dictionary<string, string> { { "merge", "Merge" }, { "load", "Load as Craft" } });
+        private DropdownMenuData sort_options = new DropdownMenuData(new Dictionary<string, string>{
             {"name", "Name"}, {"cost", "Cost"}, {"crew_capacity", "Crew Capacity"}, {"mass", "Mass"}, {"part_count", "Part Count"}, {"stage_count", "Stages"}, {"date_created", "Created"}, {"date_updated", "Updated"}
-        };
-        private Dictionary<string, string> tag_sort_options = new Dictionary<string, string> { {"name", "Name"}, {"craft_count", "Craft Count"} };
-        private List<string> tag_filter_modes = new List<string> { "AND", "OR" };
+        });
+        private DropdownMenuData tag_sort_options = new DropdownMenuData(new Dictionary<string, string> { {"name", "Name"}, {"craft_count", "Craft Count"} });
+        private DropdownMenuData tag_filter_modes = new DropdownMenuData(new List<string> { "AND", "OR" });
+
 
         private Dictionary<string, bool> selected_types = new Dictionary<string, bool>(){
             {"SPH",EditorDriver.editorFacility.CompareTo(EditorFacility.SPH)==0},
@@ -155,16 +156,21 @@ namespace CraftManager
 
             //Initialize list of Save directories, used in save select menus.
             active_save_dir = HighLogic.SaveFolder;
-            save_menu_options.Add(active_save_dir, "Current Save (" + active_save_dir + ")");
+            save_menu_options.items.Add(active_save_dir, "Current Save (" + active_save_dir + ")");
             foreach(string dir_name in CraftData.save_names()){
                 if(dir_name != active_save_dir){
-                    save_menu_options.Add(dir_name, dir_name);
+                    save_menu_options.items.Add(dir_name, dir_name);
                 }
             }
-            save_menu_options.Add("all", "All");
+            save_menu_options.items.Add("all", "All");
 
             Tags.load(active_save_dir);
             CraftManager.log(CraftManager.settings.get("craft_sort"));
+
+            tags_menu_content.remote_data = new DataSource(() =>{
+                return Tags.names;
+            });
+            tags_menu_content.special_items.Add("new_tag", "New Tag");
 //            show();
         }
 
@@ -197,7 +203,7 @@ namespace CraftManager
 
         protected void select_sort_option(string option){
             sort_opt = option;
-            sort_menu_width = GUI.skin.button.CalcSize(new GUIContent("Sort: " + sort_options[sort_opt])).x; //recalculate the sort menu button width
+            sort_menu_width = GUI.skin.button.CalcSize(new GUIContent("Sort: " + sort_options.items[sort_opt])).x; //recalculate the sort menu button width
             filter_craft();
             CraftManager.settings.set("craft_sort", sort_opt);
         }
@@ -298,7 +304,8 @@ namespace CraftManager
                 if(save_menu_width == 0){
                     save_menu_width = GUI.skin.button.CalcSize(new GUIContent("Save: " + active_save_dir)).x;
                 }
-                dropdown("Save: " + active_save_dir, "save_menu", save_menu_options, active_save_dir, this, save_menu_width, change_save);
+                save_menu_options.selected_item = active_save_dir;
+                dropdown("Save: " + active_save_dir, "save_menu", save_menu_options, this, save_menu_width, change_save);
             });
             section(() =>{
                 label("Search Craft:", "h2");
@@ -333,10 +340,11 @@ namespace CraftManager
                 section((w)=>{
                     fspace();
                     if(sort_menu_width == 0){ //calculate the initial sort menu button width. should only happen on the first pass
-                        sort_menu_width = GUI.skin.button.CalcSize(new GUIContent("Sort: " + sort_options[sort_opt])).x;
+                        sort_menu_width = GUI.skin.button.CalcSize(new GUIContent("Sort: " + sort_options.items[sort_opt])).x;
                     }
                     //render dropdown menu of sort options
-                    dropdown("Sort: " + sort_options[sort_opt], "sort_menu", sort_options, sort_opt, this, sort_menu_width, "button.tight", select_sort_option);
+                    sort_options.selected_item = sort_opt;
+                    dropdown("Sort: " + sort_options.items[sort_opt], "sort_menu", sort_options, this, sort_menu_width, "button.tight", select_sort_option);
                     button((reverse_sort ? "/\\" : "\\/"), "button.tight.right_margin", 22f, toggle_reverse_sort); //TODO replace with proper icons.
                 });
 
@@ -432,7 +440,8 @@ namespace CraftManager
                 section(()=>{
                     label("Tags", "h2");
                     fspace();
-                    dropdown("Sort", "tag_sort_menu", tag_sort_options, tag_sort_by, this, 50f, change_tag_sort);
+                    tag_sort_options.selected_item = tag_sort_by;
+                    dropdown("Sort", "tag_sort_menu", tag_sort_options, this, 50f, change_tag_sort);
                 });
 
                 v_section(inner_width, "tags.list_outer", (tag_list_width) => {                    
@@ -470,9 +479,10 @@ namespace CraftManager
                         }
                     });
                     section(tag_list_width, 40f, ()=>{       
-                        dropdown("Mode", "tag_filter_mode_menu", tag_filter_modes, tag_filter_mode, this, 40f, change_tag_filter_mode);
+                        tag_filter_modes.selected_item = tag_filter_mode;
+                        dropdown("Mode", "tag_filter_mode_menu", tag_filter_modes, this, 50f, change_tag_filter_mode);
                         fspace();
-                        edit_tags = GUILayout.Toggle(edit_tags, "edit", "button", width(50f) );
+                        edit_tags = GUILayout.Toggle(edit_tags, "edit", "button", width(40f) );
                         button("+", 30f, create_tag_dialog);
                     });
                 });
@@ -558,11 +568,16 @@ namespace CraftManager
                             scroll_relative_pos.x += (window_pos.width * (0.55f+0.2f)) - 5f;
                             scroll_relative_pos.y += 45f - scroll_pos["rhs"].y;
                             List<string> craft_tags = craft.tags();
-                            dropdown("Add Tag", "add_tag_menu", Tags.names, craft_tags, this, scroll_relative_pos, 70f, "Button", "menu.background", "menu.item.small", resp => {
-                                if(craft_tags.Contains(resp)){
-                                    Tags.untag_craft(craft, resp);
-                                }else{                                    
-                                    Tags.tag_craft(craft, resp);
+                            tags_menu_content.selected_items = craft_tags;
+                            dropdown("Add Tag", "add_tag_menu", tags_menu_content, this, scroll_relative_pos, 70f, "Button", "menu.background", "menu.item.small", resp => {
+                                if(resp == "new_tag"){
+                                    create_tag_dialog(craft);
+                                }else{
+                                    if(craft_tags.Contains(resp)){
+                                        Tags.untag_craft(craft, resp);
+                                    }else{                                    
+                                        Tags.tag_craft(craft, resp);
+                                    }
                                 }
                             });
                         });
@@ -598,16 +613,14 @@ namespace CraftManager
                     load_button_text = "Load";
                     load_button_action = "load";
                     load_button_width = 120f;
-                    load_menu_options = load_menu_options_default;
                     if(CraftData.selected_craft != null && CraftData.selected_craft.construction_type == "Subassembly"){                        
                         load_button_text = "Load Subassembly";
                         load_button_action = "subload";
                         load_button_width = 300f;
-                        load_menu_options = load_menu_options_submode;
                     }
                     
                     button(load_button_text, "button.load", load_button_width, ()=>{ load_craft(load_button_action);});
-                    dropdown("\\/", "load_menu", load_menu_options, null, this, 30f, "button.load", "menu.background", "menu.item", resp => {
+                    dropdown("\\/", "load_menu", (load_button_action=="subload" ? load_menu_options_submode : load_menu_options_default), this, 30f, "button.load", "menu.background", "menu.item", resp => {
                         load_craft(resp);
                     });
                 });
@@ -712,6 +725,10 @@ namespace CraftManager
         }
 
         protected void create_tag_dialog(){
+            create_tag_dialog(null);
+        }
+
+        protected void create_tag_dialog(CraftData add_to_tag = null){
             float dialog_width = 400f;
             float top = scroll_relative_pos.y + main_section_height;
             float left = scroll_relative_pos.x + window_width * col_widths[0];
@@ -724,7 +741,7 @@ namespace CraftManager
                     fspace();
                     button("Cancel", close_dialog);
                     resp = submit("Save", ()=>{
-                        return Tags.create(new_tag_name, active_save_dir);
+                        return Tags.create(new_tag_name, active_save_dir, add_to_tag);
 
                     });
                 });
@@ -885,16 +902,17 @@ namespace CraftManager
             CraftData craft = CraftData.selected_craft;
             string resp = "";
             string selected_save = "";
-            Dictionary<string, string> move_copy_save_menu = new Dictionary<string, string>(save_menu_options);
-            List<string> keys = new List<string>(move_copy_save_menu.Keys);
+
+            DropdownMenuData move_copy_save_menu = new DropdownMenuData(save_menu_options.items);
+            List<string> keys = new List<string>(move_copy_save_menu.items.Keys);
             string key = keys.Find(k => (k.Equals(craft.save_dir) || k.Equals("Current Save (" + craft.save_dir + ")")));
-            move_copy_save_menu.Remove(key);
-            move_copy_save_menu.Remove("all");
+            move_copy_save_menu.items.Remove(key);
+            move_copy_save_menu.items.Remove("all");
 
             show_dialog("Move/Copy Craft", "Move or Copy this craft to another save:", false, d =>{
                 section(500f, (inner_width)=>{
                     GUILayout.Space(inner_width*0.3f);
-                    dropdown("Select Save", "copy_transfer_save_menu", move_copy_save_menu, null, d, inner_width*0.4f, "button.large", "menu.background", "menu.item", (selected_save_name) => {
+                    dropdown("Select Save", "copy_transfer_save_menu", move_copy_save_menu, d, inner_width*0.4f, "button.large", "menu.background", "menu.item", (selected_save_name) => {
                         resp = "";
                         selected_save = selected_save_name;
                     });           
