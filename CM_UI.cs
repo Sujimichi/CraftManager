@@ -735,6 +735,10 @@ namespace CraftManager
             float left = scroll_relative_pos.x + window_width * col_widths[0];
             string resp = "";
             string new_tag_name = "";
+            string save_dir_for_tag = current_save_dir;
+            if(add_to_tag != null){
+                save_dir_for_tag = add_to_tag.save_dir;
+            }
             show_dialog("Create Tag", "", top, left, dialog_width, true, d =>{
                 GUI.SetNextControlName("dialog_focus_field");
                 new_tag_name = GUILayout.TextField(new_tag_name);
@@ -742,7 +746,7 @@ namespace CraftManager
                     fspace();
                     button("Cancel", close_dialog);
                     resp = submit("Save", ()=>{
-                        return Tags.create(new_tag_name, active_save_dir, add_to_tag);
+                        return Tags.create(new_tag_name, save_dir_for_tag, add_to_tag);
 
                     });
                 });
