@@ -13,7 +13,7 @@
 
     TODO BUGS
     - description field does not save chars after new line. Newline used in game is some other char
-    - can create tags when in all saves mode
+    - cant create tags when in all saves mode
     FIXED:
     - fails to clear window locks when loading first craft
     - invalid operation exception when selecting tags. modifying data in foreach?

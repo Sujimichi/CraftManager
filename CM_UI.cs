@@ -167,9 +167,7 @@ namespace CraftManager
             Tags.load(active_save_dir);
             CraftManager.log(CraftManager.settings.get("craft_sort"));
 
-            tags_menu_content.remote_data = new DataSource(() =>{
-                return Tags.names;
-            });
+            tags_menu_content.remote_data = new DataSource(() => Tags.names);
             tags_menu_content.special_items.Add("new_tag", "New Tag");
 //            show();
         }
