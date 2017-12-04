@@ -165,7 +165,7 @@ namespace CraftManager
 
             Tags.load(active_save_dir);
             CraftManager.log(CraftManager.settings.get("craft_sort"));
-            show();
+//            show();
         }
 
         protected override void on_show(){            
@@ -173,12 +173,13 @@ namespace CraftManager
             refresh();
             auto_focus_on = "main_search_field";
             InputLockManager.SetControlLock(window_id.ToString());
+            interface_locked = true;
 
         }
 
         protected override void on_hide(){
             close_dialog(); //incase any dialogs have been left open
-            InputLockManager.RemoveControlLock(window_id.ToString());
+//            InputLockManager.RemoveControlLock(window_id.ToString());
         }
 
 
@@ -436,7 +437,7 @@ namespace CraftManager
 
                 v_section(inner_width, "tags.list_outer", (tag_list_width) => {                    
                     scroll_pos["lhs"] = scroll(scroll_pos["lhs"], "side_panel.scroll.tags", inner_width, tag_scroll_height, scroll_width => {
-                        for(int i=0; i < Tags.names.Count-1; i++){
+                        for(int i=0; i < Tags.names.Count; i++){
                             string tag_name = Tags.names[i];
                             style_override = "tag.section";
                             section((sec_w)=>{

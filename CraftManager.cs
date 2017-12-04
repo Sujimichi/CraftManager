@@ -12,10 +12,10 @@
   - KerbalX Integration
 
     TODO BUGS
-    - fails to clear window locks when loading first craft
     - description field does not save chars after new line. Newline used in game is some other char
     - can create tags when in all saves mode
     FIXED:
+    - fails to clear window locks when loading first craft
     - invalid operation exception when selecting tags. modifying data in foreach?
     - add tag dropdown menu gets wide right border if lots of tags (or maybe a long tag).
     - change blk click to check that it is the same craft that is selected on the second click (fixed in KatLib);
