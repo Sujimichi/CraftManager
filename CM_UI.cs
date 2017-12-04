@@ -34,6 +34,7 @@ namespace CraftManager
     [KSPAddon(KSPAddon.Startup.EditorAny, false)]
     public class CM_UI : CraftManagerWindow
     {
+        public const string all_saves_ref = "<all_saves>";
 
         private float main_section_height = Screen.height - 400f;
         private float window_width  = 1000f;
@@ -74,6 +75,7 @@ namespace CraftManager
 
         private string search_string = "";
         private string last_search = "";
+
 
         float load_button_width = 120f;
         private float save_menu_width = 0; //autoset based on content width
@@ -162,12 +164,12 @@ namespace CraftManager
                     save_menu_options.items.Add(dir_name, dir_name);
                 }
             }
-            save_menu_options.items.Add("all", "All");
+            save_menu_options.items.Add(all_saves_ref, "All");
 
             Tags.load(active_save_dir);
             CraftManager.log(CraftManager.settings.get("craft_sort"));
 
-            tags_menu_content.remote_data = new DataSource(() => Tags.names);
+//            tags_menu_content.remote_data = new DataSource(() => {return Tags.names;});
             tags_menu_content.special_items.Add("new_tag", "New Tag");
 //            show();
         }
@@ -190,7 +192,7 @@ namespace CraftManager
         //load/reload craft from the active_save_dir and apply any active filters
         public void refresh(){
             CraftManager.log("Refreshing data");
-            CraftData.load_craft_from_files(active_save_dir=="all" ? null : active_save_dir);
+            CraftData.load_craft_from_files(active_save_dir==all_saves_ref ? null : active_save_dir);
             filter_craft();
         }
 
@@ -303,7 +305,7 @@ namespace CraftManager
                     save_menu_width = GUI.skin.button.CalcSize(new GUIContent("Save: " + active_save_dir)).x;
                 }
                 save_menu_options.selected_item = active_save_dir;
-                dropdown("Save: " + active_save_dir, "save_menu", save_menu_options, this, save_menu_width, change_save);
+                dropdown("Save: " + (active_save_dir==all_saves_ref ? "All Saves" : active_save_dir), "save_menu", save_menu_options, this, save_menu_width, change_save);
             });
             section(() =>{
                 label("Search Craft:", "h2");
@@ -566,6 +568,7 @@ namespace CraftManager
                             scroll_relative_pos.x += (window_pos.width * (0.55f+0.2f)) - 5f;
                             scroll_relative_pos.y += 45f - scroll_pos["rhs"].y;
                             List<string> craft_tags = craft.tags();
+                            tags_menu_content.set_data(Tags.names);
                             tags_menu_content.selected_items = craft_tags;
                             dropdown("Add Tag", "add_tag_menu", tags_menu_content, this, scroll_relative_pos, 70f, "Button", "menu.background", "menu.item.small", resp => {
                                 if(resp == "new_tag"){
@@ -749,7 +752,7 @@ namespace CraftManager
 
         protected void delete_tag_dialog(string tag_name){            
             string resp = "";
-            int craft_count = Tags.craft_count_for(tag_name, "all");
+            int craft_count = Tags.craft_count_for(tag_name, all_saves_ref);
             float top = Event.current.mousePosition.y + window_pos.y + 140;
             float left = Event.current.mousePosition.x + window_pos.x;
             show_dialog("Delete Tag", "Are you sure you want to delete this tag?", top, left, 400f, true, d =>{
@@ -758,7 +761,7 @@ namespace CraftManager
                     GUILayout.Label("This tag is used for " + craft_count + " craft.");
                     label("deleting tags will not delete any craft");
                 }
-                if(active_save_dir == "all"){
+                if(active_save_dir == all_saves_ref){
                     label("You are viewing craft from all saves, this tag will be deleted in each of your saves.", "alert.h3");
                 }
                 section(()=>{
@@ -778,7 +781,7 @@ namespace CraftManager
             float top = Event.current.mousePosition.y + window_pos.y + 140;
             float left = Event.current.mousePosition.x + window_pos.x;
             show_dialog("Edit Tag", "Edit Tag: " + tag_name, top, left, 400f, true, d =>{
-                if(active_save_dir == "all"){
+                if(active_save_dir == all_saves_ref){
                     label("You are viewing craft from all saves, this will rename this tag in each of your saves.", "alert.h3");
                 }
                 GUI.SetNextControlName("dialog_focus_field");
@@ -905,7 +908,7 @@ namespace CraftManager
             List<string> keys = new List<string>(move_copy_save_menu.items.Keys);
             string key = keys.Find(k => (k.Equals(craft.save_dir) || k.Equals("Current Save (" + craft.save_dir + ")")));
             move_copy_save_menu.items.Remove(key);
-            move_copy_save_menu.items.Remove("all");
+            move_copy_save_menu.items.Remove(all_saves_ref);
 
             show_dialog("Move/Copy Craft", "Move or Copy this craft to another save:", false, d =>{
                 section(500f, (inner_width)=>{
@@ -955,8 +958,6 @@ namespace CraftManager
             string response = "";
             string err_msg = "";
             int focus_count = 5;
-            CraftManager.log("Dialog starting");
-            CraftManager.log(response);
             //wrapper for the given content which adds some of the common functionality
             DialogContent dc = new DialogContent(d =>{               
                 //close on escape key press

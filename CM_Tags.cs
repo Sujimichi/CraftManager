@@ -69,17 +69,17 @@ namespace CraftManager
 
 
         //Finds a Tag given a name and save dir
-        public static Tag find(string tag_name, string save_dir = "all"){
-            if(save_dir == "all"){
+        public static Tag find(string tag_name, string save_dir = CM_UI.all_saves_ref){
+            if(save_dir == CM_UI.all_saves_ref){
                 return Tags.instance.data.Find(t => (t.name == tag_name));
             } else{
                 return Tags.instance.data.Find(t => (t.name == tag_name && t.save_dir == save_dir));
             }
         }
 
-        //Find all tags which match a name in either a given save or in all saves if save_dir is given as "all"
-        public static List<Tag> find_all(string tag_name, string save_dir = "all"){
-            if(save_dir == "all"){
+        //Find all tags which match a name in either a given save or in all saves if save_dir is given as "<all_saves>"
+        public static List<Tag> find_all(string tag_name, string save_dir = CM_UI.all_saves_ref){
+            if(save_dir == CM_UI.all_saves_ref){
                 return Tags.instance.data.FindAll(t => (t.name == tag_name));
             } else{
                 return Tags.instance.data.FindAll(t => (t.name == tag_name && t.save_dir == save_dir));
@@ -115,7 +115,7 @@ namespace CraftManager
             }
         }
 
-        //Remove a Tag from a save or from all saves if save_dir is "all"
+        //Remove a Tag from a save or from all saves if save_dir is "<all_save>"
         public static string remove(string tag_name, string save_dir){          
             List<Tag> tags = Tags.find_all(tag_name, save_dir);                
             foreach(Tag tag in tags){
@@ -208,8 +208,8 @@ namespace CraftManager
         }
 
         //returns the number of craft associated with a given tag name. Takes a second optional argument to specify if the count
-        //is for all loaded craft ("all"), or limited to the search results ("filtered")
-        public static int craft_count_for(string tag_name, string mode = "all"){
+        //is for all loaded craft ("<all_saves>"), or limited to the search results ("filtered")
+        public static int craft_count_for(string tag_name, string mode = CM_UI.all_saves_ref){
             List<Tag> tags = Tags.find_all(tag_name);
             int count = 0;
             if(mode == "filtered"){
@@ -256,7 +256,7 @@ namespace CraftManager
             }
         }
 
-        //Loads Tag data from confignode file for a given save or for all saves if "all" is given
+        //Loads Tag data from confignode file for a given save or for all saves if "<all_saves>" is given
         //If a save does not have a craft.tags file it copies the default.tags file into the save.
         //Will also instanciate an instance of Tags if one does not already exist.
         public static void load(string save_name){
@@ -264,7 +264,7 @@ namespace CraftManager
             List<string> save_dirs = new List<string> { save_name };
 
             Tags.instance.data.Clear();
-            if(save_name == "all"){
+            if(save_name == CM_UI.all_saves_ref){
                 save_dirs = CraftData.save_names();
             }
 
