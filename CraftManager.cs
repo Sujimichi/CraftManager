@@ -7,10 +7,12 @@
 
 /* TODO List
   - settings and settings UI
+  - change refrence to all saves from "all" to null, incase someone has a save called 'all'
   - Tagders - Tags as folders, different mode which limits each craft to one tag and only one tag can be selected at at time.
   - KerbalX Integration
 
     TODO BUGS
+    - fails to clear window locks when loading first craft
     - description field does not save chars after new line. Newline used in game is some other char
     - can create tags when in all saves mode
     FIXED:

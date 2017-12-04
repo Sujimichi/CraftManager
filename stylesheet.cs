@@ -271,16 +271,22 @@ namespace CraftManager
                 s.border = new RectOffset(0,0,0,0);
                 s.normal.background = base_skin.label.normal.background;
             });
+
             define_style("menu.item", base_skin.button, s =>{
                 s.normal.background = (Texture2D)textures["dark_background"];
                 s.hover.background = (Texture2D)textures["blue_background"];
                 s.active.background = (Texture2D)textures["green_background"];
             });
-
             define_style("menu.item.small", "menu.item", s =>{
                 s.fontSize = 12;
             });
 
+            define_style("menu.item.selected", "menu.item", s =>{
+                s.normal.textColor = Color.green;
+            });
+            define_style("menu.item.small.selected", "menu.item.small", s =>{
+                s.normal.textColor = Color.green;
+            });
 
 
             define_style("dialog.section", base_skin.label, s =>{
