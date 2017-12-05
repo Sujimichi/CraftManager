@@ -240,8 +240,23 @@ namespace CraftManager
                 s.fixedWidth = 10f;
                 s.fixedHeight = 10f;
             });
-            define_style("tag.toggle.label", base_skin.label, s =>{
+
+            define_style("tag.toggle.label", base_skin.button, s =>{
+                s.normal.background = base_skin.label.normal.background;
+                s.hover.background = base_skin.label.normal.background;
+                s.active.background = base_skin.label.normal.background;
+                s.margin = new RectOffset(0,0,0,0);
+                s.padding = base_skin.label.padding;
+                s.fontStyle = base_skin.label.fontStyle;
+                s.normal.textColor = base_skin.label.normal.textColor;
+                s.normal.textColor = base_skin.label.normal.textColor;
+                s.alignment = base_skin.label.alignment;     
+                s.wordWrap = true;
             });
+            define_style("tag.toggle.count", "tag.toggle.label", s =>{
+                s.alignment = TextAnchor.MiddleCenter;
+            });
+
             define_style("tag.section", base_skin.label, s =>{
                 s.normal.background = textures["dark_background"];
             });

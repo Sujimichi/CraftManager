@@ -122,6 +122,7 @@ namespace CraftManager
                 Tags.instance.data.Remove(tag);
             }
             Tags.save();
+            if(CraftManager.main_ui){CraftManager.main_ui.refresh();}
             return "200";
         }
             

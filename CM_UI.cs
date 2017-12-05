@@ -169,7 +169,7 @@ namespace CraftManager
             Tags.load(active_save_dir);
             CraftManager.log(CraftManager.settings.get("craft_sort"));
 
-//            tags_menu_content.remote_data = new DataSource(() => {return Tags.names;});
+            tags_menu_content.remote_data = new DataSource(() => Tags.names);
             tags_menu_content.special_items.Add("new_tag", "New Tag");
 //            show();
         }
@@ -431,9 +431,9 @@ namespace CraftManager
 
             //adjustments to tag list width depending on if the edit buttons are shown and if the scroll bar is shown.
             tag_content_height = 0;
-            tag_margin_offset = (edit_tags ? 82f : 35f);
+            tag_margin_offset = (edit_tags ? 82f : 30f);
             if(last_tag_content_height > tag_scroll_height){
-                tag_margin_offset+=18f;
+                tag_margin_offset+=20f;
             }
             
             v_section(section_width, (inner_width) =>{
@@ -452,12 +452,13 @@ namespace CraftManager
                             section((sec_w)=>{
                                 tag_state = Tags.is_selected(tag_name);
                                 tag_prev_state = tag_state;
+
+                                string s = "(" + Tags.craft_count_for(tag_name,(tag_filter_mode=="AND" ? "filtered" : "raw_count")) + ")";
+                                float w = skin.button.CalcSize(new GUIContent(s)).x;
                                 
                                 tag_state = GUILayout.Toggle(tag_state, "", "tag.toggle.light");
-                                tag_state = GUILayout.Toggle(
-                                    tag_state, tag_name + " - (" + Tags.craft_count_for(tag_name,(tag_filter_mode=="AND" ? "filtered" : "raw_count")) + ")", 
-                                    "tag.toggle.label", width(scroll_width-tag_margin_offset)
-                                );
+                                button(tag_name, "tag.toggle.label", scroll_width - w - tag_margin_offset, ()=>{tag_state = !tag_state;});
+                                button(s, "tag.toggle.count", w, ()=>{tag_state = !tag_state;});
                                 
                                 if(tag_prev_state != tag_state){
                                     Tags.toggle_tag(tag_name);
@@ -476,6 +477,7 @@ namespace CraftManager
                             if(Event.current.type == EventType.Repaint){                                
                                 tag_content_height += GUILayoutUtility.GetLastRect().height+5; //+5 for margin
                             }
+
                         }
                     });
                     section(tag_list_width, 40f, ()=>{       
@@ -565,10 +567,9 @@ namespace CraftManager
                         section((w) =>{
                             label("Tags", "h2");
                             fspace();
-                            scroll_relative_pos.x += (window_pos.width * (0.55f+0.2f)) - 5f;
+                            scroll_relative_pos.x += (window_pos.width * (col_widths[0]+col_widths[1])) - 5f;
                             scroll_relative_pos.y += 45f - scroll_pos["rhs"].y;
                             List<string> craft_tags = craft.tags();
-                            tags_menu_content.set_data(Tags.names);
                             tags_menu_content.selected_items = craft_tags;
                             dropdown("Add Tag", "add_tag_menu", tags_menu_content, this, scroll_relative_pos, 70f, "Button", "menu.background", "menu.item.small", resp => {
                                 if(resp == "new_tag"){
