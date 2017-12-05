@@ -22,10 +22,13 @@ namespace CraftManager
             //a reference of which values to try and fetch from the confignode.
             settings.Add("craft_sort", "name");
             settings.Add("craft_sort_reverse", "False");
-            settings.Add("exclude_stock_craft", "True");
             settings.Add("sort_tags_by", "name");
             settings.Add("tag_filter_mode", "AND");
+            settings.Add("exclude_stock_craft", "True");
 
+            settings.Add("use_stock_toolbar", "True");
+            settings.Add("replace_editor_load_button", "True");
+            settings.Add("use_editor_key_shortcuts", "True");
 
             if(File.Exists(settings_path)){
                 ConfigNode settings_raw = ConfigNode.Load(settings_path);
@@ -37,6 +40,12 @@ namespace CraftManager
             } else{
                 save();
             }
+
+            CraftManager.use_stock_toolbar = bool.Parse(get("use_stock_toolbar"));
+            CraftManager.replace_editor_load_button = bool.Parse(get("replace_editor_load_button"));
+            CraftManager.use_editor_key_shortcuts = bool.Parse(get("use_editor_key_shortcuts"));
+
+
         }
 
         public string get(string key){

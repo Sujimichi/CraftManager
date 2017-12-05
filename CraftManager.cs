@@ -12,8 +12,8 @@
 
     TODO BUGS
     - description field does not save chars after new line. Newline used in game is some other char
-    - can't set tags on stock craft
     FIXED:
+    - can't set tags on stock craft
     - cant create tags when in all saves mode
     - fails to clear window locks when loading first craft
     - invalid operation exception when selecting tags. modifying data in foreach?
@@ -35,31 +35,21 @@ using KatLib;
 namespace CraftManager
 {
 
-    //This is needed (although kinda hacky) so set the stylesheet for the base window class.  All windows will be created as CraftManagerWindow instances
-    //which inherit functionality from DryUI (part of KatLib)
-    public class CraftManagerWindow : DryUI
-    {
-        protected override void OnGUI(){
-            if(this.skin == null){
-                this.skin = CraftManager.skin;
-            }
-            GUI.skin = skin;
-            base.OnGUI();
-            GUI.skin = null;
-        }
-    }
+
 
     [KSPAddon(KSPAddon.Startup.MainMenu, false)]
     public class CraftManager : MonoBehaviour
     {
         //Settings
         internal static CMSettings settings;
-        internal static bool use_stock_toolbar = true;
-        internal static bool replace_editor_load_button = false;
+        //These will have values set when new CMsettings is called in Awake
+        internal static bool use_stock_toolbar;
+        internal static bool replace_editor_load_button;
+        internal static bool use_editor_key_shortcuts;
 
 
         //Interface Instances
-        internal static CM_UI main_ui = null;
+        internal static CMBrowser main_ui = null;
 
         //Toolbar Buttons
         internal static ApplicationLauncherButton main_ui_toolbar_button   = null;
@@ -160,4 +150,24 @@ namespace CraftManager
         }
     }
 
+    [KSPAddon(KSPAddon.Startup.EditorAny, false)]
+    public class CM_KeyShortCuts : MonoBehaviour
+    {
+        public void Update(){
+            if(CraftManager.use_editor_key_shortcuts && !CraftManager.main_ui.visible){
+                if(Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl)){
+                    if(Input.GetKeyDown(KeyCode.O)){
+                        CraftManager.main_ui.show();
+                    } else if(Input.GetKeyDown(KeyCode.S)){
+                        if(EditorLogic.fetch.saveBtn.enabled){
+                            EditorLogic.fetch.saveBtn.onClick.Invoke();
+                            ScreenMessages.PostScreenMessage("Craft Saved!");
+                        }
+                    } else if(Input.GetKeyDown(KeyCode.N)){
+                        EditorLogic.fetch.newBtn.onClick.Invoke();
+                    }
+                }
+            }
+        }
+    }
 }

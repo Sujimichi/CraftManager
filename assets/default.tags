@@ -1,23 +1,69 @@
 TAGS
 {
-	TAG
-	{
-		tag_name = Landers
-	}
-	TAG
-	{
-		tag_name = Spaceplanes
-	}
-	TAG
-	{
-		tag_name = Lifters
-	}
-	TAG
-	{
-		tag_name = LKO
-	}
     TAG
     {
-        tag_name = Comms
+        tag_name = Landers
+    }
+    TAG
+    {
+        tag_name = Spaceplanes
+    }
+    TAG
+    {
+        tag_name = Lifters
+    }
+    TAG
+    {
+        tag_name = LKO
+    }
+    TAG
+    {
+        tag_name = Satelites
+    }
+    TAG
+    {
+        tag_name = Stock
+        craft = Stock_SPH_Aeris 3A
+        craft = Stock_SPH_Aeris 4A
+        craft = Stock_SPH_Albatross 3
+        craft = Stock_VAB_AeroEquus
+        craft = Stock_SPH_Bug-E Buggy
+        craft = Stock_VAB_ComSat Lx
+        craft = Stock_SPH_Crater Crawler
+        craft = Stock_SPH_Dove
+        craft = Stock_VAB_Dynawing
+        craft = Stock_VAB_GDLV3
+        craft = Stock_SPH_Gull
+        craft = Stock_VAB_Ion-Powered Space Probe
+        craft = Stock_VAB_Jumping Flea
+        craft = Stock_VAB_Kerbal 1
+        craft = Stock_VAB_Kerbal 1-5
+        craft = Stock_VAB_Kerbal 2
+        craft = Stock_VAB_Kerbal X
+        craft = Stock_VAB_Learstar A1
+        craft = Stock_SPH_Mallard
+        craft = Stock_VAB_Orbiter 1A
+        craft = Stock_VAB_Orbiter One
+        craft = Stock_SPH_Osprey
+        craft = Stock_SPH_Prospector Rover
+        craft = Stock_VAB_PT Series Munsplorer
+        craft = Stock_SPH_Ravenspear Mk1
+        craft = Stock_SPH_Ravenspear Mk3
+        craft = Stock_SPH_Ravenspear Mk4
+        craft = Stock_SPH_Rocket-power VTOL
+        craft = Stock_VAB_Rover + Skycrane
+        craft = Stock_SPH_Satellite Launcher
+        craft = Stock_VAB_Science Jr
+        craft = Stock_SPH_Skywinder AE1
+        craft = Stock_VAB_Slim Shuttle
+        craft = Stock_VAB_Space Station Core
+        craft = Stock_SPH_Stearwing A300
+        craft = Stock_SPH_Stratolauncher
+        craft = Stock_VAB_Super-Heavy Lander
+        craft = Stock_SPH_Thunderbird
+        craft = Stock_VAB_Two-Stage Lander
+        craft = Stock_SPH_Velociteze
+        craft = Stock_VAB_Viewmatic Survey Satellite
+        craft = Stock_VAB_Z-MAP Satellite Launch Kit
     }
 }

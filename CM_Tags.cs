@@ -69,8 +69,8 @@ namespace CraftManager
 
 
         //Finds a Tag given a name and save dir
-        public static Tag find(string tag_name, string save_dir = CM_UI.all_saves_ref){
-            if(save_dir == CM_UI.all_saves_ref){
+        public static Tag find(string tag_name, string save_dir = CMBrowser.all_saves_ref){
+            if(save_dir == CMBrowser.all_saves_ref){
                 return Tags.instance.data.Find(t => (t.name == tag_name));
             } else{
                 return Tags.instance.data.Find(t => (t.name == tag_name && t.save_dir == save_dir));
@@ -78,8 +78,8 @@ namespace CraftManager
         }
 
         //Find all tags which match a name in either a given save or in all saves if save_dir is given as "<all_saves>"
-        public static List<Tag> find_all(string tag_name, string save_dir = CM_UI.all_saves_ref){
-            if(save_dir == CM_UI.all_saves_ref){
+        public static List<Tag> find_all(string tag_name, string save_dir = CMBrowser.all_saves_ref){
+            if(save_dir == CMBrowser.all_saves_ref){
                 return Tags.instance.data.FindAll(t => (t.name == tag_name));
             } else{
                 return Tags.instance.data.FindAll(t => (t.name == tag_name && t.save_dir == save_dir));
@@ -210,7 +210,7 @@ namespace CraftManager
 
         //returns the number of craft associated with a given tag name. Takes a second optional argument to specify if the count
         //is for all loaded craft ("<all_saves>"), or limited to the search results ("filtered")
-        public static int craft_count_for(string tag_name, string mode = CM_UI.all_saves_ref){
+        public static int craft_count_for(string tag_name, string mode = CMBrowser.all_saves_ref){
             List<Tag> tags = Tags.find_all(tag_name);
             int count = 0;
             if(mode == "filtered"){
@@ -265,7 +265,7 @@ namespace CraftManager
             List<string> save_dirs = new List<string> { save_name };
 
             Tags.instance.data.Clear();
-            if(save_name == CM_UI.all_saves_ref){
+            if(save_name == CMBrowser.all_saves_ref){
                 save_dirs = CraftData.save_names();
             }
 
