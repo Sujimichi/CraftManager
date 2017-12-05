@@ -277,7 +277,7 @@ namespace CraftManager
             last_updated_time = System.IO.File.GetLastWriteTime(path).ToBinary().ToString();
 
 
-            save_dir = stock_craft ? "Stock Craft" : path.Replace(Paths.joined(CraftManager.ksp_root, "saves", ""), "").Split('/')[0];
+            save_dir = stock_craft ? HighLogic.SaveFolder : path.Replace(Paths.joined(CraftManager.ksp_root, "saves", ""), "").Split('/')[0];
             load_thumbnail_image();
 //            thumbnail = ShipConstruction.GetThumbnail("/thumbs/" + save_dir + "_" + construction_type + "_" + name);
         }

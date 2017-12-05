@@ -59,7 +59,7 @@ namespace CraftManager
 
         //return the reference used to identify a craft; ie SPH_myRocket 
         public static string craft_reference_key(CraftData craft){            
-            return craft.construction_type + "_" + craft.name;
+            return (craft.stock_craft ? "Stock_" : "") + craft.construction_type + "_" + craft.name;
         }
 
         //returns the path to the .tags file for a given save dir
@@ -144,7 +144,7 @@ namespace CraftManager
         }
 
         //Associate a craft with a tag. Will create a Tag with the given name if it doesn't already exist
-        public static void tag_craft(CraftData craft, string tag_name){
+        public static void tag_craft(CraftData craft, string tag_name){                    
             Tag tag = Tags.find_or_create_by(tag_name, craft.save_dir);
             tag.add(craft);
         }
