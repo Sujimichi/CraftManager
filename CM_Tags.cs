@@ -59,8 +59,7 @@ namespace CraftManager
 
 
 
-        public List<string> rule(){
-            CMBrowser.testout = (int.Parse(CMBrowser.testout) + 1).ToString();
+        public List<string> rule(){            
 
             List<string> data = new List<string>();
             List<CraftData> found = CraftData.filtered.FindAll(craft => {
@@ -78,7 +77,13 @@ namespace CraftManager
                         return float.Parse(attr.ToString()) == float.Parse(rule_value);
                     }
                 }else{
-                    return attr.ToString() == rule_value;
+                    if(rule_comparitor == "includes"){
+                        return attr.ToString().ToLower().Contains(rule_value.ToLower());
+                    }else if (rule_comparitor == "starts_with"){
+                        return attr.ToString().ToLower().StartsWith(rule_value.ToLower());
+                    }else{
+                        return attr.ToString().ToLower() == rule_value.ToLower();
+                    }
                 }
 
             });
@@ -107,7 +112,7 @@ namespace CraftManager
             {"equal_to", "=="}, {"greater_than", ">"}, {"less_than", "<"}
         };
         public Dictionary<string, string> rule_comparitors_string = new Dictionary<string, string>{
-            {"equal_to", "=="} //add {"includes", "includes"}, {"starts_with", "start with"} //even more fancy {"regexp", "regexp"}
+            {"equal_to", "=="}, {"includes", "includes"}, {"starts_with", "starts with"} //even more fancy {"regexp", "regexp"}
         };
 
 
@@ -210,6 +215,7 @@ namespace CraftManager
                     tag.rule_value = rule_value;
                 }
                 Tags.save();
+                if(CraftManager.main_ui){CraftManager.main_ui.refresh();}
                 return "200";
             }
         }

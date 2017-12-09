@@ -34,11 +34,7 @@ namespace CraftManager
         private DropdownMenuData tag_filter_modes = new DropdownMenuData(new List<string> { "AND", "OR" });
 
 
-        private Dictionary<string, bool> selected_types = new Dictionary<string, bool>(){
-            {"SPH",EditorDriver.editorFacility.CompareTo(EditorFacility.SPH)==0},
-            {"VAB",EditorDriver.editorFacility.CompareTo(EditorFacility.VAB)==0},
-            {"Subassemblies",false} 
-        };
+        private Dictionary<string, bool> selected_types = new Dictionary<string, bool>() { { "SPH", false }, { "VAB", false }, { "Subassemblies", false } };
         private int selected_type_count = 1;
         protected List<string> selected_type_keys = new List<string>(){"SPH", "VAB", "Subassemblies"};
 
@@ -128,6 +124,11 @@ namespace CraftManager
             draggable = false;
             footer = false;
             prevent_click_through = false; //disable the standard click through prevention. show and hide will add control locks which are not based on mouse pos.
+
+            selected_types[EditorDriver.editorFacility.ToString()] = true;
+
+//            type_select(EditorDriver.editorFacility.ToString(), true);
+
 
             EditorLogic.fetch.saveBtn.onClick.AddListener(on_save_click); //settup click event on the stock save button.
             //override existing ations on stock load button and replace with call to toggle CM's UI.
@@ -294,6 +295,7 @@ namespace CraftManager
                 if(last_search != search_string){
                     filter_craft();
                 }
+                last_search = search_string;
                 button("clear", 40f, clear_search);
                     
                 fspace();
@@ -565,7 +567,7 @@ namespace CraftManager
                             tags_menu_content.selected_items = craft.tag_name_cache;
                             dropdown("Add Tag", "add_tag_menu", tags_menu_content, this, scroll_relative_pos, 70f, "Button", "menu.background", "menu.item.small", resp => {
                                 if(resp == "new_tag"){
-                                    create_tag_dialog(craft);
+                                    create_tag_dialog(false, craft);
                                 }else{
                                     if(craft.tag_name_cache.Contains(resp)){
                                         Tags.untag_craft(craft, resp);
@@ -653,10 +655,14 @@ namespace CraftManager
         }
 
         private void type_select_all(){
-            selected_types["SPH"] = true;
-            selected_types["VAB"] = true;
-            selected_types["Subassemblies"] = true;
-            selected_type_count = 3;
+            if(selected_types["SPH"] && selected_types["VAB"] && selected_types["Subassemblies"]){               
+                type_select(EditorDriver.editorFacility.ToString(), true);
+            } else{
+                selected_types["SPH"] = true;
+                selected_types["VAB"] = true;
+                selected_types["Subassemblies"] = true;
+                selected_type_count = 3;
+            }
             filter_craft();
         }
 
@@ -721,11 +727,11 @@ namespace CraftManager
         }
 
         protected void create_tag_dialog(){
-            create_tag_dialog(null);
+            create_tag_dialog(true, null);
         }
 
-        protected void create_tag_dialog(CraftData auto_add_craft = null){
-            float top = scroll_relative_pos.y + main_section_height;
+        protected void create_tag_dialog(bool show_rule_opts = true, CraftData auto_add_craft = null){
+            float top = scroll_relative_pos.y + main_section_height - 50;
             float left = scroll_relative_pos.x + window_width * col_widths[0];
             string save_dir_for_tag = active_save_dir;
             if(save_dir_for_tag == all_saves_ref){
@@ -734,19 +740,17 @@ namespace CraftManager
             if(auto_add_craft != null){
                 save_dir_for_tag = auto_add_craft.save_dir;
             }
-            tag_dialog_form("Create", "", save_dir_for_tag, false, "", "", "", top, left, auto_add_craft);
+            tag_dialog_form("Create", show_rule_opts, "", save_dir_for_tag, false, "", "", "", top, left, auto_add_craft);
         }
 
         protected void edit_tag_dialog(string tag_name){
-            float top = Event.current.mousePosition.y + window_pos.y + 140;
-            float left = Event.current.mousePosition.x + window_pos.x;
+            float top = Event.current.mousePosition.y + window_pos.y - scroll_pos["lhs"].y + 50;
+            float left = Event.current.mousePosition.x + window_pos.x + 20;
             Tag tag = Tags.find(tag_name, active_save_dir);
-            tag_dialog_form("Edit", tag.name, active_save_dir, tag.rule_based, tag.rule_attribute, tag.rule_comparitor, tag.rule_value, top, left, null);
+            tag_dialog_form("Edit", true, tag.name, active_save_dir, tag.rule_based, tag.rule_attribute, tag.rule_comparitor, tag.rule_value, top, left, null);
         }
 
-
-
-        protected void tag_dialog_form(string mode, string tag_name, string save_dir, bool rule_based, string rule_attr, string rule_comparator, string rule_value, float top, float left, CraftData auto_add_craft = null){
+        protected void tag_dialog_form(string mode, bool show_rule_opts, string tag_name, string save_dir, bool rule_based, string rule_attr, string rule_comparator, string rule_value, float top, float left, CraftData auto_add_craft = null){
             string initial_name = tag_name;
             string resp = "";
             string header = (mode == "Create" ? "Create Tag" : ("Edit Tag: " + tag_name));
@@ -770,11 +774,13 @@ namespace CraftManager
                 GUI.SetNextControlName("dialog_focus_field");
                 tag_name = GUILayout.TextField(tag_name);
 
-                section(()=>{                    
-                    rule_based = GUILayout.Toggle(rule_based, "Auto Tag", "Button");
-                    label("(experimental WIP)");
-                    fspace();
-                });
+                if(show_rule_opts){
+                    section(()=>{                    
+                        rule_based = GUILayout.Toggle(rule_based, "Use Auto Tag rule", "Button");
+                        label("(experimental WIP)");
+                        fspace();
+                    });
+                }
 
                 if(rule_based){
                     section(()=>{
@@ -812,16 +818,13 @@ namespace CraftManager
                                     rule_value = bool_val;
                                 });
                             }else{
-                                
                                 dropdown(rule_comparators.items[rule_comparator], "tag_rule_comp_menu", rule_comparators, d, d_offset, d.window_pos.width*0.2f, (sel_comparator)=>{
                                     rule_comparator = sel_comparator;
                                 });
-                                
                                 rule_value = GUILayout.TextField(rule_value);
                             }
                         }
                     });
-                    label("Rule: " + rule_attr + " is " + rule_comparator + " " + rule_value);
                 }
 
                 section((w)=>{
@@ -840,48 +843,6 @@ namespace CraftManager
                 return resp;
             });
         }
-
-
-//        public void edit_tag_rule_dialog(Tag tag){
-//
-//            Rect d_offset = new Rect();
-//            DropdownMenuData rule_attrs = new DropdownMenuData(Tags.instance.rule_attributes);
-//            DropdownMenuData rule_comparators = new DropdownMenuData();
-//            DropdownMenuData bool_opts = new DropdownMenuData(new List<string>{"True", "False"});
-//
-//            string rule_attr = "";//tag.rule_attribute;
-//            string rule_comparator = "";//tag.rule_comparitor;
-//            string rule_value = "";//tag.rule_value;
-//
-//            string sel_attr_type = "";
-//
-//            string prev_rule_attr = rule_attr;
-//
-//            bool first_pass = true;
-//            string resp = "";
-//
-//            show_dialog("Edit Tag Rule", "", d =>{
-//                d_offset.x = -d.window_pos.x; d_offset.y = -d.window_pos.y;
-//                
-//                section((w)=>{
-//                    
-//
-//
-//                });
-//                label(sel_attr_type.ToString());                            
-//                label("Rule: " + rule_attr + " is " + rule_comparator + " " + rule_value);
-//                GUILayout.Space(20);
-//                section(()=>{                        
-//                    resp = submit("Save", ()=>{
-//                        return "foo";
-////                        return Tags.set_rule(tag, rule_attr, rule_comparator, rule_value);
-//                    });
-//                });
-//                return resp;
-//
-//            });
-//        }
-
 
         protected void delete_tag_dialog(string tag_name){            
             string resp = "";
@@ -907,8 +868,6 @@ namespace CraftManager
                 return resp;
             });
         }
-
-
 
         protected void edit_description_dialog(){
             if(CraftData.selected_craft.description == null){
@@ -944,7 +903,6 @@ namespace CraftManager
                 return resp;
             });
         }
-
 
         protected void delete_craft_dialog(){
             string resp = "";
@@ -1114,7 +1072,6 @@ namespace CraftManager
                 dialog.content = dc;
                 dialog.skin = CraftManager.skin;
                 return dialog;
-
             } else{
                 DryDialog dialog = gameObject.AddOrGetComponent<DryDialog>();
                 dialog.window_pos = new Rect(left, top, dialog_width, 80f);
@@ -1122,7 +1079,6 @@ namespace CraftManager
                 dialog.content = dc;
                 dialog.skin = CraftManager.skin;
                 return dialog;
-
             }
         }
 
@@ -1153,8 +1109,6 @@ namespace CraftManager
                 return "";
             }
         }
-
-
 
 
         protected void key_event_handler(){

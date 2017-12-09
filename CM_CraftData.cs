@@ -62,8 +62,9 @@ namespace CraftManager
 
 
         public static void filter_craft(Dictionary<string, object> criteria){
-            CraftData.cache.tag_craft_count.Clear();
+            CMBrowser.testout = (int.Parse(CMBrowser.testout) + 1).ToString();
 
+            CraftData.cache.tag_craft_count.Clear();
             filtered = all_craft;    
 //            if(criteria.ContainsKey("save_dir")){
 //                filtered = filtered.FindAll(craft => craft.save_dir == (string)criteria["save_dir"]);
