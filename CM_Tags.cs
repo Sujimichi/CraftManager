@@ -14,7 +14,22 @@ namespace CraftManager
     {
         public string name;
         public string save_dir;
-        public List<string> craft = new List<string>();
+        public List<string> craft_list = new List<string>();
+
+//        public bool open_rule_edit = false;
+        public bool rule_based = false;
+        public string rule_attribute = "";
+        public string rule_comparitor = "";
+        public string rule_value = "";
+
+        public List<string> craft{
+            get{ 
+                if(rule_based){
+                    return rule();
+                }
+                return craft_list;
+            }
+        }
 
         public Tag(string tag_name, string save_name){
             name = tag_name;
@@ -22,16 +37,59 @@ namespace CraftManager
             Tags.instance.data.Add(this);
         }
 
-        public void add(CraftData craft){
-            this.craft.AddUnique(Tags.craft_reference_key(craft));
-            Tags.save();
+        public void add(CraftData craft, bool save = true){
+            if(!this.rule_based){
+                this.craft.AddUnique(Tags.craft_reference_key(craft));
+                craft.tag_name_cache = null;
+                if(save){
+                    Tags.save();
+                }
+            }
         }
 
-//        public void remove(string craft_ref){
-//            if(craft.Contains(craft_ref)){
-//                craft.Remove(craft_ref);
-//            }
-//        }
+        public void remove(CraftData craft, bool save = true){
+            if(!this.rule_based && this.craft.Contains(Tags.craft_reference_key(craft))){
+                this.craft.Remove(Tags.craft_reference_key(craft));
+                craft.tag_name_cache = null;
+                if(save){
+                    Tags.save();
+                }
+            }
+        }
+
+
+
+        public List<string> rule(){
+            CMBrowser.testout = (int.Parse(CMBrowser.testout) + 1).ToString();
+
+            List<string> data = new List<string>();
+            List<CraftData> found = CraftData.filtered.FindAll(craft => {
+                var attr = craft.GetType().GetProperty(rule_attribute).GetValue(craft, null);
+
+                float n;
+                bool is_numeric = float.TryParse(attr.ToString(), out n);
+
+                if(is_numeric){
+                    if(rule_comparitor == "greater_than"){
+                        return float.Parse(attr.ToString()) > float.Parse(rule_value);
+                    }else if(rule_comparitor == "less_than"){
+                        return float.Parse(attr.ToString()) < float.Parse(rule_value);
+                    }else{                        
+                        return float.Parse(attr.ToString()) == float.Parse(rule_value);
+                    }
+                }else{
+                    return attr.ToString() == rule_value;
+                }
+
+            });
+
+            foreach(CraftData c in found){
+                data.AddUnique(Tags.craft_reference_key(c));
+            }
+            return data;
+        }
+
+
     }
 
 
@@ -41,6 +99,16 @@ namespace CraftManager
         public List<Tag> data = new List<Tag>(); //Holds all the loaded tags
         public List<string> names_list = new List<string>(); //Holds the naames of Tags (used to draw UI list and dropdown menus).
         public Dictionary<string, bool> selected_lookup = new Dictionary<string, bool>(); //holds a reference to each loaded tag's name and if they are selected or not
+
+        public Dictionary<string, string> rule_attributes = new Dictionary<string, string>{
+            {"name", "Name"}, {"crew_capacity", "Crew Capacity"}, {"stock_craft", "Stock"}, {"part_count", "Part Count"}, {"mass_total", "Mass"}
+        };
+        public Dictionary<string, string> rule_comparitors_numeric = new Dictionary<string, string>{
+            {"equal_to", "=="}, {"greater_than", ">"}, {"less_than", "<"}
+        };
+        public Dictionary<string, string> rule_comparitors_string = new Dictionary<string, string>{
+            {"equal_to", "=="} //add {"includes", "includes"}, {"starts_with", "start with"} //even more fancy {"regexp", "regexp"}
+        };
 
 
         public Tags(){
@@ -101,16 +169,47 @@ namespace CraftManager
             return tag;
         }
 
-        public static string create(string tag_name, string save_dir, CraftData craft = null){
+
+
+        public static string create(string tag_name, string save_dir, bool rule_based, string rule_attr, string rule_comparator, string rule_value, CraftData craft = null){
             if(String.IsNullOrEmpty(tag_name)){
                 return "Tag Name cannot be blank";
             } else if(names.Contains(tag_name)){
                 return "A tag with this name already exists";
             } else{
-                Tag tag = Tags.find_or_create_by(tag_name, save_dir);
-                if(craft != null){
-                    tag.add(craft);
+                Tag tag = Tags.find_or_create_by(tag_name, save_dir, false);
+                if(rule_based){
+                    tag.rule_based = true;
+                    tag.rule_attribute = rule_attr;
+                    tag.rule_comparitor = rule_comparator;
+                    tag.rule_value = rule_value;
+                } else{
+                    if(craft != null){
+                        tag.add(craft);
+                    }
                 }
+                Tags.save();
+                return "200";
+            }
+        }
+                    
+        public static string update(string cur_tag_name, string new_tag_name, string save_dir, bool rule_based, string rule_attr, string rule_comparator, string rule_value){
+            if(String.IsNullOrEmpty(new_tag_name)){
+                return "Name cannot be blank";
+//            } else if(new_tag_name == cur_tag_name){
+//                return "200"; //do nothing if name is unchanged
+            } else if(cur_tag_name != new_tag_name && Tags.names.Contains(new_tag_name)){
+                return "A tag with this name already exists";
+            } else{                
+                List<Tag> tags = Tags.find_all(cur_tag_name, save_dir);                
+                foreach(Tag tag in tags){
+                    tag.name = new_tag_name;
+                    tag.rule_based = rule_based;
+                    tag.rule_attribute = rule_attr;
+                    tag.rule_comparitor = rule_comparator;
+                    tag.rule_value = rule_value;
+                }
+                Tags.save();
                 return "200";
             }
         }
@@ -125,23 +224,7 @@ namespace CraftManager
             if(CraftManager.main_ui){CraftManager.main_ui.refresh();}
             return "200";
         }
-            
-        public static string rename(string cur_tag_name, string new_tag_name, string save_dir){
-            if(String.IsNullOrEmpty(new_tag_name)){
-                return "Name cannot be blank";
-            } else if(new_tag_name == cur_tag_name){
-                return "200"; //do nothing if name is unchanged
-            } else if(Tags.names.Contains(new_tag_name)){
-                return "A tag with this name already exists";
-            } else{                
-                List<Tag> tags = Tags.find_all(cur_tag_name, save_dir);                
-                foreach(Tag tag in tags){
-                    tag.name = new_tag_name;    
-                }
-                Tags.save();
-                return "200";
-            }
-        }
+
 
         //Associate a craft with a tag. Will create a Tag with the given name if it doesn't already exist
         public static void tag_craft(CraftData craft, string tag_name){                    
@@ -158,8 +241,9 @@ namespace CraftManager
         //Unassociate craft with the given tag
         public static void untag_craft(CraftData craft, string tag_name){
             Tag tag = Tags.instance.data.Find(t => (t.name == tag_name && t.save_dir == craft.save_dir));
-            if(tag!=null && tag.craft.Contains(craft_reference_key(craft))){                
-                tag.craft.Remove(craft_reference_key(craft));
+            if(tag!=null && tag.craft.Contains(craft_reference_key(craft))){                                
+                tag.remove(craft);
+
             }
             Tags.save();
         }
@@ -168,7 +252,7 @@ namespace CraftManager
             List<Tag> tags = Tags.instance.data.FindAll(t => (t.save_dir == craft.save_dir && t.craft.Contains(craft_reference_key(craft))));
             List<string> tag_names = new List<string>();
             foreach(Tag tag in tags){
-                tag.craft.Remove(craft_reference_key(craft));
+                tag.remove(craft, false);
                 tag_names.AddUnique(tag.name);
 
             }
@@ -181,7 +265,6 @@ namespace CraftManager
         public static List<string> for_craft(CraftData craft){
             List<Tag> tags = Tags.instance.data.FindAll(t => (t.save_dir == craft.save_dir && t.craft.Contains(craft_reference_key(craft))));
             List<string> in_tags = new List<string>();
-
             foreach(Tag tag in tags){
                 in_tags.AddUnique(tag.name);
             }
@@ -246,6 +329,12 @@ namespace CraftManager
             }
             Tags.instance.selected_lookup = new_list;
             Tags.instance.names_list = new_name_list;
+            if(CraftData.cache != null){
+                CraftData.cache.tag_craft_count.Clear();
+            }
+            foreach(CraftData craft in CraftData.all_craft){
+                craft.tag_name_cache = null;
+            }
             sort_tag_list();
         }
 
@@ -281,11 +370,21 @@ namespace CraftManager
 
                 foreach(ConfigNode tag_node in tag_nodes.nodes){
                     string tag_name = tag_node.GetValue("tag_name");
-                    string[] craft = tag_node.GetValues("craft");
+
                     Tag tag = Tags.find_or_create_by(tag_name, save_dir, false);
-                    foreach(string craft_ref in craft){
-                        tag.craft.AddUnique(craft_ref);
+                    if(tag_node.HasNode("RULE")){
+                        ConfigNode rule_node = tag_node.GetNode("RULE");
+                        tag.rule_attribute = rule_node.GetValue("attribute");
+                        tag.rule_comparitor = rule_node.GetValue("comparator");
+                        tag.rule_value = rule_node.GetValue("value");
+                        tag.rule_based = true;
+                    } else{
+                        string[] craft = tag_node.GetValues("craft");
+                        foreach(string craft_ref in craft){
+                            tag.craft.AddUnique(craft_ref);
+                        }
                     }
+
                 }
             }
             Tags.update_lists();
@@ -312,8 +411,16 @@ namespace CraftManager
                 foreach(Tag tag in tags){
                     ConfigNode node = new ConfigNode();
                     node.AddValue("tag_name", tag.name);
-                    foreach(string craft_ref in tag.craft){
-                        node.AddValue("craft", craft_ref);
+                    if(tag.rule_based){
+                        ConfigNode rule_node = new ConfigNode();
+                        rule_node.AddValue("attribute", tag.rule_attribute);
+                        rule_node.AddValue("comparator", tag.rule_comparitor);
+                        rule_node.AddValue("value", tag.rule_value);
+                        node.AddNode("RULE", rule_node);
+                    } else{
+                        foreach(string craft_ref in tag.craft){
+                            node.AddValue("craft", craft_ref);
+                        }
                     }
                     tag_nodes.AddNode("TAG", node);
                 }

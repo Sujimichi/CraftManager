@@ -11,15 +11,14 @@ namespace CraftManager
 
 
         public string cache_path = Paths.joined(CraftManager.ksp_root, "GameData", "CraftManager", "craft_data.cache");
-        public Dictionary<string, ConfigNode> craft_data = new Dictionary<string, ConfigNode>();
-
-        public Dictionary<string, AvailablePart> part_data = new Dictionary<string, AvailablePart>();  //name->part lookup for available parts
-        public List<string> locked_parts = new List<string>();
-
         public string installed_part_sig; //checksum signature of the installed parts, used to determine if the installed parts have changed since last time
 
+        public Dictionary<string, ConfigNode> craft_data = new Dictionary<string, ConfigNode>();
+        public Dictionary<string, AvailablePart> part_data = new Dictionary<string, AvailablePart>();  //name->part lookup for available parts
+        public List<string> locked_parts = new List<string>();
         public List<string> ignore_fields = new List<string>{"selected_craft"};
-        public List<string> dont_load = new List<string>{"locked_parts"};
+
+        public Dictionary<string, int> tag_craft_count = new Dictionary<string, int>();
 
 
         public CraftDataCache(){

@@ -20,8 +20,8 @@ namespace CraftManager
         private float[] col_widths = new float[]{0.2f,0.55f,0.25f};
 
 
-        private string current_save_dir = HighLogic.SaveFolder;
-        private string active_save_dir;
+        private string current_save_dir = HighLogic.SaveFolder; //The dir of save which is currently being played
+        public string active_save_dir = HighLogic.SaveFolder;   //The dir of save which has been selected in UI
 
         private DropdownMenuData save_menu_options = new DropdownMenuData();
         private DropdownMenuData tags_menu_content = new DropdownMenuData();
@@ -71,6 +71,8 @@ namespace CraftManager
         private float tag_margin_offset = 0;
         private float tag_scroll_height = 0;
         private bool ctrl_key_down = false;
+
+        public static string testout = "0";
 
 
         //collection of Vector2 objects to track scroll positions
@@ -136,7 +138,7 @@ namespace CraftManager
             }
 
             //Initialize list of Save directories, used in save select menus.
-            active_save_dir = HighLogic.SaveFolder;
+//            active_save_dir = HighLogic.SaveFolder;
             save_menu_options.items.Add(active_save_dir, "Current Save (" + active_save_dir + ")");
             foreach(string dir_name in CraftData.save_names()){
                 if(dir_name != active_save_dir){
@@ -146,11 +148,10 @@ namespace CraftManager
             save_menu_options.items.Add(all_saves_ref, "All");
 
             Tags.load(active_save_dir);
-            CraftManager.log(CraftManager.settings.get("craft_sort"));
 
             tags_menu_content.remote_data = new DataSource(() => Tags.names);
             tags_menu_content.special_items.Add("new_tag", "New Tag");
-//            show();
+            show();
         }
 
         protected override void on_show(){            
@@ -414,7 +415,7 @@ namespace CraftManager
             if(last_tag_content_height > tag_scroll_height){
                 tag_margin_offset+=20f;
             }
-            
+
             v_section(section_width, (inner_width) =>{
                 section(()=>{
                     label("Tags", "h2");
@@ -432,7 +433,13 @@ namespace CraftManager
                                 tag_state = Tags.is_selected(tag_name);
                                 tag_prev_state = tag_state;
 
-                                string s = "(" + Tags.craft_count_for(tag_name,(tag_filter_mode=="AND" ? "filtered" : "raw_count")) + ")";
+
+                                if(!CraftData.cache.tag_craft_count.ContainsKey(tag_name)){                                    
+                                    CraftData.cache.tag_craft_count[tag_name] = Tags.craft_count_for(tag_name,(tag_filter_mode=="AND" ? "filtered" : "raw_count"));
+                                }
+                                int craft_count = CraftData.cache.tag_craft_count[tag_name];
+
+                                string s = "(" + craft_count + ")";
                                 float w = skin.button.CalcSize(new GUIContent(s)).x;
                                 
                                 tag_state = GUILayout.Toggle(tag_state, "", "tag.toggle.light");
@@ -451,6 +458,7 @@ namespace CraftManager
                                         delete_tag_dialog(tag_name);
                                     });
                                 }
+
                             });
 
                             if(Event.current.type == EventType.Repaint){                                
@@ -543,18 +551,23 @@ namespace CraftManager
 
                         GUILayout.Space(15);
 
+                        if(craft.tag_name_cache == null){
+                            craft.tag_name_cache = craft.tags();
+                        }
+
+
                         section((w) =>{
                             label("Tags", "h2");
                             fspace();
                             scroll_relative_pos.x += (window_pos.width * (col_widths[0]+col_widths[1])) - 5f;
                             scroll_relative_pos.y += 45f - scroll_pos["rhs"].y;
-                            List<string> craft_tags = craft.tags();
-                            tags_menu_content.selected_items = craft_tags;
+                          
+                            tags_menu_content.selected_items = craft.tag_name_cache;
                             dropdown("Add Tag", "add_tag_menu", tags_menu_content, this, scroll_relative_pos, 70f, "Button", "menu.background", "menu.item.small", resp => {
                                 if(resp == "new_tag"){
                                     create_tag_dialog(craft);
                                 }else{
-                                    if(craft_tags.Contains(resp)){
+                                    if(craft.tag_name_cache.Contains(resp)){
                                         Tags.untag_craft(craft, resp);
                                     }else{                                    
                                         Tags.tag_craft(craft, resp);
@@ -563,7 +576,7 @@ namespace CraftManager
                             });
                         });
                    
-                        foreach(string tag in Tags.for_craft(craft)){
+                        foreach(string tag in craft.tag_name_cache){
                             section(() =>{
                                 label(tag);    
                                 fspace();
@@ -588,6 +601,8 @@ namespace CraftManager
         protected void draw_bottom_section(float section_width){
             
             section((w) =>{
+                label(testout);
+
                 fspace();
 
                 gui_state(CraftData.selected_craft != null, ()=>{                    
@@ -709,30 +724,164 @@ namespace CraftManager
             create_tag_dialog(null);
         }
 
-        protected void create_tag_dialog(CraftData add_to_tag = null){
-            float dialog_width = 400f;
+        protected void create_tag_dialog(CraftData auto_add_craft = null){
             float top = scroll_relative_pos.y + main_section_height;
             float left = scroll_relative_pos.x + window_width * col_widths[0];
-            string resp = "";
-            string new_tag_name = "";
-            string save_dir_for_tag = current_save_dir;
-            if(add_to_tag != null){
-                save_dir_for_tag = add_to_tag.save_dir;
+            string save_dir_for_tag = active_save_dir;
+            if(save_dir_for_tag == all_saves_ref){
+                save_dir_for_tag = current_save_dir;
             }
-            show_dialog("Create Tag", "", top, left, dialog_width, true, d =>{
+            if(auto_add_craft != null){
+                save_dir_for_tag = auto_add_craft.save_dir;
+            }
+            tag_dialog_form("Create", "", save_dir_for_tag, false, "", "", "", top, left, auto_add_craft);
+        }
+
+        protected void edit_tag_dialog(string tag_name){
+            float top = Event.current.mousePosition.y + window_pos.y + 140;
+            float left = Event.current.mousePosition.x + window_pos.x;
+            Tag tag = Tags.find(tag_name, active_save_dir);
+            tag_dialog_form("Edit", tag.name, active_save_dir, tag.rule_based, tag.rule_attribute, tag.rule_comparitor, tag.rule_value, top, left, null);
+        }
+
+
+
+        protected void tag_dialog_form(string mode, string tag_name, string save_dir, bool rule_based, string rule_attr, string rule_comparator, string rule_value, float top, float left, CraftData auto_add_craft = null){
+            string initial_name = tag_name;
+            string resp = "";
+            string header = (mode == "Create" ? "Create Tag" : ("Edit Tag: " + tag_name));
+
+            List<Tag> tags = Tags.find_all(tag_name, save_dir);                
+
+            Rect d_offset = new Rect();
+            DropdownMenuData rule_attrs = new DropdownMenuData(Tags.instance.rule_attributes);
+            DropdownMenuData rule_comparators = new DropdownMenuData();
+            DropdownMenuData bool_opts = new DropdownMenuData(new List<string>{"True", "False"});
+            string prev_rule_attr = rule_attr;
+            string sel_attr_type = "";
+            bool first_pass = true;
+
+            show_dialog("Tag Form", header, top, left, 400f, true, d =>{
+                d_offset.x = -d.window_pos.x; d_offset.y = -d.window_pos.y;
+
+                if(tags.Count > 1){
+                    label("You are viewing craft from all saves, this will edit " + tags.Count + " tags called " + initial_name + " in each of your saves.", "alert.h3");
+                }
                 GUI.SetNextControlName("dialog_focus_field");
-                new_tag_name = GUILayout.TextField(new_tag_name);
+                tag_name = GUILayout.TextField(tag_name);
+
+                section(()=>{                    
+                    rule_based = GUILayout.Toggle(rule_based, "Auto Tag", "Button");
+                    label("(experimental WIP)");
+                    fspace();
+                });
+
+                if(rule_based){
+                    section(()=>{
+                        prev_rule_attr = rule_attr;    
+                        dropdown((String.IsNullOrEmpty(rule_attr) ? "Select an Attribute" : rule_attrs.items[rule_attr]), "tag_rule_attr_menu", rule_attrs, d, d_offset, d.window_pos.width*0.4f, (sel_attr)=>{
+                            rule_attr = sel_attr;
+                        });
+                        
+                        if(prev_rule_attr != rule_attr || first_pass){                        
+                            if(!String.IsNullOrEmpty(rule_attr)){
+                                sel_attr_type = typeof(CraftData).GetProperty(rule_attr).PropertyType.ToString();
+                                if(sel_attr_type == "System.String"){
+                                    rule_comparators.set_data(new Dictionary<string, string>(Tags.instance.rule_comparitors_string));
+                                }else if(sel_attr_type == "System.Int32" || sel_attr_type == "System.Single"){
+                                    rule_comparators.set_data(new Dictionary<string, string>(Tags.instance.rule_comparitors_numeric));
+                                }
+                            }
+                        }
+                        
+                        if(!rule_comparators.items.ContainsKey(rule_comparator)){                        
+                            rule_comparator = "equal_to";
+                        }
+                        if(sel_attr_type == "System.Int32" || sel_attr_type == "System.Single"){
+                            rule_value = System.Text.RegularExpressions.Regex.Replace(rule_value, "[^0-9]", "");                        
+                        }
+                        
+                        if(!String.IsNullOrEmpty(sel_attr_type)){                        
+                            if(sel_attr_type == "System.Boolean"){
+                                if(!bool_opts.items.ContainsKey(rule_value)){
+                                    rule_value = "True";
+                                }
+                                rule_comparator = "equal_to";
+                                label("==", "Button", width(d.window_pos.width*0.2f));
+                                dropdown(rule_value, "tag_rule_bool_opt_menu", bool_opts, d, d_offset, d.window_pos.width*0.2f, (bool_val)=>{
+                                    rule_value = bool_val;
+                                });
+                            }else{
+                                
+                                dropdown(rule_comparators.items[rule_comparator], "tag_rule_comp_menu", rule_comparators, d, d_offset, d.window_pos.width*0.2f, (sel_comparator)=>{
+                                    rule_comparator = sel_comparator;
+                                });
+                                
+                                rule_value = GUILayout.TextField(rule_value);
+                            }
+                        }
+                    });
+                    label("Rule: " + rule_attr + " is " + rule_comparator + " " + rule_value);
+                }
+
                 section((w)=>{
                     fspace();
                     button("Cancel", close_dialog);
-                    resp = submit("Save", ()=>{
-                        return Tags.create(new_tag_name, save_dir_for_tag, add_to_tag);
-
-                    });
+                    if(mode == "Edit"){
+                        resp = submit("Update", ()=>{
+                            return Tags.update(initial_name, tag_name, save_dir, rule_based, rule_attr, rule_comparator, rule_value);
+                        });                       
+                    }else{
+                        resp = submit("Create Tag", ()=>{
+                            return Tags.create(tag_name, save_dir, rule_based, rule_attr, rule_comparator, rule_value, auto_add_craft);
+                        });                       
+                    }
                 });
                 return resp;
             });
         }
+
+
+//        public void edit_tag_rule_dialog(Tag tag){
+//
+//            Rect d_offset = new Rect();
+//            DropdownMenuData rule_attrs = new DropdownMenuData(Tags.instance.rule_attributes);
+//            DropdownMenuData rule_comparators = new DropdownMenuData();
+//            DropdownMenuData bool_opts = new DropdownMenuData(new List<string>{"True", "False"});
+//
+//            string rule_attr = "";//tag.rule_attribute;
+//            string rule_comparator = "";//tag.rule_comparitor;
+//            string rule_value = "";//tag.rule_value;
+//
+//            string sel_attr_type = "";
+//
+//            string prev_rule_attr = rule_attr;
+//
+//            bool first_pass = true;
+//            string resp = "";
+//
+//            show_dialog("Edit Tag Rule", "", d =>{
+//                d_offset.x = -d.window_pos.x; d_offset.y = -d.window_pos.y;
+//                
+//                section((w)=>{
+//                    
+//
+//
+//                });
+//                label(sel_attr_type.ToString());                            
+//                label("Rule: " + rule_attr + " is " + rule_comparator + " " + rule_value);
+//                GUILayout.Space(20);
+//                section(()=>{                        
+//                    resp = submit("Save", ()=>{
+//                        return "foo";
+////                        return Tags.set_rule(tag, rule_attr, rule_comparator, rule_value);
+//                    });
+//                });
+//                return resp;
+//
+//            });
+//        }
+
 
         protected void delete_tag_dialog(string tag_name){            
             string resp = "";
@@ -759,27 +908,7 @@ namespace CraftManager
             });
         }
 
-        protected void edit_tag_dialog(string tag_name){
-            string resp = "";
-            string new_tag_name = tag_name;
-            float top = Event.current.mousePosition.y + window_pos.y + 140;
-            float left = Event.current.mousePosition.x + window_pos.x;
-            show_dialog("Edit Tag", "Edit Tag: " + tag_name, top, left, 400f, true, d =>{
-                if(active_save_dir == all_saves_ref){
-                    label("You are viewing craft from all saves, this will rename this tag in each of your saves.", "alert.h3");
-                }
-                GUI.SetNextControlName("dialog_focus_field");
-                new_tag_name = GUILayout.TextField(new_tag_name);
-                section(()=>{
-                    fspace();
-                    button("Cancel", close_dialog);
-                    resp = submit("Save", ()=>{
-                        return Tags.rename(tag_name, new_tag_name, active_save_dir);
-                    });
-                });
-                return resp;
-            });
-        }
+
 
         protected void edit_description_dialog(){
             if(CraftData.selected_craft.description == null){
@@ -893,11 +1022,14 @@ namespace CraftManager
             string key = keys.Find(k => (k.Equals(craft.save_dir) || k.Equals("Current Save (" + craft.save_dir + ")")));
             move_copy_save_menu.items.Remove(key);
             move_copy_save_menu.items.Remove(all_saves_ref);
+            Rect d_offset = new Rect();
 
-            show_dialog("Move/Copy Craft", "Move or Copy this craft to another save:", false, d =>{
+            show_dialog("Move/Copy Craft", "Move or Copy this craft to another save:", d =>{
                 section(500f, (inner_width)=>{
                     GUILayout.Space(inner_width*0.3f);
-                    dropdown("Select Save", "copy_transfer_save_menu", move_copy_save_menu, d, inner_width*0.4f, "button.large", "menu.background", "menu.item", (selected_save_name) => {
+
+                    d_offset.x = -d.window_pos.x; d_offset.y = -d.window_pos.y;
+                    dropdown("Select Save", "copy_transfer_save_menu", move_copy_save_menu, d, d_offset, inner_width*0.4f, "button.large", "menu.background", "menu.item", (selected_save_name) => {
                         resp = "";
                         selected_save = selected_save_name;
                     });           

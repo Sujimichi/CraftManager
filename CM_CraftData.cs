@@ -16,6 +16,8 @@ namespace CraftManager
         public static List<CraftData> filtered  = new List<CraftData>();  //will hold the results of search/filtering to be shown in the UI.
         public static CraftDataCache cache = null;
 
+
+
         public static int save_state = 0;
         public static bool loading_craft = false;
         public static bool craft_saved {
@@ -60,6 +62,8 @@ namespace CraftManager
 
 
         public static void filter_craft(Dictionary<string, object> criteria){
+            CraftData.cache.tag_craft_count.Clear();
+
             filtered = all_craft;    
 //            if(criteria.ContainsKey("save_dir")){
 //                filtered = filtered.FindAll(craft => craft.save_dir == (string)criteria["save_dir"]);
@@ -204,34 +208,28 @@ namespace CraftManager
             }
         }
 
-        //Check to see if any of the crafts parts match the names of parts listed as locked (in the cache)
-        //which parts are locked can change during game play, but can't change while in the editors.  So the value for locked_parts
-        //is only cached in the in-memory cache (which is dropped between scene changes), so it will be rechecked when first loading
-        //craft after entering the editor, and its value will be cached in the in-memory cache so it doesn't need rechecking until the
-        //next scene change.
-        public void check_locked_parts() {
-//            CraftManager.log("checking locked parts");
-            locked_parts = false;
-            if(HighLogic.CurrentGame.Mode != Game.Modes.SANDBOX){
-                foreach(string p_name in part_name_list){
-                    if(cache.locked_parts.Contains(p_name)){
-                        locked_parts = true;
-                    }
-                }
-            }
-            locked_parts_checked = true;
-        }
+
 
 
         //Attribues which are always set from craft file/path, not loaded from cache
         public Texture2D thumbnail;
         public string create_time;
         public string last_updated_time;
-        public string save_dir;
+        public string save_dir{ 
+            get { 
+                //double nested ternary ahead, approach with caution. also, strangly written so it's not one massive line.
+                //this returns the save dir name for craft, but enables stock craft to fake being in whichever save is currently being viewed.
+                return stock_craft ? 
+                    (CraftManager.main_ui.active_save_dir==CMBrowser.all_saves_ref ? HighLogic.SaveFolder : CraftManager.main_ui.active_save_dir) 
+                    : 
+                    path.Replace(Paths.joined(CraftManager.ksp_root, "saves", ""), "").Split('/')[0];
+            }
+        }
 
         //Attributes which are set during objects lifetime and not cached.
         public bool selected = false;
         public bool locked_parts_checked = false;
+        public List<string> tag_name_cache = null;
 
 
         //Other Attributes
@@ -277,7 +275,7 @@ namespace CraftManager
             last_updated_time = System.IO.File.GetLastWriteTime(path).ToBinary().ToString();
 
 
-            save_dir = stock_craft ? HighLogic.SaveFolder : path.Replace(Paths.joined(CraftManager.ksp_root, "saves", ""), "").Split('/')[0];
+            //save_dir = stock_craft ? HighLogic.SaveFolder : path.Replace(Paths.joined(CraftManager.ksp_root, "saves", ""), "").Split('/')[0];
             load_thumbnail_image();
 //            thumbnail = ShipConstruction.GetThumbnail("/thumbs/" + save_dir + "_" + construction_type + "_" + name);
         }
@@ -386,6 +384,26 @@ namespace CraftManager
         public List<string> tags(){
             return Tags.for_craft(this);
         }
+
+
+        //Check to see if any of the crafts parts match the names of parts listed as locked (in the cache)
+        //which parts are locked can change during game play, but can't change while in the editors.  So the value for locked_parts
+        //is only cached in the in-memory cache (which is dropped between scene changes), so it will be rechecked when first loading
+        //craft after entering the editor, and its value will be cached in the in-memory cache so it doesn't need rechecking until the
+        //next scene change.
+        public void check_locked_parts() {
+            //            CraftManager.log("checking locked parts");
+            locked_parts = false;
+            if(HighLogic.CurrentGame.Mode != Game.Modes.SANDBOX){
+                foreach(string p_name in part_name_list){
+                    if(cache.locked_parts.Contains(p_name)){
+                        locked_parts = true;
+                    }
+                }
+            }
+            locked_parts_checked = true;
+        }
+
 
         //Rename the craft (both name in the craft file and the file itself). Does checks before attempting rename to ensure valid name.
         //the new name should be set on the craft object first;
