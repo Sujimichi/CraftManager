@@ -1,25 +1,44 @@
+//Tags must have a 'tag_name' field and can either define a list of craft or a rule.
+//Example of standard craft list tag:
+//TAG
+//{
+//    tag_name = My Tag
+//    craft = VAB_just a rocket
+//    craft = SPH_some aircraft
+//}
+//
+//Rule based tags (kinda experimental, probablly best not to edit these here, use the UI for best results!). RULE must define attribute, comparator and value
+//attribute - must be an attribute for craft. one of [name, crew_capacity, stock_craft, part_count, mass_total]
+//comparator - type of comparison to perform between attribute and value.  one of [equal_to, greater_than, less_than, includes, starts_with]
+//  greater_than & less_than can only be used with numeric attributes. includes and starts_with can only be used with string attributes.  boolian attributes can only have equal_to as comparator.
+//  attribute types [name:string, crew_capacity:numeric, stock_craft:boolian, part_count:numeric, mass_total:numeric]
+//value - a boolean (True/False), string or numeric value to compare to the selected attribute.
+//Examples of rule based tags.  
+//TAG
+//{
+//    tag_name = Stock
+//    RULE
+//    {
+//        attribute = stock_craft
+//        comparator = equal_to
+//        value = True
+//    }
+//}
+//TAG
+//{
+//    tag_name = Crewed
+//    RULE
+//    {
+//        attribute = crew_capacity
+//        comparator = greater_than
+//        value = 0
+//    }
+//
+//}
+
+
 TAGS
 {
-    TAG
-    {
-        tag_name = Landers
-    }
-    TAG
-    {
-        tag_name = Spaceplanes
-    }
-    TAG
-    {
-        tag_name = Lifters
-    }
-    TAG
-    {
-        tag_name = LKO
-    }
-    TAG
-    {
-        tag_name = Satelites
-    }
     TAG
     {
         tag_name = Stock
@@ -39,8 +58,8 @@ TAGS
             comparator = equal_to
             value = 0
         }
-
     }
+    TAG
     {
         tag_name = Crewed
         RULE
@@ -49,7 +68,25 @@ TAGS
             comparator = greater_than
             value = 0
         }
-
     }
-   
+    TAG
+    {
+        tag_name = Landers
+    }
+    TAG
+    {
+        tag_name = Spaceplanes
+    }
+    TAG
+    {
+        tag_name = Lifters
+    }
+    TAG
+    {
+        tag_name = LKO
+    }
+    TAG
+    {
+        tag_name = Satelites
+    }  
 }

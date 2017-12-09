@@ -62,13 +62,8 @@ namespace CraftManager
 
 
         public static void filter_craft(Dictionary<string, object> criteria){
-            CMBrowser.testout = (int.Parse(CMBrowser.testout) + 1).ToString();
-
             CraftData.cache.tag_craft_count.Clear();
             filtered = all_craft;    
-//            if(criteria.ContainsKey("save_dir")){
-//                filtered = filtered.FindAll(craft => craft.save_dir == (string)criteria["save_dir"]);
-//            }
 
             if((bool)criteria["exclude_stock"]){
                 filtered = filtered.FindAll(craft => !craft.stock_craft);
@@ -88,10 +83,8 @@ namespace CraftManager
             }
             if(criteria.ContainsKey("tags")){
                 List<string> s_tags = (List<string>)criteria["tags"];
-                CraftManager.log("tag filter mode: " + (string)criteria["tag_filter_mode"]);
                 string tag_filter_mode = (string)criteria["tag_filter_mode"];
                 if(tag_filter_mode == "OR"){
-                    CraftManager.log("or mode");                    
                     filtered = filtered.FindAll(craft =>{
                         bool sel = false;
                         foreach(string tag in craft.tags()){
@@ -102,7 +95,6 @@ namespace CraftManager
                         return sel;
                     });
                 } else{
-                    CraftManager.log("AND mode");                    
                     foreach(string tag in s_tags){
                         filtered = filtered.FindAll(craft => craft.tags().Contains(tag));
                     }

@@ -35,8 +35,6 @@ using KatLib;
 namespace CraftManager
 {
 
-
-
     [KSPAddon(KSPAddon.Startup.MainMenu, false)]
     public class CraftManager : MonoBehaviour
     {
@@ -150,6 +148,8 @@ namespace CraftManager
         }
     }
 
+
+    //Adds keyboard shortcuts to the Editor ctrl+o = open craft manager window, ctrl+n = new craft, ctrl+s = save current craft
     [KSPAddon(KSPAddon.Startup.EditorAny, false)]
     public class CM_KeyShortCuts : MonoBehaviour
     {

@@ -68,16 +68,12 @@ namespace CraftManager
         private float tag_scroll_height = 0;
         private bool ctrl_key_down = false;
 
-        public static string testout = "0";
-
 
         //collection of Vector2 objects to track scroll positions
         private Dictionary<string, Vector2> scroll_pos = new Dictionary<string, Vector2>(){
             {"lhs", new Vector2()}, {"rhs", new Vector2()}, {"main", new Vector2()}
         };
         protected Rect scroll_relative_pos = new Rect(0, 0, 0, 0); //used to track the position of scroll sections. needed to render dropdown menus inside scroll section.
-
-
 
         //register events used to keep track of the save state of the craft.
         //These events are unregistered by onGameSceneLoadRequested Event.
@@ -125,11 +121,6 @@ namespace CraftManager
             footer = false;
             prevent_click_through = false; //disable the standard click through prevention. show and hide will add control locks which are not based on mouse pos.
 
-            selected_types[EditorDriver.editorFacility.ToString()] = true;
-
-//            type_select(EditorDriver.editorFacility.ToString(), true);
-
-
             EditorLogic.fetch.saveBtn.onClick.AddListener(on_save_click); //settup click event on the stock save button.
             //override existing ations on stock load button and replace with call to toggle CM's UI.
             if(CraftManager.replace_editor_load_button){
@@ -139,7 +130,6 @@ namespace CraftManager
             }
 
             //Initialize list of Save directories, used in save select menus.
-//            active_save_dir = HighLogic.SaveFolder;
             save_menu_options.items.Add(active_save_dir, "Current Save (" + active_save_dir + ")");
             foreach(string dir_name in CraftData.save_names()){
                 if(dir_name != active_save_dir){
@@ -148,12 +138,15 @@ namespace CraftManager
             }
             save_menu_options.items.Add(all_saves_ref, "All");
 
+            //Initialize Tags
             Tags.load(active_save_dir);
-
-            tags_menu_content.remote_data = new DataSource(() => Tags.names);
+            tags_menu_content.remote_data = new DataSource(() => Tags.names); //tag menu on craft details fetches data as it opens, rather than constantly setting the data each pass.
             tags_menu_content.special_items.Add("new_tag", "New Tag");
-            show();
+
+            type_select(EditorDriver.editorFacility.ToString(), true);  //set selected type (SPH or VAB) based on which editor we're in.
+//            show();
         }
+
 
         protected override void on_show(){            
             stock_craft_loaded = false;
@@ -161,7 +154,6 @@ namespace CraftManager
             auto_focus_on = "main_search_field";
             InputLockManager.SetControlLock(window_id.ToString());
             interface_locked = true;
-
         }
 
         protected override void on_hide(){
@@ -214,10 +206,10 @@ namespace CraftManager
             CraftManager.settings.set("tag_filter_mode", tag_filter_mode);
         }
 
-        //Collect any currently active filters into a Dictionary<string, object> which can then be passed to 
+        //Collect currently active filters into a Dictionary<string, object> which is then be passed to 
         //filter_craft on CraftData (which does the actual filtering work).
         private void filter_craft(){
-            if(!exclude_stock_craft && !stock_craft_loaded){
+            if(!exclude_stock_craft && !stock_craft_loaded){ //load stock craft if they've not yet been loaded and option to exclude stock is switched off.
                 CraftData.load_stock_craft_from_files();
             }
 
@@ -232,9 +224,7 @@ namespace CraftManager
             search_criteria.Add("sort", sort_opt);
             search_criteria.Add("reverse_sort", reverse_sort);
             search_criteria.Add("exclude_stock", exclude_stock_craft);
-
-            CraftData.filter_craft(search_criteria);
-            Tags.sort_tag_list();
+            CraftData.filter_craft(search_criteria); //pass options to filter logic
         }
 
 
@@ -320,6 +310,7 @@ namespace CraftManager
 
                 //sort menu
                 section((w)=>{
+                    label("Showing " + CraftData.filtered.Count + " out of " + CraftData.all_craft.Count + " Craft", "h2");
                     fspace();
                     if(sort_menu_width == 0){ //calculate the initial sort menu button width. should only happen on the first pass
                         sort_menu_width = GUI.skin.button.CalcSize(new GUIContent("Sort: " + sort_options.items[sort_opt])).x;
@@ -358,7 +349,7 @@ namespace CraftManager
         }
 
 
-        //Individual Craft Content
+        //Individual Craft Content for main list.
         protected void draw_craft_list_item(CraftData craft, float section_width){
             section(section_width-(30f), "craft.list_item" + (craft.selected ? ".selected" : ""), (inner_width)=>{ //subtractions from width to account for margins and scrollbar
                 section(inner_width-80f,()=>{
@@ -508,7 +499,6 @@ namespace CraftManager
                             expand_details = GUILayout.Toggle(expand_details, "expand", "hyperlink.bold");
                         });
 
-                        
                         if(expand_details){
                             float details_width = scroll_width - 50;
                             GUILayoutOption grid_width = width(details_width*0.4f);
@@ -557,7 +547,6 @@ namespace CraftManager
                             craft.tag_name_cache = craft.tags();
                         }
 
-
                         section((w) =>{
                             label("Tags", "h2");
                             fspace();
@@ -603,8 +592,6 @@ namespace CraftManager
         protected void draw_bottom_section(float section_width){
             
             section((w) =>{
-                label(testout);
-
                 fspace();
 
                 gui_state(CraftData.selected_craft != null, ()=>{                    
