@@ -472,6 +472,7 @@ namespace CraftManager
             }
         }
 
+        //Transfer craft to VAB/SPH/Subassemblies
         public string transfer_to(EditorFacility facility){
             string new_path = "";
             if(facility == EditorFacility.SPH){
@@ -512,37 +513,30 @@ namespace CraftManager
         }
 
 
-
-
+        //move or copy craft to another save in the same install.
         public string move_copy_to(string new_save_dir, bool move = false){
             string new_path = "";
             List<string> existing_saves = save_names();
 
-            CraftManager.log("attempting move/copy");
             if(String.IsNullOrEmpty(new_save_dir)){
                 return "You must select a save";
             }
             if(existing_saves.Contains(new_save_dir)){
-                CraftManager.log("save exists");    
                 if(this.construction_type == "Subassembly"){
                     new_path = Paths.joined(CraftManager.ksp_root, "saves", new_save_dir, "Subassemblies", name + ".craft");
                 } else{                
                     new_path = Paths.joined(CraftManager.ksp_root, "saves", new_save_dir, "Ships", this.construction_type, name + ".craft");
                 }
-                CraftManager.log("new path: " + new_path);
                 if(File.Exists(new_path)){
                     return "A Craft with this name alread exists in " + new_save_dir;
                 } else{
-                    CraftManager.log("proceeding");
                     FileInfo file = new FileInfo(path);
                     FileInfo thumbnail_file = new FileInfo(thumbnail_path());
                     try{                        
                         if(move){
-                            CraftManager.log("moving");
                             file.MoveTo(new_path);
                             thumbnail_file.MoveTo(thumbnail_path(new_save_dir, this.construction_type, this.name));
                         }else{                        
-                            CraftManager.log("copying");
                             file.CopyTo(new_path);
                             thumbnail_file.CopyTo(thumbnail_path(new_save_dir, this.construction_type, this.name));
                         }
