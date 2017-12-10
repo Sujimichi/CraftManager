@@ -239,7 +239,6 @@ namespace CraftManager
 
         public void initialize(string full_path, bool stock = false){        
             path = full_path.Replace("\\", "/");
-//            CraftManager.log("loading: " + path);
             checksum = Checksum.digest(File.ReadAllText(path));
             stock_craft = stock;
             locked_parts_checked = false;
@@ -268,10 +267,8 @@ namespace CraftManager
             create_time = System.IO.File.GetCreationTime(path).ToBinary().ToString();
             last_updated_time = System.IO.File.GetLastWriteTime(path).ToBinary().ToString();
 
-
-            //save_dir = stock_craft ? HighLogic.SaveFolder : path.Replace(Paths.joined(CraftManager.ksp_root, "saves", ""), "").Split('/')[0];
+            //prepare the thumbnail texture
             load_thumbnail_image();
-//            thumbnail = ShipConstruction.GetThumbnail("/thumbs/" + save_dir + "_" + construction_type + "_" + name);
         }
 
         //return the path to the craft's thumbnail based on craft properties. Overload method provides means to generate a 
@@ -316,7 +313,6 @@ namespace CraftManager
             part_count = parts.Length;
             stage_count = 0;
             missing_parts = false;
-//            locked_parts = false;
 
             cost_dry = 0;cost_fuel = 0;cost_total = 0;mass_dry = 0;mass_fuel = 0;mass_total = 0;
             crew_capacity = 0;
@@ -386,7 +382,6 @@ namespace CraftManager
         //craft after entering the editor, and its value will be cached in the in-memory cache so it doesn't need rechecking until the
         //next scene change.
         public void check_locked_parts() {
-            //            CraftManager.log("checking locked parts");
             locked_parts = false;
             if(HighLogic.CurrentGame.Mode != Game.Modes.SANDBOX){
                 foreach(string p_name in part_name_list){
@@ -516,33 +511,38 @@ namespace CraftManager
             }
         }
 
+
+
+
         public string move_copy_to(string new_save_dir, bool move = false){
             string new_path = "";
-            List<string> existing_saves = new List<string>();
-            foreach(string dir in Directory.GetDirectories(Paths.joined(CraftManager.ksp_root, "saves"))){
-                string dir_name = dir.Replace(Paths.joined(CraftManager.ksp_root, "saves"), "").Replace("/", "");
-                existing_saves.Add(dir_name);
-            }
+            List<string> existing_saves = save_names();
 
+            CraftManager.log("attempting move/copy");
             if(String.IsNullOrEmpty(new_save_dir)){
                 return "You must select a save";
             }
             if(existing_saves.Contains(new_save_dir)){
+                CraftManager.log("save exists");    
                 if(this.construction_type == "Subassembly"){
                     new_path = Paths.joined(CraftManager.ksp_root, "saves", new_save_dir, "Subassemblies", name + ".craft");
                 } else{                
                     new_path = Paths.joined(CraftManager.ksp_root, "saves", new_save_dir, "Ships", this.construction_type, name + ".craft");
                 }
+                CraftManager.log("new path: " + new_path);
                 if(File.Exists(new_path)){
                     return "A Craft with this name alread exists in " + new_save_dir;
                 } else{
+                    CraftManager.log("proceeding");
                     FileInfo file = new FileInfo(path);
                     FileInfo thumbnail_file = new FileInfo(thumbnail_path());
                     try{                        
                         if(move){
+                            CraftManager.log("moving");
                             file.MoveTo(new_path);
                             thumbnail_file.MoveTo(thumbnail_path(new_save_dir, this.construction_type, this.name));
                         }else{                        
+                            CraftManager.log("copying");
                             file.CopyTo(new_path);
                             thumbnail_file.CopyTo(thumbnail_path(new_save_dir, this.construction_type, this.name));
                         }
