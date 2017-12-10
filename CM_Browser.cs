@@ -160,6 +160,7 @@ namespace CraftManager
         }
 
 
+        //**Main GUI**//
 
         //Main GUI draw method (called by onGUI, see DryUI in KatLib).  Broken up into smaller sections to ease digestion and help prevent heart burn.
         //The GUI is main in 5 sections, top and bottom sections span the full width, while the LHS, RHS and main sections are columns.
@@ -182,14 +183,12 @@ namespace CraftManager
                 GUI.FocusControl(auto_focus_on);
                 auto_focus_on = null;
             }
-
         }
 
         protected override void FooterContent(int window_id){
             GUILayout.Label("hello, this is footer");
         }
 
-       
 
         //**GUI Sections**//
 
@@ -328,7 +327,6 @@ namespace CraftManager
                 }
             });
         }
-
 
 
         //Left Hand Section: Tags
@@ -522,6 +520,7 @@ namespace CraftManager
                 });
             });
         }
+
 
         //Botton Section: Load buttons
         protected void draw_bottom_section(float section_width){
