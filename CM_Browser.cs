@@ -398,6 +398,7 @@ namespace CraftManager
         }
 
 
+
         //Left Hand Section: Tags
         protected void draw_left_hand_section(float section_width){
             tag_scroll_height = main_section_height-40f;    
@@ -421,11 +422,14 @@ namespace CraftManager
                     scroll_pos["lhs"] = scroll(scroll_pos["lhs"], "side_panel.scroll.tags", inner_width, tag_scroll_height, scroll_width => {
                         for(int i=0; i < Tags.names.Count; i++){
                             string tag_name = Tags.names[i];
+
                             style_override = "tag.section";
+                            if(Tags.instance.autotags_list.Contains(tag_name)){
+                                style_override = "tag.section.autotag";
+                            }
                             section((sec_w)=>{
                                 tag_state = Tags.is_selected(tag_name);
                                 tag_prev_state = tag_state;
-
 
                                 if(!CraftData.cache.tag_craft_count.ContainsKey(tag_name)){                                    
                                     CraftData.cache.tag_craft_count[tag_name] = Tags.craft_count_for(tag_name,(tag_filter_mode=="AND" ? "filtered" : "raw_count"));
@@ -451,15 +455,14 @@ namespace CraftManager
                                         delete_tag_dialog(tag_name);
                                     });
                                 }
-
                             });
 
-                            if(Event.current.type == EventType.Repaint){                                
+                            if(Event.current.type == EventType.Repaint){                                  
                                 tag_content_height += GUILayoutUtility.GetLastRect().height+5; //+5 for margin
                             }
-
                         }
                     });
+
                     section(tag_list_width, 40f, ()=>{       
                         tag_filter_modes.selected_item = tag_filter_mode;
                         dropdown("Mode", "tag_filter_mode_menu", tag_filter_modes, this, 50f, change_tag_filter_mode);

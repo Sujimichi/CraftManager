@@ -27,3 +27,6 @@ zip -r CraftManager.zip CraftManager/
 
 rm -rf /home/sujimichi/KSP/dev_KSP-1.3.1/GameData/CraftManager/
 cp -R CraftManager/ /home/sujimichi/KSP/dev_KSP-1.3.1/GameData/CraftManager/
+
+rm -rf /home/sujimichi/Share/KSP/CraftManager/
+cp -R CraftManager/ /home/sujimichi/Share/KSP/CraftManager/

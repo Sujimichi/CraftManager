@@ -146,6 +146,7 @@ namespace CraftManager
         public List<Tag> data = new List<Tag>(); //Holds all the loaded tags
         public List<string> names_list = new List<string>(); //Holds the naames of Tags (used to draw UI list and dropdown menus).
         public Dictionary<string, bool> selected_lookup = new Dictionary<string, bool>(); //holds a reference to each loaded tag's name and if they are selected or not
+        public List<string> autotags_list = new List<string>();
 
         public Dictionary<string, string> rule_attributes = new Dictionary<string, string>{
             {"name", "Name"}, {"crew_capacity", "Crew Capacity"}, {"stock_craft", "Stock"}, {"part_count", "Part Count"}, {"mass_total", "Mass"}
@@ -362,6 +363,7 @@ namespace CraftManager
         public static void update_lists(){
             Dictionary<string, bool> new_list = new Dictionary<string, bool>();
             List<string> new_name_list = new List<string>();
+            Tags.instance.autotags_list.Clear();
 
             foreach(Tag tag in Tags.instance.data){
                 if(!new_list.ContainsKey(tag.name)){
@@ -369,9 +371,14 @@ namespace CraftManager
                     new_list.Add(tag.name, cur_val);
                 }
                 new_name_list.AddUnique(tag.name);
+                if(tag.rule_based){
+                    Tags.instance.autotags_list.Add(tag.name);
+                }
             }
             Tags.instance.selected_lookup = new_list;
             Tags.instance.names_list = new_name_list;
+
+
             if(CraftData.cache != null){
                 CraftData.cache.tag_craft_count.Clear();
             }

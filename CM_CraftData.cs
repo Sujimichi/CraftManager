@@ -152,7 +152,7 @@ namespace CraftManager
         public static List<string> save_names(){
             List<string> dirs = new List<string>();
             foreach(string dir in Directory.GetDirectories(Paths.joined(CraftManager.ksp_root, "saves"))){
-                string dir_name = dir.Replace(Paths.joined(CraftManager.ksp_root, "saves"), "").Replace("/","");
+                string dir_name = dir.Replace(Paths.joined(CraftManager.ksp_root, "saves"), "").Replace("/", "").Replace("\\","");
                 if(dir_name != "training" && dir_name != "scenarios"){
                     dirs.Add(dir_name);
                 }
@@ -237,8 +237,9 @@ namespace CraftManager
             initialize(full_path, stock);
         }
 
-        public void initialize(string full_path, bool stock = false){
-            path = full_path;
+        public void initialize(string full_path, bool stock = false){        
+            path = full_path.Replace("\\", "/");
+//            CraftManager.log("loading: " + path);
             checksum = Checksum.digest(File.ReadAllText(path));
             stock_craft = stock;
             locked_parts_checked = false;
@@ -282,7 +283,7 @@ namespace CraftManager
             if(save_folder == "stock"){
                 return Paths.joined(CraftManager.ksp_root, "Ships", "@thumbs", construct_type,  craft_name + ".png");
             } else{
-                return Paths.joined(CraftManager.ksp_root, "thumbs/" + save_folder + "_" + construct_type + "_" + craft_name + ".png");
+                return Paths.joined(CraftManager.ksp_root, "thumbs", save_folder + "_" + construct_type + "_" + craft_name + ".png");
             }
         }
 
@@ -300,7 +301,7 @@ namespace CraftManager
         //Parse .craft file and read info
         private void read_craft_info_from_file(){
             name = Path.GetFileNameWithoutExtension(path);
-//            CraftManager.log("Loading craft data from file for " + name);
+            CraftManager.log("Loading from FILE: " + name);
 
             ConfigNode data = ConfigNode.Load(path);
             ConfigNode[] parts = data.GetNodes();

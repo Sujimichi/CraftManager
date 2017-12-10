@@ -60,6 +60,7 @@ namespace CraftManager
         public StyleSheet(GUISkin base_skin){
 
             set_texture("blue_background", new Color(0.4f, 0.5f, 0.9f, 1), TextureWrapMode.Repeat);           
+            set_texture("light_blue_background", new Color(0.37f, 0.41f, 0.62f, 0.4f));           
             set_texture("dark_background", new Color(0.12f, 0.12f, 0.12f, 0.5f));
             set_texture("pic_highlight", new Color(0.4f, 0.5f, 0.9f, 1));
             set_texture("green_background", new Color(0.2f, 0.6f, 0.2f, 1));
@@ -253,12 +254,20 @@ namespace CraftManager
                 s.alignment = base_skin.label.alignment;     
                 s.wordWrap = true;
             });
+
             define_style("tag.toggle.count", "tag.toggle.label", s =>{
                 s.alignment = TextAnchor.MiddleCenter;
             });
 
-            define_style("tag.section", base_skin.label, s =>{
+            define_style("tag.section", "tag.toggle.label", s =>{
+                s.margin = new RectOffset(0,0,5,5);
                 s.normal.background = textures["dark_background"];
+                s.hover.background = textures["blue_background"];
+
+            });
+
+            define_style("tag.section.autotag", "tag.section", s =>{
+                s.normal.background = textures["light_blue_background"];
             });
 
             define_style("tag.delete_button.x", "button.delete", s =>{

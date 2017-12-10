@@ -25,7 +25,13 @@ namespace CraftManager
             CraftManager.log("Initializing Cache");
             if(File.Exists(cache_path)){
                 CraftManager.log("loading persistent cache from file");
-                load(); 
+                try{
+                    load(); 
+                }
+                catch(Exception e){
+                    CraftManager.log("Failed to load");
+                    CraftManager.log(e.Message);
+                }
             }
 
             if(part_data.Count == 0){
@@ -55,6 +61,9 @@ namespace CraftManager
             return null;
         }
 
+        public string sanitize_path(string path){
+            return path.Replace(@"\","/");
+        }
 
         //takes a CraftData craft and creates a ConfigNode that contains all of it's public properties, ConfigNodes is held in 
         //a <string, ConfigNode> dict with the full path as the key. 
@@ -68,10 +77,11 @@ namespace CraftManager
                     }
                 }
             }
-            if(craft_data.ContainsKey(craft.path)){
-                craft_data[craft.path] = node;
+            string path = sanitize_path(craft.path);
+            if(craft_data.ContainsKey(path)){
+                craft_data[path] = node;
             }else{
-                craft_data.Add(craft.path,node);
+                craft_data.Add(path, node);
             }
             save();
         }
@@ -80,10 +90,12 @@ namespace CraftManager
         //then the craft's properties are populated from the ConfigNode in the cache.  Returns true if matching data was
         //found, otherwise returns false, in which case the data will have to be interpreted from the .craft file.
         public bool try_fetch(CraftData craft){
-            if(craft_data.ContainsKey(craft.path) && craft_data[craft.path].GetValue("checksum") == craft.checksum && craft_data[craft.path].GetValue("part_sig") ==installed_part_sig){
+            string path = sanitize_path(craft.path);
+            if(craft_data.ContainsKey(path) && craft_data[path].GetValue("checksum") == craft.checksum && craft_data[path].GetValue("part_sig") == installed_part_sig){
                 try{
                     
-                    ConfigNode node = craft_data[craft.path];                    
+                    CraftManager.log("loading from CACHE: " + Path.GetFileNameWithoutExtension(path));
+                    ConfigNode node = craft_data[path];                    
                     foreach(var prop in craft.GetType().GetProperties()){               
                         if(prop.CanWrite){                            
                             var node_value = node.GetValue(prop.Name);
@@ -133,7 +145,15 @@ namespace CraftManager
             ConfigNode nodes = ConfigNode.Load(cache_path);
             ConfigNode craft_nodes = nodes.GetNode("CraftData");
             foreach(ConfigNode node in craft_nodes.nodes){
-                craft_data.Add(node.GetValue("path"), node);
+                try{
+                    string path = sanitize_path(node.GetValue("path"));
+                    if(!craft_data.ContainsKey(path)){
+                        craft_data.Add(node.GetValue("path"), node);                        
+                    }
+                }
+                catch(Exception e){
+                    CraftManager.log("failed to add " + node.GetValue("path") + "\n" + e.Message);
+                }
             }
         }
     }

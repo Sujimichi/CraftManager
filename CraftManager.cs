@@ -12,6 +12,7 @@
 
     TODO BUGS
     - description field does not save chars after new line. Newline used in game is some other char
+    - Change to description doesn't update the editor description field
     FIXED:
     - can't set tags on stock craft
     - cant create tags when in all saves mode
@@ -53,8 +54,9 @@ namespace CraftManager
         internal static ApplicationLauncherButton main_ui_toolbar_button   = null;
 
         //Helpers
-        public static string ksp_root = KSPUtil.ApplicationRootPath.Replace("/KSP_Data/../","");
+        public static string ksp_root = Directory.GetParent(KSPUtil.ApplicationRootPath).FullName;
 
+        //StyleSheet (initialised on first call to OnGUI)
         internal static GUISkin skin = null;
 
 
