@@ -29,14 +29,13 @@ namespace CraftManager
                     load(); 
                 }
                 catch(Exception e){
-                    CraftManager.log("Failed to load");
-                    CraftManager.log(e.Message);
+                    CraftManager.log("Failed to load cache " + e.Message);
                 }
             }
 
             if(part_data.Count == 0){
-                locked_parts.Clear();
                 CraftManager.log("caching game parts");
+                locked_parts.Clear();
                 List<string> part_names = new List<string>();
                 foreach(AvailablePart part in PartLoader.LoadedPartsList){
                     part_data.Add(part.name, part);
@@ -45,12 +44,22 @@ namespace CraftManager
                         locked_parts.AddUnique(part.name);
                     }
                 }
+                //Make a string containing all the installed parts and the data from LoaderInfo in the save file and 
+                //then generate a checksum from it.  This is used as a signature of the installed setup which will change
+                //if the installed mods are changed enabling craft to disregard cached data after a change in mod setup.
                 part_names.Sort();
-                string s = "";
-                foreach(string n in part_names){s = s + n;}
-                installed_part_sig = Checksum.digest(s);
+                string s = String.Join("", part_names.ToArray());
+                string lf = "";
+                try{
+                    ConfigNode save_data = ConfigNode.Load(Paths.joined(CraftManager.ksp_root, "saves", HighLogic.SaveFolder, "persistent.sfs"));                   
+                    ConfigNode loader_info = save_data.GetNode("GAME").GetNode("LoaderInfo");
+                    lf = loader_info.ToString();
+                }
+                catch(Exception e){
+                    CraftManager.log("Failed to read loaderinfo " + e.Message);
+                }
+                installed_part_sig = Checksum.digest(s+lf);
             }
-
             CraftManager.log("Cache Ready");
         }
 
@@ -93,7 +102,6 @@ namespace CraftManager
             string path = sanitize_path(craft.path);
             if(craft_data.ContainsKey(path) && craft_data[path].GetValue("checksum") == craft.checksum && craft_data[path].GetValue("part_sig") == installed_part_sig){
                 try{
-                    
                     CraftManager.log("loading from CACHE: " + Path.GetFileNameWithoutExtension(path));
                     ConfigNode node = craft_data[path];                    
                     foreach(var prop in craft.GetType().GetProperties()){               

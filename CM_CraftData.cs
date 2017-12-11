@@ -165,10 +165,10 @@ namespace CraftManager
 
         //craft attributes - attributes with getters will automatically be stored in the in memory cache and written do persistent store cache
         //if they also have a setter then they can be restored from the cache.
+        public string name { get; set; }
         public string path { get; set; }
         public string checksum { get; set; }
         public string part_sig { get; set; }
-        public string name { get; set; }
         public string alt_name { get; set; }
         public string description { get; set; }
         public string construction_type { get; set; }
@@ -219,20 +219,18 @@ namespace CraftManager
             }
         }
 
-        //Attributes which are set during objects lifetime and not cached.
+        //Attributes which are set during object's lifetime and not cached.
         public bool selected = false;
         public bool locked_parts_checked = false;
         public List<string> tag_name_cache = null;
 
-
-        //Other Attributes
         public string new_name = "";
         public float list_position = 0;
 
 
 
         //Initialize a new CraftData object. Takes a path to a .craft file and either populates it from attributes from the craft file
-        //or loads information from the CraftDataCache
+        //or loads information from the CraftDataCache. Main logic moved to initialize() so it can be call again (reinitialized) on existing object
         public CraftData(string full_path, bool stock = false){
             initialize(full_path, stock);
         }
