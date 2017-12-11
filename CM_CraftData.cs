@@ -373,6 +373,13 @@ namespace CraftManager
             return Tags.for_craft(this);
         }
 
+        public List<string> tag_names(){
+            if(tag_name_cache == null){
+                tag_name_cache = this.tags();
+                tag_name_cache.Sort();
+            }
+            return tag_name_cache;
+        }
 
         //Check to see if any of the crafts parts match the names of parts listed as locked (in the cache)
         //which parts are locked can change during game play, but can't change while in the editors.  So the value for locked_parts

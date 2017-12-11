@@ -303,6 +303,11 @@ namespace CraftManager
                             label(craft.part_count + " parts in " + craft.stage_count + " stage" + (craft.stage_count==1 ? "" : "s"), "craft.info", width(w/4f));
                             label("cost: " + humanize(craft.cost_total), "craft.cost");
                         });
+
+                        if(craft.tag_names().Count > 0){
+                            label("#" + String.Join(", #", craft.tag_names().ToArray()), "craft.tags");
+                        }
+
                         if(craft.locked_parts){
                             label("This craft has locked parts", "craft.locked_parts");
                         }
@@ -473,22 +478,18 @@ namespace CraftManager
 
                         GUILayout.Space(15);
 
-                        if(craft.tag_name_cache == null){
-                            craft.tag_name_cache = craft.tags();
-                        }
-
                         section(() =>{
                             label("Tags", "h2");
                             fspace();
                             scroll_relative_pos.x += (window_pos.width * (col_widths[0]+col_widths[1])) - 5f;
                             scroll_relative_pos.y += 45f - scroll_pos["rhs"].y;
                           
-                            tags_menu_content.selected_items = craft.tag_name_cache;
+                            tags_menu_content.selected_items = craft.tag_names();
                             dropdown("Add Tag", "add_tag_menu", tags_menu_content, this, scroll_relative_pos, 70f, "Button", "menu.background", "menu.item.small", resp => {
                                 if(resp == "new_tag"){
                                     create_tag_dialog(false, craft);
                                 }else{
-                                    if(craft.tag_name_cache.Contains(resp)){
+                                    if(craft.tag_names().Contains(resp)){
                                         Tags.untag_craft(craft, resp);
                                     }else{                                    
                                         Tags.tag_craft(craft, resp);
@@ -497,7 +498,7 @@ namespace CraftManager
                             });
                         });
                    
-                        foreach(string tag in craft.tag_name_cache){
+                        foreach(string tag in craft.tag_names()){
                             section(() =>{
                                 label(tag, "compact");
                                 fspace();
