@@ -110,7 +110,7 @@ namespace CraftManager
             CraftManager.main_ui.toggle();
         });
         
-
+        //Called when the editor is loaded
         private void Start(){     
             CraftManager.log("Starting Main UI");
             CraftManager.main_ui = this;
@@ -431,11 +431,10 @@ namespace CraftManager
                             fspace();                       
                             expand_details = GUILayout.Toggle(expand_details, "expand", "hyperlink.bold");
                         });
-
                         if(expand_details){
                             float details_width = scroll_width - 50;
                             GUILayoutOption grid_width = width(details_width*0.4f);
-                            section((w)=>{                        
+                            section(()=>{                        
                                 label("", width(details_width*0.2f));
                                 label("Dry", "bold.compact", grid_width);
                                 label("Fuel", "bold.compact", grid_width);
@@ -451,12 +450,10 @@ namespace CraftManager
                                 label(humanize(craft.mass_fuel), "small.compact", grid_width);
                             });
                         }
-
                         section(()=>{
                             label("Crew Capacity", "bold.compact");
                             label(craft.crew_capacity.ToString(), "compact");
                         });
-
                         section(()=>{
                             DateTime date = DateTime.FromBinary(long.Parse(craft.last_updated_time));
                             label("Last Updated", "bold.compact");
@@ -465,11 +462,11 @@ namespace CraftManager
 
                         GUILayout.Space(15);
 
-                        section((w) => {
+                        section(() => {
                             button("transfer", transfer_craft_dialog);
                             button("move/copy", move_copy_craft_dialog);
                         });
-                        section((w) => {
+                        section(() => {
                             button("rename", rename_craft_dialog);
                             button("delete", "button.delete", delete_craft_dialog);
                         });
@@ -480,7 +477,7 @@ namespace CraftManager
                             craft.tag_name_cache = craft.tags();
                         }
 
-                        section((w) =>{
+                        section(() =>{
                             label("Tags", "h2");
                             fspace();
                             scroll_relative_pos.x += (window_pos.width * (col_widths[0]+col_widths[1])) - 5f;
@@ -502,11 +499,13 @@ namespace CraftManager
                    
                         foreach(string tag in craft.tag_name_cache){
                             section(() =>{
-                                label(tag);    
+                                label(tag, "compact");
                                 fspace();
                                 button("x", "tag.delete_button.x", ()=>{Tags.untag_craft(craft, tag);});
                             });
                         }                  
+
+                        GUILayout.Space(15);
 
                         section(() => {
                             label("Description", "h2");
@@ -524,10 +523,8 @@ namespace CraftManager
 
         //Botton Section: Load buttons
         protected void draw_bottom_section(float section_width){
-            
-            section((w) =>{
+            section(() =>{
                 fspace();
-
                 gui_state(CraftData.selected_craft != null, ()=>{                    
                     load_button_text = "Load";
                     load_button_action = "load";
@@ -549,6 +546,7 @@ namespace CraftManager
             });
             GUILayout.Space(20);
         }
+
 
 
 

@@ -92,7 +92,7 @@ namespace CraftManager
 
             define_style("compact", base_skin.label, s =>{
                 s.margin.top = 0;
-                s.margin.bottom = 0;
+                s.margin.bottom = 2;
             });
             define_style("bold.compact", "compact", s =>{
                 s.fontStyle = FontStyle.Bold;
@@ -100,6 +100,7 @@ namespace CraftManager
             define_style("small.compact", "compact", s =>{
                 s.fontSize = 12;
             });
+
 
             define_style("error", base_skin.label, s =>{
                 s.normal.textColor = Color.red;
