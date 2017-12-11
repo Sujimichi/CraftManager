@@ -192,10 +192,13 @@ namespace CraftManager
             define_style("craft.list_item", base_skin.button, s =>{
                 s.padding = new RectOffset(0, 0, 0, 0);
                 s.margin = new RectOffset(0, 0, 5, 5);
+                s.normal.background = textures["dark_background"];
+                s.hover.background = textures["blue_background"];
             });
             define_style("craft.list_item.selected", "craft.list_item", s =>{
-                s.normal.background = s.active.background;
-                s.hover.background = s.focused.background;
+//                s.normal.background = s.active.background;
+                s.hover.background = textures["light_blue_background"];
+                s.normal.background = textures["light_green_background"];
             });
             define_style("craft.name", base_skin.label, s =>{
                 s.fontStyle = FontStyle.Bold;

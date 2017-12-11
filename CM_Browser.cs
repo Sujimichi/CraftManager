@@ -140,7 +140,9 @@ namespace CraftManager
 
             //Initialize Tags
             Tags.load(active_save_dir);
-            tags_menu_content.remote_data = new DataSource(() => Tags.names); //tag menu on craft details fetches data as it opens, rather than constantly setting the data each pass.
+            tags_menu_content.remote_data = new DataSource(() => { //tag menu on craft details fetches data as it opens, rather than constantly setting the data each pass.
+                return Tags.names.FindAll(t => !Tags.instance.autotags_list.Contains(t));
+            }); 
             tags_menu_content.special_items.Add("new_tag", "New Tag");
 
             type_select(EditorDriver.editorFacility.ToString(), true);  //set selected type (SPH or VAB) based on which editor we're in.
@@ -502,7 +504,9 @@ namespace CraftManager
                             section(() =>{
                                 label(tag, "compact");
                                 fspace();
-                                button("x", "tag.delete_button.x", ()=>{Tags.untag_craft(craft, tag);});
+                                if(!Tags.instance.autotags_list.Contains(tag)){                                    
+                                    button("x", "tag.delete_button.x", ()=>{Tags.untag_craft(craft, tag);});
+                                }
                             });
                         }                  
 
