@@ -250,6 +250,9 @@ namespace CraftManager
                 s.fixedWidth = 10f;
                 s.fixedHeight = 10f;
             });
+            define_style("tag.toggle.light.selected", "tag.toggle.light", s =>{
+                s.normal = base_skin.toggle.active;
+            });
 
             define_style("tag.toggle.label", base_skin.button, s =>{
                 s.normal.background = base_skin.label.normal.background;
@@ -330,6 +333,12 @@ namespace CraftManager
                 s.fontSize = 12;
             });
 
+            define_style("menu.item.tag_menu", "menu.item.small", s =>{
+            });
+            define_style("menu.item.tag_menu.special", "menu.item.tag_menu", s =>{
+                s.normal.textColor = Color.red;
+                s.hover.textColor = Color.red;
+            });
 
             define_style("dialog.section", base_skin.label, s =>{
                 s.normal.background = textures["dark_background"];

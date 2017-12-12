@@ -117,7 +117,7 @@ namespace CraftManager
             window_title = "Craft Manager";
             window_pos = new Rect((Screen.width/2) - (window_width/2) + 100, 80, window_width, main_section_height);
             visible = false;
-            draggable = false;
+//            draggable = false;
             footer = false;
             prevent_click_through = false; //disable the standard click through prevention. show and hide will add control locks which are not based on mouse pos.
 
@@ -146,7 +146,7 @@ namespace CraftManager
             tags_menu_content.special_items.Add("new_tag", "New Tag");
 
             type_select(EditorDriver.editorFacility.ToString(), true);  //set selected type (SPH or VAB) based on which editor we're in.
-//            show();
+            show();
         }
 
         protected override void on_show(){            
@@ -360,43 +360,65 @@ namespace CraftManager
                         for(int i=0; i < Tags.names.Count; i++){
                             string tag_name = Tags.names[i];
 
-                            style_override = "tag.section";
-                            if(Tags.instance.autotags_list.Contains(tag_name)){
-                                style_override = "tag.section.autotag";
-                            }
-                            section((sec_w)=>{
-                                tag_state = Tags.is_selected(tag_name);
-                                tag_prev_state = tag_state;
+//                            style_override = "tag.section";
+//                            if(Tags.instance.autotags_list.Contains(tag_name)){
+//                                style_override = "tag.section.autotag";
+//                            }
+                            tag_state = Tags.is_selected(tag_name);
+                            tag_prev_state = tag_state;
+                            Rect tag_container = section("tag.section", ()=>{
 
                                 if(!CraftData.cache.tag_craft_count.ContainsKey(tag_name)){                                    
                                     CraftData.cache.tag_craft_count[tag_name] = Tags.craft_count_for(tag_name,(tag_filter_mode=="AND" ? "filtered" : "raw_count"));
                                 }
                                 int craft_count = CraftData.cache.tag_craft_count[tag_name];
-
                                 string s = "(" + craft_count + ")";
                                 float w = skin.button.CalcSize(new GUIContent(s)).x;
-                                
+
                                 tag_state = GUILayout.Toggle(tag_state, "", "tag.toggle.light");
-                                button(tag_name, "tag.toggle.label", scroll_width - w - tag_margin_offset, ()=>{tag_state = !tag_state;});
-                                button(s, "tag.toggle.count", w, ()=>{tag_state = !tag_state;});
+                                label(tag_name, "tag.toggle.label", scroll_width - w - tag_margin_offset);
+                                label(s, "tag.toggle.count", w);
                                 
-                                if(tag_prev_state != tag_state){
-                                    Tags.toggle_tag(tag_name);
-                                    filter_craft();                                    
-                                }
-                                if(edit_tags){
-                                    button("e", "tag.edit_button", ()=>{
-                                        edit_tag_dialog(tag_name);
+
+                            }, (evt) => {                                
+                                if(evt.single_click){
+                                    tag_state = !tag_state;
+                                }else if(evt.right_click){
+                                    CraftManager.log("right clicked");
+                                    DropdownMenuData menu = new DropdownMenuData(new Dictionary<string, string>{
+                                        {"select", tag_state ? "DeSelect" : "Select"}, {"edit", "Edit"}
                                     });
-                                    button("X", "tag.delete_button.x", ()=>{
-                                        delete_tag_dialog(tag_name);
+                                    menu.special_items.Add("delete", "Delete");
+                                    menu.special_items_first = false;
+                                    Rect offset = new Rect(scroll_relative_pos);
+                                    offset.y -= scroll_pos["lhs"].y + evt.contianer.height - 45;
+                                    gameObject.AddOrGetComponent<Dropdown>().open(evt.contianer, offset, this, menu, 0f, "menu.background", "menu.item.tag_menu", (resp) =>{
+                                        if(resp == "select"){
+                                            Tags.toggle_tag(tag_name);
+                                        }else if(resp == "edit"){
+                                            edit_tag_dialog(tag_name, 
+                                                evt.contianer.y + window_pos.y + scroll_relative_pos.y - scroll_pos["lhs"].y + 80, 
+                                                evt.contianer.x + window_pos.x + evt.contianer.width
+                                            );
+                                        }else if(resp == "delete"){
+                                            delete_tag_dialog(tag_name, 
+                                                evt.contianer.y + window_pos.y + scroll_relative_pos.y - scroll_pos["lhs"].y + 80, 
+                                                evt.contianer.x + window_pos.x + evt.contianer.width
+                                            );
+                                        }
                                     });
                                 }
                             });
 
                             if(Event.current.type == EventType.Repaint){                                  
-                                tag_content_height += GUILayoutUtility.GetLastRect().height+5; //+5 for margin
+                                tag_content_height += tag_container.height + 6;
                             }
+
+                            if(tag_prev_state != tag_state){
+                                Tags.toggle_tag(tag_name);
+                                filter_craft();                                    
+                            }
+
                         }
                     });
 
@@ -404,7 +426,7 @@ namespace CraftManager
                         tag_filter_modes.selected_item = tag_filter_mode;
                         dropdown("Mode", "tag_filter_mode_menu", tag_filter_modes, this, 50f, change_tag_filter_mode);
                         fspace();
-                        edit_tags = GUILayout.Toggle(edit_tags, "edit", "button", width(40f) );
+//                        edit_tags = GUILayout.Toggle(edit_tags, "edit", "button", width(40f) );
                         button("+", 30f, create_tag_dialog);
                     });
                 });
@@ -871,9 +893,7 @@ namespace CraftManager
         }
 
         //Edit Tag Dialog (using tag_dialog_form)
-        protected void edit_tag_dialog(string tag_name){
-            float top = Event.current.mousePosition.y + window_pos.y - scroll_pos["lhs"].y + 50;
-            float left = Event.current.mousePosition.x + window_pos.x + 20;
+        protected void edit_tag_dialog(string tag_name, float top, float left){
             Tag tag = Tags.find(tag_name, active_save_dir);
             tag_dialog_form("Edit", true, tag.name, active_save_dir, tag.rule_based, tag.rule_attribute, tag.rule_comparitor, tag.rule_value, top, left, null);
         }
@@ -972,11 +992,9 @@ namespace CraftManager
             });
         }
 
-        protected void delete_tag_dialog(string tag_name){            
+        protected void delete_tag_dialog(string tag_name, float top, float left){            
             string resp = "";
             int craft_count = Tags.craft_count_for(tag_name, all_saves_ref);
-            float top = Event.current.mousePosition.y + window_pos.y + 140;
-            float left = Event.current.mousePosition.x + window_pos.x;
             show_dialog("Delete Tag", "Are you sure you want to delete this tag?", top, left, 400f, true, d =>{
 
                 if(craft_count > 0){

@@ -62,7 +62,9 @@ namespace CraftManager
 
 
         public static void filter_craft(Dictionary<string, object> criteria){
-            CraftData.cache.tag_craft_count.Clear();
+            if(CraftData.cache != null){
+                CraftData.cache.tag_craft_count.Clear();
+            }
             filtered = all_craft;    
 
             if((bool)criteria["exclude_stock"]){
