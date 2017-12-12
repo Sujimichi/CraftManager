@@ -146,7 +146,7 @@ namespace CraftManager
             tags_menu_content.special_items.Add("new_tag", "New Tag");
 
             type_select(EditorDriver.editorFacility.ToString(), true);  //set selected type (SPH or VAB) based on which editor we're in.
-            show();
+//            show();
         }
 
         protected override void on_show(){            
@@ -337,6 +337,7 @@ namespace CraftManager
 
 
         //Left Hand Section: Tags
+        bool archived_tag = false;
         protected void draw_left_hand_section(float section_width){
             tag_scroll_height = main_section_height-40f;    
 
@@ -360,14 +361,22 @@ namespace CraftManager
                         for(int i=0; i < Tags.names.Count; i++){
                             string tag_name = Tags.names[i];
 
-                            tag_state = Tags.is_selected(tag_name);
+                            tag_state = Tags.is_active(tag_name);
+                            archived_tag = Tags.is_archived(tag_name);
                             tag_prev_state = tag_state;
 
                             string tag_style = "tag.section" + (tag_state ? ".selected" : "");
+                            if(archived_tag){
+                                tag_style = "tag.section.archived";
+                            } 
                             Rect tag_container = section(tag_style, ()=>{
 
-                                if(!CraftData.cache.tag_craft_count.ContainsKey(tag_name)){                                    
-                                    CraftData.cache.tag_craft_count[tag_name] = Tags.craft_count_for(tag_name,(tag_filter_mode=="AND" ? "filtered" : "raw_count"));
+                                if(!CraftData.cache.tag_craft_count.ContainsKey(tag_name)){
+                                    if(archived_tag){
+                                        CraftData.cache.tag_craft_count[tag_name] = Tags.craft_count_for(tag_name,"raw_count");
+                                    }else{
+                                        CraftData.cache.tag_craft_count[tag_name] = Tags.craft_count_for(tag_name,(tag_filter_mode=="AND" ? "filtered" : "raw_count"));
+                                    }
                                 }
                                 int craft_count = CraftData.cache.tag_craft_count[tag_name];
                                 string s = "(" + craft_count + ")";
@@ -379,12 +388,12 @@ namespace CraftManager
                                 
 
                             }, (evt) => {                                
-                                if(evt.single_click){
+                                if(evt.single_click || evt.double_click){
                                     tag_state = !tag_state;
                                 }else if(evt.right_click){
                                     CraftManager.log("right clicked");
                                     DropdownMenuData menu = new DropdownMenuData(new Dictionary<string, string>{
-                                        {"select", tag_state ? "DeSelect" : "Select"}, {"edit", "Edit"}
+                                        {"select", tag_state ? "DeSelect" : "Select"}, {"archive", "Exclude"}, {"edit", "Edit"}
                                     });
                                     menu.special_items.Add("delete", "Delete");
                                     menu.special_items_first = false;
@@ -392,7 +401,11 @@ namespace CraftManager
                                     offset.y -= scroll_pos["lhs"].y + evt.contianer.height - 45;
                                     gameObject.AddOrGetComponent<Dropdown>().open(evt.contianer, offset, this, menu, 0f, "menu.background", "menu.item.tag_menu", (resp) =>{
                                         if(resp == "select"){
-                                            Tags.toggle_tag(tag_name);
+                                            Tags.toggle_active(tag_name);
+                                            filter_craft();                                    
+                                        }else if(resp == "archive"){
+                                            Tags.toggle_archive(tag_name);
+                                            filter_craft();                                    
                                         }else if(resp == "edit"){
                                             edit_tag_dialog(tag_name, 
                                                 evt.contianer.y + window_pos.y + scroll_relative_pos.y - scroll_pos["lhs"].y + 80, 
@@ -413,10 +426,9 @@ namespace CraftManager
                             }
 
                             if(tag_prev_state != tag_state){
-                                Tags.toggle_tag(tag_name);
-                                filter_craft();                                    
+                                Tags.toggle_active(tag_name);
+                                filter_craft();
                             }
-
                         }
                     });
 
@@ -587,10 +599,14 @@ namespace CraftManager
             search_criteria.Add("search", search_string);
             search_criteria.Add("type", selected_types);
             List<string> s_tags = Tags.selected_tags();
+            List<string> a_tags = Tags.archived_tags();
             if(s_tags.Count > 0){
                 search_criteria.Add("tags", s_tags);
-                search_criteria.Add("tag_filter_mode", tag_filter_mode);
             }
+            if(a_tags.Count > 0){
+                search_criteria.Add("archived_tags", a_tags);
+            }
+            search_criteria.Add("tag_filter_mode", tag_filter_mode);
             search_criteria.Add("sort", sort_opt);
             search_criteria.Add("reverse_sort", reverse_sort);
             search_criteria.Add("exclude_stock", exclude_stock_craft);

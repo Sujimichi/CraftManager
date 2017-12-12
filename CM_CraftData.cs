@@ -83,6 +83,20 @@ namespace CraftManager
                 }
                 filtered = filtered.FindAll(craft => selected_types.Contains(craft.construction_type));
             }
+
+            if(criteria.ContainsKey("archived_tags")){
+                List<string> a_tags = (List<string>)criteria["archived_tags"];
+                filtered = filtered.FindAll(craft =>{
+                    bool sel = true;
+                    foreach(string tag in craft.tags()){
+                        if(a_tags.Contains(tag)){
+                            sel = false;
+                        }
+                    }
+                    return sel;
+                });
+            }
+
             if(criteria.ContainsKey("tags")){
                 List<string> s_tags = (List<string>)criteria["tags"];
                 string tag_filter_mode = (string)criteria["tag_filter_mode"];
@@ -168,24 +182,24 @@ namespace CraftManager
         //craft attributes - attributes with getters will automatically be stored in the in memory cache and written do persistent store cache
         //if they also have a setter then they can be restored from the cache.
         public string name { get; set; }
+        public string alt_name { get; set; }
         public string path { get; set; }
         public string checksum { get; set; }
         public string part_sig { get; set; }
-        public string alt_name { get; set; }
         public string description { get; set; }
         public string construction_type { get; set; }
         public int stage_count { get; set; }
         public int part_count { get; set; }
         public int crew_capacity{ get; set; }
-        public bool missing_parts { get; set; }
-        public bool locked_parts { get; set; }  //This is an exception. locked_parts will be cached to the in-memory cache but not to the persistent cache.
-        public bool stock_craft { get; set; }
         public float cost_dry { get; set; }
         public float cost_fuel { get; set; }
         public float cost_total { get; set; }
         public float mass_dry { get; set; }
         public float mass_fuel { get; set; }
         public float mass_total { get; set; }
+        public bool stock_craft { get; set; }
+        public bool missing_parts { get; set; }
+        public bool locked_parts { get; set; }  //This is an exception. locked_parts will be cached to the in-memory cache but not to the persistent cache.
 
 
         //part_name_list holds a unique list of the craft parts, but uses part_names as the getter and setter for it

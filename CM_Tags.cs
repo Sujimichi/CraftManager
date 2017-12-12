@@ -30,8 +30,8 @@ namespace CraftManager
             }
         }
 
-        public Tag(string tag_name, string save_name){
-            name = tag_name;
+        public Tag(string tag_name, string save_name){            
+            name = Tags.sanitize_name(tag_name);
             save_dir = save_name;
             Tags.instance.data.Add(this);
         }
@@ -145,7 +145,7 @@ namespace CraftManager
 
         public List<Tag> data = new List<Tag>(); //Holds all the loaded tags
         public List<string> names_list = new List<string>(); //Holds the naames of Tags (used to draw UI list and dropdown menus).
-        public Dictionary<string, bool> selected_lookup = new Dictionary<string, bool>(); //holds a reference to each loaded tag's name and if they are selected or not
+        public Dictionary<string, int> selected_state = new Dictionary<string, int>(); //holds a reference to each loaded tag's name and if they are selected or not
         public List<string> autotags_list = new List<string>();
 
         public Dictionary<string, string> rule_attributes = new Dictionary<string, string>{
@@ -161,6 +161,7 @@ namespace CraftManager
 
         public Tags(){
             Tags.instance = this;  
+            Tags.load_tag_info();
         }
 
 
@@ -204,6 +205,7 @@ namespace CraftManager
 
         //returns a matching Tag or creates a new on if none was fond.
         public static Tag find_or_create_by(string tag_name, string save_dir, bool save_on_create = true){            
+            tag_name = sanitize_name(tag_name);
             if(String.IsNullOrEmpty(tag_name)){
                 return null;
             }
@@ -217,9 +219,13 @@ namespace CraftManager
             return tag;
         }
 
+        public static string sanitize_name(string tag_name){
+            return tag_name.Trim().Replace("=", "");
+        }
 
         //creates a tag with all attribute options, returns "200" (status ok) if valid. returns error message is not valid
         public static string create(string tag_name, string save_dir, bool rule_based, string rule_attr, string rule_comparator, string rule_value, CraftData craft = null){
+            tag_name = sanitize_name(tag_name);
             if(String.IsNullOrEmpty(tag_name)){
                 return "Tag Name cannot be blank";
             } else if(names.Contains(tag_name)){
@@ -315,25 +321,81 @@ namespace CraftManager
             return in_tags;
         }
 
-        //returns true or false if the given tag_name is selected in the UI
-        public static bool is_selected(string tag_name){
-            return Tags.instance.selected_lookup[tag_name];
-        }
+
+
         //Toggles a tags selected status.
-        public static void toggle_tag(string tag_name){
-            Tags.instance.selected_lookup[tag_name] = !Tags.instance.selected_lookup[tag_name];
+        public static void toggle_active(string tag_name){
+            if(Tags.instance.selected_state[tag_name] < 0){
+                Tags.instance.selected_state[tag_name] = 0;
+            } else{
+                Tags.instance.selected_state[tag_name] = Math.Abs(Tags.instance.selected_state[tag_name]-1);
+            }
+            save_tag_info();
+        }
+
+
+        public static void toggle_archive(string tag_name){
+            if(Tags.instance.selected_state[tag_name] > 0){
+                Tags.instance.selected_state[tag_name] = 0;
+            } else{
+                Tags.instance.selected_state[tag_name] = 0 - Math.Abs(Math.Abs(Tags.instance.selected_state[tag_name])-1);
+            }
+            save_tag_info();
+        }
+
+        private static void save_tag_info(){
+            List<string> s = new List<string>();
+            foreach(KeyValuePair<string, int> pair in Tags.instance.selected_state){
+                s.Add(pair.Key + "=" + pair.Value);
+            }
+            CraftManager.settings.set("tag_states", String.Join(", ", s.ToArray()));
+        }
+
+        private static void load_tag_info(){
+            CraftManager.log("Loading tag states");
+            Tags.instance.selected_state.Clear();
+            string tag_states = CraftManager.settings.get("tag_states");
+            CraftManager.log("got: " + tag_states);
+            if(!String.IsNullOrEmpty(tag_states)){
+                string[] data = tag_states.Split(',');
+                foreach(string s in data){
+                    string[] tag_data = s.Split('=');
+                    CraftManager.log("adding tag state " + tag_data[0] + " - " + tag_data[1]);
+                    Tags.instance.selected_state.Add(tag_data[0].Trim(), int.Parse(tag_data[1]));
+                }
+            }
+        }
+
+
+        //returns true or false if the given tag_name is selected in the UI
+        public static bool is_active(string tag_name){
+            return Tags.instance.selected_state[tag_name] == 1;
+        }
+        public static bool is_archived(string tag_name){
+            return Tags.instance.selected_state[tag_name] == -1;
         }
 
         //returns a list of all selected tags
         public static List<string> selected_tags(){
             List<string> s_tags = new List<string>();
-            foreach(KeyValuePair<string, bool> tag in Tags.instance.selected_lookup){
-                if(tag.Value){
+            foreach(KeyValuePair<string, int> tag in Tags.instance.selected_state){
+                if(tag.Value == 1){
                     s_tags.AddUnique(tag.Key);
                 }
             }
             return s_tags;
         }
+        public static List<string> archived_tags(){
+            List<string> a_tags = new List<string>();
+            foreach(KeyValuePair<string, int> tag in Tags.instance.selected_state){
+                if(tag.Value == -1){
+                    a_tags.AddUnique(tag.Key);
+                }
+            }
+            return a_tags;
+        }
+
+
 
         //returns the number of craft associated with a given tag name. Takes a second optional argument to specify if the count
         //is for all loaded craft ("<all_saves>"), or limited to the search results ("filtered")
@@ -360,14 +422,14 @@ namespace CraftManager
         //maintains the two reference lists (selected_lookup and names_list). called after both load and save actions
         //takes the names of all tags and makes a unique list (names_list) and a unique <string, bool> dict (selected_lookup) 
         //but will preserve the state of the coresponding bools in selected_lookup
-        public static void update_lists(){
-            Dictionary<string, bool> new_list = new Dictionary<string, bool>();
+        public static void update_lists(){            
+            Dictionary<string, int> new_list = new Dictionary<string, int>();
             List<string> new_name_list = new List<string>();
             Tags.instance.autotags_list.Clear();
 
             foreach(Tag tag in Tags.instance.data){
                 if(!new_list.ContainsKey(tag.name)){
-                    bool cur_val = Tags.instance.selected_lookup.ContainsKey(tag.name) ? Tags.instance.selected_lookup[tag.name] : false;
+                    int cur_val = Tags.instance.selected_state.ContainsKey(tag.name) ? Tags.instance.selected_state[tag.name] : 0;
                     new_list.Add(tag.name, cur_val);
                 }
                 new_name_list.AddUnique(tag.name);
@@ -375,7 +437,7 @@ namespace CraftManager
                     Tags.instance.autotags_list.Add(tag.name);
                 }
             }
-            Tags.instance.selected_lookup = new_list;
+            Tags.instance.selected_state = new_list;
             Tags.instance.names_list = new_name_list;
 
 

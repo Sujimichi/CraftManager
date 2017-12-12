@@ -66,6 +66,7 @@ namespace CraftManager
             set_texture("pic_highlight", new Color(0.4f, 0.5f, 0.9f, 1));
             set_texture("green_background", new Color(0.2f, 0.6f, 0.2f, 1));
             set_texture("light_green_background", new Color(0.3f, 0.5f, 0.3f, 1));
+            set_texture("red_background", new Color(0.51f, 0.44f, 0.44f, 0.4f));
 
 
             define_style("h1", base_skin.label, s =>{
@@ -196,10 +197,12 @@ namespace CraftManager
                 s.normal.background = textures["dark_background"];
                 s.hover.background = textures["blue_background"];
             });
+
             define_style("craft.list_item.selected", "craft.list_item", s =>{
                 s.normal.background = textures["light_blue_background"];
                 s.hover.background = textures["lighter_blue_background"];
             });
+
             define_style("craft.name", base_skin.label, s =>{
                 s.fontStyle = FontStyle.Bold;
                 s.fontSize = 20;
@@ -270,6 +273,7 @@ namespace CraftManager
 
             define_style("tag.toggle.label.autotag", "tag.toggle.label", s =>{
                 s.fontStyle = FontStyle.Bold;
+                s.normal.textColor = new Color(0.92f, 0.86f, 0.43f, 1.0f);
             });
 
             define_style("tag.toggle.count", "tag.toggle.label", s =>{
@@ -285,6 +289,9 @@ namespace CraftManager
 
             define_style("tag.section.selected", "tag.section", s =>{
                 s.normal.background = textures["light_blue_background"];
+            });
+            define_style("tag.section.archived", "tag.section", s =>{
+                s.normal.background = textures["red_background"];
             });
 
             define_style("tag.delete_button.x", "button.delete", s =>{

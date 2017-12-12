@@ -29,6 +29,7 @@ namespace CraftManager
             settings.Add("use_stock_toolbar", "True");
             settings.Add("replace_editor_load_button", "True");
             settings.Add("use_editor_key_shortcuts", "True");
+            settings.Add("tag_states", "");
 
             if(File.Exists(settings_path)){
                 ConfigNode settings_raw = ConfigNode.Load(settings_path);
