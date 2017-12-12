@@ -360,13 +360,11 @@ namespace CraftManager
                         for(int i=0; i < Tags.names.Count; i++){
                             string tag_name = Tags.names[i];
 
-//                            style_override = "tag.section";
-//                            if(Tags.instance.autotags_list.Contains(tag_name)){
-//                                style_override = "tag.section.autotag";
-//                            }
                             tag_state = Tags.is_selected(tag_name);
                             tag_prev_state = tag_state;
-                            Rect tag_container = section("tag.section", ()=>{
+
+                            string tag_style = "tag.section" + (tag_state ? ".selected" : "");
+                            Rect tag_container = section(tag_style, ()=>{
 
                                 if(!CraftData.cache.tag_craft_count.ContainsKey(tag_name)){                                    
                                     CraftData.cache.tag_craft_count[tag_name] = Tags.craft_count_for(tag_name,(tag_filter_mode=="AND" ? "filtered" : "raw_count"));
@@ -376,7 +374,7 @@ namespace CraftManager
                                 float w = skin.button.CalcSize(new GUIContent(s)).x;
 
                                 tag_state = GUILayout.Toggle(tag_state, "", "tag.toggle.light");
-                                label(tag_name, "tag.toggle.label", scroll_width - w - tag_margin_offset);
+                                label(tag_name, "tag.toggle.label" + (Tags.instance.autotags_list.Contains(tag_name) ? ".autotag" : ""), scroll_width - w - tag_margin_offset);
                                 label(s, "tag.toggle.count", w);
                                 
 

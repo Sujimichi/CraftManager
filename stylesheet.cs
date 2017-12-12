@@ -61,6 +61,7 @@ namespace CraftManager
 
             set_texture("blue_background", new Color(0.4f, 0.5f, 0.9f, 1), TextureWrapMode.Repeat);           
             set_texture("light_blue_background", new Color(0.37f, 0.41f, 0.62f, 0.4f));           
+            set_texture("lighter_blue_background", new Color(0.4f, 0.5f, 0.9f, 0.6f));           
             set_texture("dark_background", new Color(0.12f, 0.12f, 0.12f, 0.5f));
             set_texture("pic_highlight", new Color(0.4f, 0.5f, 0.9f, 1));
             set_texture("green_background", new Color(0.2f, 0.6f, 0.2f, 1));
@@ -196,9 +197,8 @@ namespace CraftManager
                 s.hover.background = textures["blue_background"];
             });
             define_style("craft.list_item.selected", "craft.list_item", s =>{
-//                s.normal.background = s.active.background;
-                s.hover.background = textures["light_blue_background"];
-                s.normal.background = textures["light_green_background"];
+                s.normal.background = textures["light_blue_background"];
+                s.hover.background = textures["lighter_blue_background"];
             });
             define_style("craft.name", base_skin.label, s =>{
                 s.fontStyle = FontStyle.Bold;
@@ -250,9 +250,10 @@ namespace CraftManager
                 s.fixedWidth = 10f;
                 s.fixedHeight = 10f;
             });
-            define_style("tag.toggle.light.selected", "tag.toggle.light", s =>{
-                s.normal = base_skin.toggle.active;
-            });
+
+//            define_style("tag.toggle.light.selected", "tag.toggle.light", s =>{
+//                s.normal = base_skin.toggle.active;
+//            });
 
             define_style("tag.toggle.label", base_skin.button, s =>{
                 s.normal.background = base_skin.label.normal.background;
@@ -267,6 +268,10 @@ namespace CraftManager
                 s.wordWrap = true;
             });
 
+            define_style("tag.toggle.label.autotag", "tag.toggle.label", s =>{
+                s.fontStyle = FontStyle.Bold;
+            });
+
             define_style("tag.toggle.count", "tag.toggle.label", s =>{
                 s.alignment = TextAnchor.MiddleCenter;
             });
@@ -278,7 +283,7 @@ namespace CraftManager
 
             });
 
-            define_style("tag.section.autotag", "tag.section", s =>{
+            define_style("tag.section.selected", "tag.section", s =>{
                 s.normal.background = textures["light_blue_background"];
             });
 
