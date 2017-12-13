@@ -13,7 +13,7 @@ namespace CraftManager
     [KSPAddon(KSPAddon.Startup.EditorAny, false)]
     public class CMBrowser : CMUI
     {
-        public static int ops_count = 0;
+//        public static int ops_count = 0; //just a test variable
 
         public const string all_saves_ref = "<all_saves>";
 
@@ -58,7 +58,9 @@ namespace CraftManager
         private float save_menu_width = 0; //autoset based on content width
         private float sort_menu_width = 0;
 
-        private string auto_focus_on = null;
+        private string auto_focus_field = null;
+        private CraftData auto_focus_craft = null;
+        private int auto_focus_countdown = 0;
         public bool stock_craft_loaded = false;
         private bool edit_tags = false;
         private bool expand_details = false;
@@ -151,12 +153,24 @@ namespace CraftManager
 //            show();
         }
 
+
+
         protected override void on_show(){            
             stock_craft_loaded = false;
             refresh();
-            auto_focus_on = "main_search_field";
+            auto_focus_field = "main_search_field";
             InputLockManager.SetControlLock(window_id.ToString());
             interface_locked = true;
+            CraftManager.log("current craft path; " + ShipConstruction.GetSavePath(EditorLogic.fetch.ship.shipName));
+
+            //if a craft which matches the name,contruction_type,and save_dir of the currently loaded craft is in the filtered results then mark it to be focused on when the UI opens
+            if(EditorLogic.fetch.ship.shipName.ToLower() != "untitled space craft"){
+                auto_focus_craft = CraftData.filtered.Find(c => 
+                    c.construction_type == EditorDriver.editorFacility.ToString() && c.save_dir == current_save_dir && c.name == EditorLogic.fetch.ship.shipName
+                );
+                auto_focus_countdown = 10;  //delay auto_focs by x passes, to give the list time to be drawn 
+                //(not happy with this but attempting to autofocus right away selects the craft, but doesn't scroll the list to it
+            }
         }
 
         protected override void on_hide(){
@@ -180,14 +194,9 @@ namespace CraftManager
                     draw_right_hand_section(inner_width * col_widths[2]);//Craft details section
                 });
                 draw_bottom_section(window_width);
-                label(ops_count.ToString());
+//                label(ops_count.ToString());
             });
-
-            //When the UI opens set focus on the main search text field, but don't keep setting focus
-            if(!String.IsNullOrEmpty(auto_focus_on)){  
-                GUI.FocusControl(auto_focus_on);
-                auto_focus_on = null;
-            }
+            handle_auto_focus_actions();
         }
 
         protected override void FooterContent(int window_id){
@@ -389,7 +398,6 @@ namespace CraftManager
                                 if(evt.single_click || evt.double_click){
                                     tag_state = !tag_state;
                                 }else if(evt.right_click){
-                                    CraftManager.log("right clicked");
                                     DropdownMenuData menu = new DropdownMenuData(new Dictionary<string, string>{
                                         {"select", tag_state ? "DeSelect" : "Select"}, {"archive", "Exclude"}, {"edit", "Edit"}
                                     });
@@ -716,7 +724,24 @@ namespace CraftManager
             filter_craft();
         }
 
-
+        //if an auto_focus_craft has been set then wait a few passes and then focus on the craft in the list
+        //if no auto_focus_craft is set and an auto_focus_field has been set then focus UI control onto that field
+        protected void handle_auto_focus_actions(){
+            if(auto_focus_craft != null && auto_focus_countdown > 0){
+                if(auto_focus_countdown > 1){
+                    auto_focus_countdown -= 1;
+                } else{
+                    jump_to_craft(CraftData.filtered.IndexOf(auto_focus_craft));
+                    auto_focus_craft = null;
+                }
+            } else{                
+                //When the UI opens set focus on the main search text field, but don't keep setting focus
+                if(!String.IsNullOrEmpty(auto_focus_field)){  
+                    GUI.FocusControl(auto_focus_field);
+                    auto_focus_field = null;
+                }
+            }
+        }
 
 
         //**Dialogs**//
@@ -1076,7 +1101,7 @@ namespace CraftManager
                 //autofocus on textfield/area - the reason for the focous_count countdown is because we only want to focus on the field just after creating the dialog
                 //but one the first (few) passes it doesn't appear to be ready, so this slightly hacky solution keeps setting the focus for first 5 passes.  
                 if(focus_count > 0){
-                    auto_focus_on = "dialog_focus_field";
+                    auto_focus_field = "dialog_focus_field";
                     focus_count--;
                 }
                 //close dialog on OK response

@@ -226,7 +226,6 @@ namespace CraftManager
             });
             define_style("craft.tags", "craft.info", s =>{
                 s.fontSize = 12;
-//                s.normal.textColor = Color.gray;
                 s.margin.top = 0;
             });
             define_style("craft.locked_parts", base_skin.label, s =>{
