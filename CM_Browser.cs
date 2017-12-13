@@ -295,9 +295,6 @@ namespace CraftManager
                             if(craft.name != craft.alt_name){
                                 label("(" + craft.alt_name + ")", "craft.alt_name");
                             }
-                            if(selected_type_count > 1){
-                                label(craft.construction_type, "bold");
-                            }
                             if(active_save_dir != current_save_dir){
                                 fspace();
                                 label("in save: " + craft.save_dir);
@@ -305,8 +302,13 @@ namespace CraftManager
                         });
 
                         section((w) => {
-                            label(craft.part_count + " parts in " + craft.stage_count + " stage" + (craft.stage_count==1 ? "" : "s"), "craft.info", width(w/4f));
-                            label("cost: " + humanize(craft.cost_total), "craft.cost");
+                            label(craft.part_count + " parts in " + craft.stage_count + " stage" + (craft.stage_count==1 ? "" : "s"), "craft.info", width(w/5f));
+                            label("cost: " + humanize(craft.cost_total), "craft.cost", width(w/7f));
+                            if(selected_type_count > 1){
+                                fspace();
+                                label(craft.construction_type=="Subassembly" ? "Sub" : craft.construction_type, "bold.compact");
+                                fspace();
+                            }
                         });
 
                         if(craft.tag_names().Count > 0){
@@ -375,8 +377,6 @@ namespace CraftManager
                             Rect tag_container = section(tag_style, ()=>{
 
                                 int craft_count = CraftData.cache.tag_craft_count_for(tag_name, archived_tag ? "" : tag_filter_mode=="AND" ? "filtered" : "raw_count");
-//                                int craft_count = CraftData.cache.tag_craft_count_for(tag_name, "");
-//                                int craft_count = Tags.craft_count_for(tag_name, "raw_count");
                                 string count_string = "(" + craft_count + ")";
                                 float count_width = skin.button.CalcSize(new GUIContent(count_string)).x;
 
