@@ -278,7 +278,6 @@ namespace CraftManager
                             craft.list_position = item_last_height;
                             craft.list_height = GUILayoutUtility.GetLastRect().height + 5; //+5 for margin
                             item_last_height += craft.list_height;
-
                         }
                     }
                 });
@@ -340,13 +339,29 @@ namespace CraftManager
                 });
 
             }, evt => {
+                
                 if(evt.single_click){
                     GUIUtility.keyboardControl = 0;
                     CraftData.toggle_selected(craft);  
-                }
-                if(evt.double_click){
+                } else if(evt.double_click){
                     CraftData.select_craft(craft);
                     load_craft( craft.construction_type=="Subassembly" ? "subload" : "load");
+                } else if(evt.right_click){
+                    DropdownMenuData menu = new DropdownMenuData(new Dictionary<string, string>{{"rename", "Rename"}, {"transfer", "Transfer"}});
+                    if(save_menu_options.items.Count > 2){menu.items.Add("move_copy", "Move/Copy");}
+                    menu.special_items.Add("delete", "Delete");
+                    menu.special_items_first = false;
+                    Rect offset = new Rect(scroll_relative_pos);
+                    offset.y -= scroll_pos["main"].y + evt.contianer.height - 45;
+                    offset.x = (window_width * col_widths[0]) + (skin.GetStyle("craft.list_container").margin.left * 3 ) ;
+                    gameObject.AddOrGetComponent<Dropdown>().open(evt.contianer, offset, this, menu, 0f, "menu.background", "menu.item.tag_menu", (resp) =>{
+                        switch(resp){
+                            case "rename": rename_craft_dialog(craft);break;
+                            case "transfer": transfer_craft_dialog(craft);break;
+                            case "move_copy": move_copy_craft_dialog(craft);break;
+                            case "delete": delete_craft_dialog(craft);break;
+                        }
+                    });
                 }
             });
         }
@@ -466,8 +481,9 @@ namespace CraftManager
                     if(CraftData.selected_craft == null){
                         label("Select a craft to see info about it", "h1.centered");
                     }else{
-                        GUILayout.Space(6);
+                        GUILayout.Space(5);
                         CraftData craft = CraftData.selected_craft;                        
+                        section(()=>{label(craft.name, "h2");});
                         section(()=>{
                             label("Cost", "bold.compact");
                             label(humanize(craft.cost_total), "compact");
@@ -797,38 +813,38 @@ namespace CraftManager
                 return resp;
             });
         }
-
-        protected void rename_craft_dialog(){
-            CraftData.selected_craft.new_name = CraftData.selected_craft.name;
+        protected void rename_craft_dialog(){ rename_craft_dialog(CraftData.selected_craft); }
+        protected void rename_craft_dialog(CraftData craft){            
+            craft.new_name = craft.name;
             string resp = "";
-            show_dialog("Rename Craft", "rename: " + CraftData.selected_craft.name, d =>{
+            show_dialog("Rename Craft", "rename: " + craft.name, d =>{
                 GUI.SetNextControlName("dialog_focus_field");
-                CraftData.selected_craft.new_name = GUILayout.TextField(CraftData.selected_craft.new_name);
+                craft.new_name = GUILayout.TextField(craft.new_name);
                 section(()=>{
                     fspace();
                     button("Cancel", close_dialog);
-                    resp = submit("Rename", CraftData.selected_craft.rename);
+                    resp = submit("Rename", craft.rename);
                 });
                 return resp;
             });
         }
 
-        protected void delete_craft_dialog(){
+        protected void delete_craft_dialog(){ delete_craft_dialog(CraftData.selected_craft); }
+        protected void delete_craft_dialog(CraftData craft){
             string resp = "";
-            show_dialog("Delete Craft?", "Delete " + CraftData.selected_craft.name + "?\nAre you sure you want to do this?", d =>{                
+            show_dialog("Delete Craft?", "Delete " + craft.name + "?\nAre you sure you want to do this?", d =>{                
                 section(()=>{
                     fspace();
                     button("Cancel", close_dialog);
-                    resp = submit("Delete", "button.delete", CraftData.selected_craft.delete);
+                    resp = submit("Delete", "button.delete", craft.delete);
                 });
                 return resp;
             });
         }
 
-        protected void transfer_craft_dialog(){
+        protected void transfer_craft_dialog(){ transfer_craft_dialog(CraftData.selected_craft); }
+        protected void transfer_craft_dialog(CraftData craft){
             string resp = "";
-            CraftData craft = CraftData.selected_craft;
-
             bool switch_to_editor = false;
             Dictionary<string, EditorFacility> lookup = new Dictionary<string, EditorFacility>{
                 {"SPH", EditorFacility.SPH}, {"VAB",EditorFacility.VAB},{"Subassembly",EditorFacility.None}
@@ -878,9 +894,8 @@ namespace CraftManager
                 return resp;
             });
         }
-
-        protected void move_copy_craft_dialog(){
-            CraftData craft = CraftData.selected_craft;
+        protected void move_copy_craft_dialog(){ move_copy_craft_dialog(CraftData.selected_craft); }
+        protected void move_copy_craft_dialog(CraftData craft){            
             string resp = "";
             string selected_save = "";
 

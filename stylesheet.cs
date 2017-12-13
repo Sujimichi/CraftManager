@@ -351,6 +351,14 @@ namespace CraftManager
                 s.hover.textColor = Color.red;
             });
 
+            define_style("menu.item.craft", "menu.item", s =>{                
+            });
+            define_style("menu.item.craft.special", "menu.item.craft", s =>{
+                s.normal.textColor = Color.red;
+                s.hover.textColor = Color.red;
+            });
+
+
             define_style("dialog.section", base_skin.label, s =>{
                 s.normal.background = textures["dark_background"];
                 s.margin = new RectOffset(0,0,0,8);
