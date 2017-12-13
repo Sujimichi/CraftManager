@@ -13,7 +13,7 @@ namespace CraftManager
     [KSPAddon(KSPAddon.Startup.EditorAny, false)]
     public class CMBrowser : CMUI
     {
-//        public static int ops_count = 0; //just a test variable
+        public static string ops_count = ""; //just a test variable
 
         public const string all_saves_ref = "<all_saves>";
 
@@ -194,7 +194,7 @@ namespace CraftManager
                     draw_right_hand_section(inner_width * col_widths[2]);//Craft details section
                 });
                 draw_bottom_section(window_width);
-//                label(ops_count.ToString());
+//                label(ops_count);
             });
             handle_auto_focus_actions();
         }
@@ -276,7 +276,9 @@ namespace CraftManager
                         //facilitates maintaining focus on list items when using the up/down arrow keys to scroll.
                         if(Event.current.type == EventType.Repaint){
                             craft.list_position = item_last_height;
-                            item_last_height += GUILayoutUtility.GetLastRect().height + 5; //+5 for margin
+                            craft.list_height = GUILayoutUtility.GetLastRect().height + 5; //+5 for margin
+                            item_last_height += craft.list_height;
+
                         }
                     }
                 });
@@ -1201,8 +1203,15 @@ namespace CraftManager
             } else if(index > CraftData.filtered.Count-1){
                 index = CraftData.filtered.Count - 1;
             }
-            CraftData.select_craft(CraftData.filtered[index]);
-            scroll_pos["main"] = new Vector2(scroll_pos["main"].x, CraftData.selected_craft.list_position - (main_section_height*0.4f));
+            CraftData craft = CraftData.filtered[index];
+            if(craft != null){
+                CraftData.select_craft(craft);
+                if(craft.list_position < scroll_pos["main"].y){
+                    scroll_pos["main"] = new Vector2(scroll_pos["main"].x, craft.list_position);
+                } else if(craft.list_position + craft.list_height > scroll_pos["main"].y + main_section_height){
+                    scroll_pos["main"] = new Vector2(scroll_pos["main"].x, craft.list_position - main_section_height + craft.list_height+5);
+                }
+            }
         }
 
     }

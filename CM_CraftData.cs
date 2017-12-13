@@ -242,6 +242,7 @@ namespace CraftManager
 
         public string new_name = "";
         public float list_position = 0;
+        public float list_height = 0;
 
 
 
