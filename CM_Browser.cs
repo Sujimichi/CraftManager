@@ -13,6 +13,8 @@ namespace CraftManager
     [KSPAddon(KSPAddon.Startup.EditorAny, false)]
     public class CMBrowser : CMUI
     {
+        public static int ops_count = 0;
+
         public const string all_saves_ref = "<all_saves>";
 
         private float main_section_height = Screen.height - 400f;
@@ -178,6 +180,7 @@ namespace CraftManager
                     draw_right_hand_section(inner_width * col_widths[2]);//Craft details section
                 });
                 draw_bottom_section(window_width);
+                label(ops_count.ToString());
             });
 
             //When the UI opens set focus on the main search text field, but don't keep setting focus
@@ -371,20 +374,15 @@ namespace CraftManager
                             } 
                             Rect tag_container = section(tag_style, ()=>{
 
-                                if(!CraftData.cache.tag_craft_count.ContainsKey(tag_name)){
-                                    if(archived_tag){
-                                        CraftData.cache.tag_craft_count[tag_name] = Tags.craft_count_for(tag_name,"raw_count");
-                                    }else{
-                                        CraftData.cache.tag_craft_count[tag_name] = Tags.craft_count_for(tag_name,(tag_filter_mode=="AND" ? "filtered" : "raw_count"));
-                                    }
-                                }
-                                int craft_count = CraftData.cache.tag_craft_count[tag_name];
-                                string s = "(" + craft_count + ")";
-                                float w = skin.button.CalcSize(new GUIContent(s)).x;
+                                int craft_count = CraftData.cache.tag_craft_count_for(tag_name, archived_tag ? "" : tag_filter_mode=="AND" ? "filtered" : "raw_count");
+//                                int craft_count = CraftData.cache.tag_craft_count_for(tag_name, "");
+//                                int craft_count = Tags.craft_count_for(tag_name, "raw_count");
+                                string count_string = "(" + craft_count + ")";
+                                float count_width = skin.button.CalcSize(new GUIContent(count_string)).x;
 
                                 tag_state = GUILayout.Toggle(tag_state, "", "tag.toggle.light");
-                                label(tag_name, "tag.toggle.label" + (Tags.instance.autotags_list.Contains(tag_name) ? ".autotag" : ""), scroll_width - w - tag_margin_offset);
-                                label(s, "tag.toggle.count", w);
+                                label(tag_name, "tag.toggle.label" + (Tags.instance.autotags_list.Contains(tag_name) ? ".autotag" : ""), scroll_width - count_width - tag_margin_offset);
+                                label(count_string, "tag.toggle.count", count_width);
                                 
 
                             }, (evt) => {                                
@@ -1008,15 +1006,15 @@ namespace CraftManager
 
         protected void delete_tag_dialog(string tag_name, float top, float left){            
             string resp = "";
-            int craft_count = Tags.craft_count_for(tag_name, all_saves_ref);
+            int craft_count = CraftData.cache.tag_craft_count_for(tag_name);
             show_dialog("Delete Tag", "Are you sure you want to delete this tag?", top, left, 400f, true, d =>{
 
-                if(craft_count > 0){
-                    GUILayout.Label("This tag is used for " + craft_count + " craft.");
-                    label("deleting tags will not delete any craft");
-                }
                 if(active_save_dir == all_saves_ref){
                     label("You are viewing craft from all saves, this tag will be deleted in each of your saves.", "alert.h3");
+                }
+                if(craft_count > 0){
+                    label("This tag is used by " + craft_count + " craft.");
+                    label("deleting tags will not delete any craft", "compact");
                 }
                 section(()=>{
                     fspace();

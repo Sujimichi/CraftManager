@@ -18,7 +18,14 @@ namespace CraftManager
         public List<string> locked_parts = new List<string>();
         public List<string> ignore_fields = new List<string>{"selected_craft", "craft_saved"};
 
-        public Dictionary<string, int> tag_craft_count = new Dictionary<string, int>();
+        public Dictionary<string, int> tag_craft_count_store = new Dictionary<string, int>();
+
+        public int tag_craft_count_for(string lookup, string modifiyer = ""){            
+            if(!tag_craft_count_store.ContainsKey(lookup + "_" + modifiyer)){
+                tag_craft_count_store.Add(lookup + "_" + modifiyer, Tags.craft_count_for(lookup, modifiyer));
+            }
+            return tag_craft_count_store[lookup + "_" + modifiyer];
+        }
 
 
         public CraftDataCache(){

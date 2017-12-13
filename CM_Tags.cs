@@ -21,8 +21,9 @@ namespace CraftManager
         public string rule_comparitor = "";
         public string rule_value = "";
 
-        public List<string> craft{
+        public List<string> craft{            
             get{ 
+                CMBrowser.ops_count += 1;
                 if(rule_based){
                     return rule();
                 }
@@ -103,7 +104,7 @@ namespace CraftManager
 
             List<string> data = new List<string>();
 
-            List<CraftData> found = CraftData.filtered.FindAll(craft => {
+            List<CraftData> found = CraftData.all_craft.FindAll(craft => {
                 var c_attr = craft.GetType().GetProperty(rule_attribute).GetValue(craft, null);
                 float n;
                 bool is_numeric = float.TryParse(c_attr.ToString(), out n);
@@ -161,7 +162,7 @@ namespace CraftManager
 
         public Tags(){
             Tags.instance = this;  
-            Tags.load_tag_info();
+            Tags.load_tag_state_info();
         }
 
 
@@ -330,7 +331,7 @@ namespace CraftManager
             } else{
                 Tags.instance.selected_state[tag_name] = Math.Abs(Tags.instance.selected_state[tag_name]-1);
             }
-            save_tag_info();
+            save_tag_state_info();
         }
 
 
@@ -340,31 +341,9 @@ namespace CraftManager
             } else{
                 Tags.instance.selected_state[tag_name] = 0 - Math.Abs(Math.Abs(Tags.instance.selected_state[tag_name])-1);
             }
-            save_tag_info();
+            save_tag_state_info();
         }
 
-        private static void save_tag_info(){
-            List<string> s = new List<string>();
-            foreach(KeyValuePair<string, int> pair in Tags.instance.selected_state){
-                s.Add(pair.Key + "=" + pair.Value);
-            }
-            CraftManager.settings.set("tag_states", String.Join(", ", s.ToArray()));
-        }
-
-        private static void load_tag_info(){
-            CraftManager.log("Loading tag states");
-            Tags.instance.selected_state.Clear();
-            string tag_states = CraftManager.settings.get("tag_states");
-            CraftManager.log("got: " + tag_states);
-            if(!String.IsNullOrEmpty(tag_states)){
-                string[] data = tag_states.Split(',');
-                foreach(string s in data){
-                    string[] tag_data = s.Split('=');
-                    CraftManager.log("adding tag state " + tag_data[0] + " - " + tag_data[1]);
-                    Tags.instance.selected_state.Add(tag_data[0].Trim(), int.Parse(tag_data[1]));
-                }
-            }
-        }
 
 
         //returns true or false if the given tag_name is selected in the UI
@@ -395,24 +374,49 @@ namespace CraftManager
             return a_tags;
         }
 
+        private static void save_tag_state_info(){
+            List<string> s = new List<string>();
+            foreach(KeyValuePair<string, int> pair in Tags.instance.selected_state){
+                s.Add(pair.Key + "=" + pair.Value);
+            }
+            CraftManager.settings.set("tag_states", String.Join(", ", s.ToArray()));
+        }
+
+        private static void load_tag_state_info(){
+            CraftManager.log("Loading tag states");
+            Tags.instance.selected_state.Clear();
+            string tag_states = CraftManager.settings.get("tag_states");
+            CraftManager.log("got: " + tag_states);
+            if(!String.IsNullOrEmpty(tag_states)){
+                string[] data = tag_states.Split(',');
+                foreach(string s in data){
+                    string[] tag_data = s.Split('=');
+                    CraftManager.log("adding tag state " + tag_data[0] + " - " + tag_data[1]);
+                    Tags.instance.selected_state.Add(tag_data[0].Trim(), int.Parse(tag_data[1]));
+                }
+            }
+        }
 
 
         //returns the number of craft associated with a given tag name. Takes a second optional argument to specify if the count
         //is for all loaded craft ("<all_saves>"), or limited to the search results ("filtered")
-        public static int craft_count_for(string tag_name, string mode = CMBrowser.all_saves_ref){
+        public static int craft_count_for(string tag_name, string mode = ""){
             List<Tag> tags = Tags.find_all(tag_name);
             int count = 0;
             if(mode == "filtered"){
+                CraftManager.log("count filtered mode");
                 foreach(Tag tag in tags){                    
                     count += CraftData.filtered.FindAll(c => tag.save_dir == c.save_dir && tag.craft.Contains(Tags.craft_reference_key(c))).Count;
                 }
             } else if(mode == "raw_count"){
+                CraftManager.log("count raw mode");
                 foreach(Tag tag in tags){                    
                     count += tag.craft.Count;
                 }
             } else {
+                CraftManager.log("count all mode");
                 foreach(Tag tag in tags){                    
-                    count += CraftData.all_craft.FindAll(c => tag.save_dir==c.save_dir && tag.craft.Contains(Tags.craft_reference_key(c))).Count;
+                    count += CraftData.all_craft.FindAll(c => tag.save_dir == c.save_dir && tag.craft.Contains(Tags.craft_reference_key(c))).Count;
                 }
             }
             return count;
@@ -442,7 +446,7 @@ namespace CraftManager
 
 
             if(CraftData.cache != null){
-                CraftData.cache.tag_craft_count.Clear();
+                CraftData.cache.tag_craft_count_store.Clear();
             }
             foreach(CraftData craft in CraftData.all_craft){
                 craft.tag_name_cache = null;
