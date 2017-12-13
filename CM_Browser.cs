@@ -354,12 +354,12 @@ namespace CraftManager
                     Rect offset = new Rect(scroll_relative_pos);
                     offset.y -= scroll_pos["main"].y + evt.contianer.height - 45;
                     offset.x = (window_width * col_widths[0]) + (skin.GetStyle("craft.list_container").margin.left * 3 ) ;
-                    gameObject.AddOrGetComponent<Dropdown>().open(evt.contianer, offset, this, menu, 0f, "menu.background", "menu.item.tag_menu", (resp) =>{
+                    gameObject.AddOrGetComponent<Dropdown>().open(evt.contianer, offset, this, menu, 0f, "menu.background", "menu.item.craft", (resp) =>{
                         switch(resp){
-                            case "rename": rename_craft_dialog(craft);break;
-                            case "transfer": transfer_craft_dialog(craft);break;
+                            case "rename"   : rename_craft_dialog(craft);break;
+                            case "transfer" : transfer_craft_dialog(craft);break;
                             case "move_copy": move_copy_craft_dialog(craft);break;
-                            case "delete": delete_craft_dialog(craft);break;
+                            case "delete"   : delete_craft_dialog(craft);break;
                         }
                     });
                 }
@@ -422,23 +422,13 @@ namespace CraftManager
                                     menu.special_items_first = false;
                                     Rect offset = new Rect(scroll_relative_pos);
                                     offset.y -= scroll_pos["lhs"].y + evt.contianer.height - 45;
-                                    gameObject.AddOrGetComponent<Dropdown>().open(evt.contianer, offset, this, menu, 0f, "menu.background", "menu.item.tag_menu", (resp) =>{
-                                        if(resp == "select"){
-                                            Tags.toggle_active(tag_name);
-                                            filter_craft();                                    
-                                        }else if(resp == "archive"){
-                                            Tags.toggle_archive(tag_name);
-                                            filter_craft();                                    
-                                        }else if(resp == "edit"){
-                                            edit_tag_dialog(tag_name, 
-                                                evt.contianer.y + window_pos.y + scroll_relative_pos.y - scroll_pos["lhs"].y + 80, 
-                                                evt.contianer.x + window_pos.x + evt.contianer.width
-                                            );
-                                        }else if(resp == "delete"){
-                                            delete_tag_dialog(tag_name, 
-                                                evt.contianer.y + window_pos.y + scroll_relative_pos.y - scroll_pos["lhs"].y + 80, 
-                                                evt.contianer.x + window_pos.x + evt.contianer.width
-                                            );
+                                    gameObject.AddOrGetComponent<Dropdown>().open(evt.contianer, offset, this, menu, 0f, "menu.background", "menu.item.tag_menu", (resp) =>{                                        
+                                        Vector2 pos = new Vector2(evt.contianer.x + window_pos.x + evt.contianer.width, evt.contianer.y + window_pos.y + scroll_relative_pos.y - scroll_pos["lhs"].y + 80);
+                                        switch(resp){
+                                            case "select" : Tags.toggle_active(tag_name);break;
+                                            case "archive": Tags.toggle_archive(tag_name);break;
+                                            case "edit"   : edit_tag_dialog(tag_name, pos.y, pos.x);break;
+                                            case "delete" : delete_tag_dialog(tag_name, pos.y, pos.x);break;
                                         }
                                     });
                                 }
@@ -616,7 +606,7 @@ namespace CraftManager
 
         //Collect currently active filters into a Dictionary<string, object> which is then be passed to 
         //filter_craft on CraftData (which does the actual filtering work).
-        private void filter_craft(){
+        public void filter_craft(){
             if(!exclude_stock_craft && !stock_craft_loaded){ //load stock craft if they've not yet been loaded and option to exclude stock is switched off.
                 CraftData.load_stock_craft_from_files();
             }

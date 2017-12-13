@@ -331,6 +331,7 @@ namespace CraftManager
                 Tags.instance.selected_state[tag_name] = Math.Abs(Tags.instance.selected_state[tag_name]-1);
             }
             save_tag_state_info();
+            CraftManager.main_ui.filter_craft();
         }
 
 
@@ -341,6 +342,7 @@ namespace CraftManager
                 Tags.instance.selected_state[tag_name] = 0 - Math.Abs(Math.Abs(Tags.instance.selected_state[tag_name])-1);
             }
             save_tag_state_info();
+            CraftManager.main_ui.filter_craft();
         }
 
 
