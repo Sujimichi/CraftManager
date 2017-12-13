@@ -508,10 +508,11 @@ namespace CraftManager
                         });
 
                         GUILayout.Space(15);
-
                         section(() => {
                             button("transfer", transfer_craft_dialog);
-                            button("move/copy", move_copy_craft_dialog);
+                            if(save_menu_options.items.Count > 2){
+                                button("move/copy", move_copy_craft_dialog);
+                            }
                         });
                         section(() => {
                             button("rename", rename_craft_dialog);
@@ -885,8 +886,11 @@ namespace CraftManager
 
             DropdownMenuData move_copy_save_menu = new DropdownMenuData(new Dictionary<string, string>(save_menu_options.items));
             List<string> keys = new List<string>(move_copy_save_menu.items.Keys);
-            string key = keys.Find(k => (k.Equals(craft.save_dir) || k.Equals("Current Save (" + craft.save_dir + ")")));
-            move_copy_save_menu.items.Remove(key);
+//            string key = keys.Find(k => (k.Equals(craft.save_dir) || k.Equals("Current Save (" + craft.save_dir + ")")));
+            List<string> rem_keys = keys.FindAll(k => k.Contains(craft.save_dir) );
+            foreach(string key in rem_keys){                
+                move_copy_save_menu.items.Remove(key);
+            }
             move_copy_save_menu.items.Remove(all_saves_ref);
             Rect d_offset = new Rect();
 
