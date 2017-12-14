@@ -79,7 +79,7 @@ namespace CraftManager
             define_style("h3", "h1", s =>{
                 s.fontSize = 15;
             });
-            define_style("h1.centered", "h2", s =>{
+            define_style("h1.centered", "h1", s =>{
                 s.alignment = TextAnchor.LowerCenter;
             });
             define_style("h2.centered", "h2", s =>{
@@ -90,6 +90,9 @@ namespace CraftManager
             });
             define_style("small", base_skin.label, s =>{
                 s.fontSize = 12;
+            });
+            define_style("centered", base_skin.label, s =>{
+                s.alignment = TextAnchor.LowerCenter;
             });
 
             define_style("compact", base_skin.label, s =>{

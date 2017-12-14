@@ -199,7 +199,14 @@ namespace CraftManager
                     draw_right_hand_section(inner_width * col_widths_current[2]);//Craft details section
                     if(kerbalx_mode_ready){
                         v_section((col_widths_default[0] + col_widths_default[1]) * inner_width, section_width => {
-                            label("Upload to KerbalX", "h1");
+                            GUILayout.Space(20f);
+                            label("Upload to KerbalX", "h1.centered", section_width);
+                            GUILayout.Space(30f);
+                            label("Feature Comming Soon(tm)", "h2.centered", section_width);
+                            GUILayout.Space(30f);
+                            label("This will be an Optional feature and will enable Craft Manager to upload/update your craft on KerbalX.com.\nYou will also be able to fetch craft from KerbalX all through the Craft Manager interface", "centered", section_width);
+
+
                         });
                     }
                 });
@@ -207,6 +214,10 @@ namespace CraftManager
 //                label(ops_count);
             });
             handle_auto_focus_actions();
+
+            if(CraftData.selected_craft == null){
+                open_kerbalx_mode = false;
+            }
 
             if(open_kerbalx_mode){
                 show_headers = false;
