@@ -19,7 +19,8 @@ namespace CraftManager
 
         private float main_section_height = Screen.height - 400f;
         private float window_width  = 1000f;
-        private float[] col_widths = new float[]{0.2f,0.55f,0.25f};
+        private float[] col_widths_default = new float[]{0.2f,0.55f,0.25f};
+        private float[] col_widths_current = new float[]{0.2f,0.55f,0.25f};
 
 
         private string current_save_dir = HighLogic.SaveFolder; //The dir of save which is currently being played
@@ -177,7 +178,9 @@ namespace CraftManager
             close_dialog(); //incase any dialogs have been left open
         }
 
-
+        protected bool open_kerbalx_mode = false;
+        protected bool show_headers = true;
+        protected bool kerbalx_mode_ready = false;
         //**Main GUI**//
 
         //Main GUI draw method (called by onGUI, see DryUI in KatLib).  Broken up into smaller sections to ease digestion and help prevent heart burn.
@@ -189,14 +192,45 @@ namespace CraftManager
                 GUILayout.Space(10);
                 scroll_relative_pos = GUILayoutUtility.GetLastRect();
                 section(window_width, inner_width =>{
-                    draw_left_hand_section(inner_width * col_widths[0]); //Tag list section
-                    draw_main_section(inner_width * col_widths[1]);      //Main craft list
-                    draw_right_hand_section(inner_width * col_widths[2]);//Craft details section
+                    if(!kerbalx_mode_ready){
+                        draw_left_hand_section(inner_width * col_widths_current[0]); //Tag list section
+                        draw_main_section(inner_width * col_widths_current[1]);      //Main craft list
+                    }
+                    draw_right_hand_section(inner_width * col_widths_current[2]);//Craft details section
+                    if(kerbalx_mode_ready){
+                        v_section((col_widths_default[0] + col_widths_default[1]) * inner_width, section_width => {
+                            label("Upload to KerbalX", "h1");
+                        });
+                    }
                 });
                 draw_bottom_section(window_width);
 //                label(ops_count);
             });
             handle_auto_focus_actions();
+
+            if(open_kerbalx_mode){
+                show_headers = false;
+                if(col_widths_current[0] > 0){
+                    col_widths_current[0] -= 0.02f;
+                }
+                if(col_widths_current[1] > 0){
+                    col_widths_current[1] -= 0.02f;                    
+                } else{
+                    kerbalx_mode_ready = true;
+                }
+            } else if(!open_kerbalx_mode){
+                kerbalx_mode_ready = false;
+                if(col_widths_current[0] < col_widths_default[0]){
+                    col_widths_current[0] += 0.02f;
+                }
+                if(col_widths_current[1] < col_widths_default[1]){
+                    col_widths_current[1] += 0.02f;                    
+                } else{
+                    show_headers = true;
+                    col_widths_current[0] = col_widths_default[0];
+                    col_widths_current[1] = col_widths_default[1];
+                }
+            }
         }
 
         protected override void FooterContent(int window_id){
@@ -251,20 +285,26 @@ namespace CraftManager
         float item_last_height = 0;
         Rect craft_scroll_section = new Rect();
         protected void draw_main_section(float section_width){
-            v_section(section_width, (inner_width)=>{
+            v_section(section_width, main_section_height, false, (inner_width)=>{
 
                 //sort menu
-                section((w)=>{
-                    label("Showing " + CraftData.filtered.Count + " out of " + CraftData.all_craft.Count + " Craft", "h2");
-                    fspace();
-                    if(sort_menu_width == 0){ //calculate the initial sort menu button width. should only happen on the first pass
-                        sort_menu_width = GUI.skin.button.CalcSize(new GUIContent("Sort: " + sort_options.items[sort_opt])).x;
-                    }
-                    //render dropdown menu of sort options
-                    sort_options.selected_item = sort_opt;
-                    dropdown("Sort: " + sort_options.items[sort_opt], "sort_menu", sort_options, this, sort_menu_width, "button.tight", select_sort_option);
-                    button((reverse_sort ? "/\\" : "\\/"), "button.tight.right_margin", 22f, toggle_reverse_sort); //TODO replace with proper icons.
-                });
+                if(show_headers){
+                    section((w)=>{
+                        label("Showing " + CraftData.filtered.Count + " out of " + CraftData.all_craft.Count + " Craft", "h2");
+                        fspace();
+                        if(sort_menu_width == 0){ //calculate the initial sort menu button width. should only happen on the first pass
+                            sort_menu_width = GUI.skin.button.CalcSize(new GUIContent("Sort: " + sort_options.items[sort_opt])).x;
+                        }
+                        //render dropdown menu of sort options
+                        sort_options.selected_item = sort_opt;
+                        dropdown("Sort: " + sort_options.items[sort_opt], "sort_menu", sort_options, this, sort_menu_width, "button.tight", select_sort_option);
+                        button((reverse_sort ? "/\\" : "\\/"), "button.tight.right_margin", 22f, toggle_reverse_sort); //TODO replace with proper icons.
+                    });
+                }else{
+                    v_section(()=>{
+                        GUILayout.Space(35f);
+                    });
+                }
 
                 //Main craft list scrolling section
                 scroll_pos["main"] = scroll(scroll_pos["main"], "craft.list_container", inner_width, main_section_height, craft_list_width => {
@@ -353,7 +393,7 @@ namespace CraftManager
                     menu.special_items_first = false;
                     Rect offset = new Rect(scroll_relative_pos);
                     offset.y -= scroll_pos["main"].y + evt.contianer.height - 45;
-                    offset.x = (window_width * col_widths[0]) + (skin.GetStyle("craft.list_container").margin.left * 3 ) ;
+                    offset.x = (window_width * col_widths_current[0]) + (skin.GetStyle("craft.list_container").margin.left * 3 ) ;
                     gameObject.AddOrGetComponent<Dropdown>().open(evt.contianer, offset, this, menu, 0f, "menu.background", "menu.item.craft", (resp) =>{
                         switch(resp){
                             case "rename"   : rename_craft_dialog(craft);break;
@@ -379,13 +419,19 @@ namespace CraftManager
                 tag_margin_offset+=20f;
             }
 
-            v_section(section_width, (inner_width) =>{
-                section(()=>{
-                    label("Tags", "h2");
-                    fspace();
-                    tag_sort_options.selected_item = tag_sort_by;
-                    dropdown("Sort", "tag_sort_menu", tag_sort_options, this, 50f, change_tag_sort);
-                });
+            v_section(section_width, main_section_height, false, (inner_width) =>{
+                if(show_headers){
+                    section(()=>{
+                        label("Tags", "h2");
+                        fspace();
+                        tag_sort_options.selected_item = tag_sort_by;
+                        dropdown("Sort", "tag_sort_menu", tag_sort_options, this, 50f, change_tag_sort);
+                    });
+                }else{
+                    v_section(()=>{
+                        GUILayout.Space(35f);
+                    });
+                }
 
                 v_section(inner_width, "tags.list_outer", (tag_list_width) => {                    
                     scroll_pos["lhs"] = scroll(scroll_pos["lhs"], "side_panel.scroll.tags", inner_width, tag_scroll_height, scroll_width => {
@@ -445,13 +491,15 @@ namespace CraftManager
                         }
                     });
 
-                    section(tag_list_width, 40f, ()=>{       
-                        tag_filter_modes.selected_item = tag_filter_mode;
-                        dropdown("Mode", "tag_filter_mode_menu", tag_filter_modes, this, 50f, change_tag_filter_mode);
-                        fspace();
-//                        edit_tags = GUILayout.Toggle(edit_tags, "edit", "button", width(40f) );
-                        button("+", 30f, create_tag_dialog);
-                    });
+                    if(show_headers){
+                        section(tag_list_width, 40f, ()=>{       
+                            tag_filter_modes.selected_item = tag_filter_mode;
+                            dropdown("Mode", "tag_filter_mode_menu", tag_filter_modes, this, 50f, change_tag_filter_mode);
+                            fspace();
+    //                        edit_tags = GUILayout.Toggle(edit_tags, "edit", "button", width(40f) );
+                            button("+", 30f, create_tag_dialog);
+                        });
+                    }
                 });
 
 
@@ -460,6 +508,7 @@ namespace CraftManager
                 last_tag_content_height = tag_content_height-2;
             }
         }
+
 
 
         //Right Hand Section: Craft Details
@@ -514,15 +563,27 @@ namespace CraftManager
                         });
 
                         GUILayout.Space(15);
-                        section(() => {
-                            button("transfer", transfer_craft_dialog);
-                            if(save_menu_options.items.Count > 2){
-                                button("move/copy", move_copy_craft_dialog);
-                            }
+
+                        gui_state(!kerbalx_mode_ready, ()=>{
+                            section(() => {
+                                button("transfer", transfer_craft_dialog);
+                                if(save_menu_options.items.Count > 2){
+                                    button("move/copy", move_copy_craft_dialog);
+                                }
+                            });
+                            section(() => {
+                                button("rename", rename_craft_dialog);
+                                button("delete", "button.delete", delete_craft_dialog);
+                            });
                         });
-                        section(() => {
-                            button("rename", rename_craft_dialog);
-                            button("delete", "button.delete", delete_craft_dialog);
+                        section(()=>{
+                            button("Share on KerbalX", ()=>{
+                                if(open_kerbalx_mode){
+                                    open_kerbalx_mode = false;
+                                }else{
+                                    open_kerbalx_mode = true;
+                                }
+                            });
                         });
 
                         GUILayout.Space(15);
@@ -530,7 +591,7 @@ namespace CraftManager
                         section(() =>{
                             label("Tags", "h2");
                             fspace();
-                            scroll_relative_pos.x += (window_pos.width * (col_widths[0]+col_widths[1])) - 5f;
+                            scroll_relative_pos.x += (window_pos.width * (col_widths_current[0]+col_widths_current[1])) - 5f;
                             scroll_relative_pos.y += 45f - scroll_pos["rhs"].y;
                           
                             tags_menu_content.selected_items = craft.tag_names();
@@ -929,7 +990,7 @@ namespace CraftManager
         protected void create_tag_dialog(){create_tag_dialog(true, null);}
         protected void create_tag_dialog(bool show_rule_opts = true, CraftData auto_add_craft = null){
             float top = scroll_relative_pos.y + main_section_height - 50;
-            float left = scroll_relative_pos.x + window_width * col_widths[0];
+            float left = scroll_relative_pos.x + window_width * col_widths_current[0];
             string save_dir_for_tag = active_save_dir;
             if(save_dir_for_tag == all_saves_ref){
                 save_dir_for_tag = current_save_dir;
