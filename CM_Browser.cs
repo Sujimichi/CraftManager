@@ -679,8 +679,6 @@ namespace CraftManager
         }
 
 
-
-
         //**Helpers**//
 
         //Collect currently active filters into a Dictionary<string, object> which is then be passed to 
@@ -1005,10 +1003,15 @@ namespace CraftManager
         }
 
         //Call Create Tag Dialog (using tag_dialog_form)
-        protected void create_tag_dialog(){create_tag_dialog(true, null);}
-        protected void create_tag_dialog(bool show_rule_opts = true, CraftData auto_add_craft = null){
-            float top = scroll_relative_pos.y + main_section_height - 50;
-            float left = scroll_relative_pos.x + window_width * col_widths_current[0];
+        protected void create_tag_dialog(){create_tag_dialog(true, null, true);}
+        protected void create_tag_dialog(bool show_rule_opts = true, CraftData auto_add_craft = null, bool autopos = false){
+            float top = this.window_pos.y + (this.window_pos.height*0.4f);
+            float left = this.window_pos.x + (this.window_pos.width/2) - (200f);
+            if(autopos){
+                top = this.window_pos.y + scroll_relative_pos.y + main_section_height - 135f;
+                left = this.window_pos.x + scroll_relative_pos.x + (col_widths_current[0] * window_width) - 400f;
+            }
+
             string save_dir_for_tag = active_save_dir;
             if(save_dir_for_tag == all_saves_ref){
                 save_dir_for_tag = current_save_dir;
