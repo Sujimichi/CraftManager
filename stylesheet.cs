@@ -28,7 +28,10 @@ namespace CraftManager
             { "caret-down-green",GameDatabase.Instance.GetTexture(Paths.joined("CraftManager", "Assets", "caret-down-green"), false) },
             { "caret-down-green-hover",GameDatabase.Instance.GetTexture(Paths.joined("CraftManager", "Assets", "caret-down-green-hover"), false) },
             { "arrow-down",GameDatabase.Instance.GetTexture(Paths.joined("CraftManager", "Assets", "arrow-down"), false) },
-            { "arrow-up",GameDatabase.Instance.GetTexture(Paths.joined("CraftManager", "Assets", "arrow-up"), false) }
+            { "arrow-up",GameDatabase.Instance.GetTexture(Paths.joined("CraftManager", "Assets", "arrow-up"), false) },
+            { "tags",GameDatabase.Instance.GetTexture(Paths.joined("CraftManager", "Assets", "tags"), false) },
+
+
 
         };
 

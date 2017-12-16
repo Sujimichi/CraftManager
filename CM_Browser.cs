@@ -122,7 +122,7 @@ namespace CraftManager
             window_title = "Craft Manager";
             window_pos = new Rect((Screen.width/2) - (window_width/2) + 100, 80, window_width, main_section_height);
             visible = false;
-//            draggable = false;
+            draggable = false;
             footer = false;
             prevent_click_through = false; //disable the standard click through prevention. show and hide will add control locks which are not based on mouse pos.
 
@@ -435,6 +435,7 @@ namespace CraftManager
                 if(show_headers){
                     section(()=>{
                         label("Tags", "h2");
+                        label(StyleSheet.assets["tags"], 28f, 28f);
                         fspace();
                         tag_sort_options.selected_item = tag_sort_by;
                         dropdown("Sort", "tag_sort_menu", tag_sort_options, this, 50f, change_tag_sort);

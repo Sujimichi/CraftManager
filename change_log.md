@@ -1,4 +1,8 @@
 #### Change Log
+0.0.3
+- fixed new tag dialog positioning
+- added some icons for menus/buttons
+- experimental interface transition for KerbalX upload interface
 
 0.0.2
 - UI restyle.
