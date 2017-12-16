@@ -253,7 +253,7 @@ namespace CraftManager
 
         //GUI Top Section
         protected void draw_top_section(float section_width){
-            section(() =>{
+            section((w) =>{
                 //SPH, VAB, Subs select buttons
                 section(400, () =>{
                     foreach(string opt in selected_type_keys){
@@ -262,11 +262,12 @@ namespace CraftManager
                     button("All", "craft_type_Sel", 30f, type_select_all);
                 });
                 fspace();
-                if(save_menu_width == 0){
+
+                if(save_menu_width == 0){               
                     save_menu_width = GUI.skin.button.CalcSize(new GUIContent("Save: " + active_save_dir)).x;
                 }
                 save_menu_options.selected_item = active_save_dir;
-                dropdown("Save: " + (active_save_dir==all_saves_ref ? "All Saves" : active_save_dir), "save_menu", save_menu_options, this, save_menu_width, change_save);
+                dropdown("Save: " + (active_save_dir==all_saves_ref ? "All Saves" : active_save_dir), StyleSheet.assets["caret-down"], "save_menu", save_menu_options, this, save_menu_width, change_save);
             });
             section(() =>{
                 label("Search Craft:", "h2");
@@ -309,7 +310,7 @@ namespace CraftManager
                         //render dropdown menu of sort options
                         sort_options.selected_item = sort_opt;
                         dropdown("Sort: " + sort_options.items[sort_opt], "sort_menu", sort_options, this, sort_menu_width, "button.tight", select_sort_option);
-                        button((reverse_sort ? "/\\" : "\\/"), "button.tight.right_margin", 22f, toggle_reverse_sort); //TODO replace with proper icons.
+                        button(StyleSheet.assets[reverse_sort ? "arrow-up" : "arrow-down"], "button.tight.right_margin", 28f, 28f, toggle_reverse_sort); 
                     });
                 }else{
                     v_section(()=>{
@@ -404,7 +405,7 @@ namespace CraftManager
                     menu.special_items_first = false;
                     Rect offset = new Rect(scroll_relative_pos);
                     offset.y -= scroll_pos["main"].y + evt.contianer.height - 45;
-                    offset.x = (window_width * col_widths_current[0]) + (skin.GetStyle("craft.list_container").margin.left * 3 ) ;
+                    offset.x = (window_width * col_widths_current[0]) + (skin.GetStyle("craft.list_container").margin.left * 3 ) + 5;
                     gameObject.AddOrGetComponent<Dropdown>().open(evt.contianer, offset, this, menu, 0f, "menu.background", "menu.item.craft", (resp) =>{
                         switch(resp){
                             case "rename"   : rename_craft_dialog(craft);break;
@@ -479,6 +480,7 @@ namespace CraftManager
                                     menu.special_items_first = false;
                                     Rect offset = new Rect(scroll_relative_pos);
                                     offset.y -= scroll_pos["lhs"].y + evt.contianer.height - 45;
+                                    offset.x += 5;
                                     gameObject.AddOrGetComponent<Dropdown>().open(evt.contianer, offset, this, menu, 0f, "menu.background", "menu.item.tag_menu", (resp) =>{                                        
                                         Vector2 pos = new Vector2(evt.contianer.x + window_pos.x + evt.contianer.width, evt.contianer.y + window_pos.y + scroll_relative_pos.y - scroll_pos["lhs"].y + 80);
                                         switch(resp){
@@ -529,7 +531,8 @@ namespace CraftManager
 
                 scroll_pos["rhs"] = scroll(scroll_pos["rhs"], "side_panel.scroll", inner_width, main_section_height, scroll_width => {
                     if(CraftData.selected_craft == null){
-                        label("Select a craft to see info about it", "h1.centered");
+                        GUILayout.Space(25);
+                        label("Select a craft to see info about it..", "h2.centered");
                     }else{
                         GUILayout.Space(5);
                         CraftData craft = CraftData.selected_craft;                        
@@ -599,14 +602,14 @@ namespace CraftManager
 
                         GUILayout.Space(15);
 
-                        section(() =>{
+                        section((w) =>{
                             label("Tags", "h2");
                             fspace();
                             scroll_relative_pos.x += (window_pos.width * (col_widths_current[0]+col_widths_current[1])) - 5f;
                             scroll_relative_pos.y += 45f - scroll_pos["rhs"].y;
                           
                             tags_menu_content.selected_items = craft.tag_names();
-                            dropdown("Add Tag", "add_tag_menu", tags_menu_content, this, scroll_relative_pos, 70f, "Button", "menu.background", "menu.item.small", resp => {
+                            dropdown("Add Tag", StyleSheet.assets["caret-down"], "add_tag_menu", tags_menu_content, this, scroll_relative_pos, 70f, "Button", "menu.background", "menu.item.small", resp => {
                                 if(resp == "new_tag"){
                                     create_tag_dialog(false, craft);
                                 }else{
@@ -647,7 +650,7 @@ namespace CraftManager
 
         //Botton Section: Load buttons
         protected void draw_bottom_section(float section_width){
-            section(() =>{
+            section((w) =>{
                 fspace();
                 gui_state(CraftData.selected_craft != null, ()=>{                    
                     load_button_text = "Load";
@@ -660,7 +663,11 @@ namespace CraftManager
                     }
                     
                     button(load_button_text, "button.load", load_button_width, ()=>{ load_craft(load_button_action);});
-                    dropdown("\\/", "load_menu", (load_button_action=="subload" ? load_menu_options_submode : load_menu_options_default), this, 30f, "button.load", "menu.background", "menu.item", resp => {
+                    Texture arrow = StyleSheet.assets["caret-down-green"];
+                    if(anchors.ContainsKey("load_menu") && anchors["load_menu"].Contains(Event.current.mousePosition)){
+                        arrow = StyleSheet.assets["caret-down-green-hover"];
+                    }
+                    dropdown(arrow, "load_menu", (load_button_action=="subload" ? load_menu_options_submode : load_menu_options_default), this, 42f, "button.load", "menu.background", "menu.item", resp => {                    
                         load_craft(resp);
                     });
                 });

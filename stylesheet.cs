@@ -22,7 +22,14 @@ namespace CraftManager
             { "ui_toolbar_btn_hover",   GameDatabase.Instance.GetTexture(Paths.joined("CraftManager", "Assets", "cm_ui_hover"), false) },
             { "SPH_placeholder",        GameDatabase.Instance.GetTexture(Paths.joined("CraftManager", "Assets", "SPH_placeholder"), false) },
             { "VAB_placeholder",        GameDatabase.Instance.GetTexture(Paths.joined("CraftManager", "Assets", "VAB_placeholder"), false) },
-            { "Subassembly_placeholder",GameDatabase.Instance.GetTexture(Paths.joined("CraftManager", "Assets", "SUB_placeholder"), false) }
+            { "Subassembly_placeholder",GameDatabase.Instance.GetTexture(Paths.joined("CraftManager", "Assets", "SUB_placeholder"), false) },
+            { "caret-down",GameDatabase.Instance.GetTexture(Paths.joined("CraftManager", "Assets", "caret-down"), false) },
+            { "caret-up",GameDatabase.Instance.GetTexture(Paths.joined("CraftManager", "Assets", "caret-up"), false) },
+            { "caret-down-green",GameDatabase.Instance.GetTexture(Paths.joined("CraftManager", "Assets", "caret-down-green"), false) },
+            { "caret-down-green-hover",GameDatabase.Instance.GetTexture(Paths.joined("CraftManager", "Assets", "caret-down-green-hover"), false) },
+            { "arrow-down",GameDatabase.Instance.GetTexture(Paths.joined("CraftManager", "Assets", "arrow-down"), false) },
+            { "arrow-up",GameDatabase.Instance.GetTexture(Paths.joined("CraftManager", "Assets", "arrow-up"), false) }
+
         };
 
         public GUISkin skin;
@@ -144,6 +151,14 @@ namespace CraftManager
             });
             define_style("button.tight.right_margin", "button.tight", s =>{                
                 s.margin.right = base_skin.button.margin.right;
+            });
+            define_style("button.text", base_skin.label, s =>{
+                s.normal.textColor = base_skin.button.normal.textColor;
+                s.fontStyle = FontStyle.Bold;
+                s.margin.left = 10;
+                s.margin.top = 0;
+                s.margin.bottom = 0;
+                s.padding = new RectOffset(0,0,0,0);
             });
 
             define_style("button.delete", base_skin.button, s =>{
