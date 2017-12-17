@@ -32,7 +32,7 @@ using System.Collections.Generic;
 
 using UnityEngine;
 using KSP.UI.Screens;
-
+using SimpleJSON;
 using KatLib;
 
 namespace CraftManager
@@ -41,9 +41,13 @@ namespace CraftManager
     [KSPAddon(KSPAddon.Startup.MainMenu, false)]
     public class CraftManager : MonoBehaviour
     {
+
+        public static string version = "0.0.4";
+
         //Settings
         internal static CMSettings settings;
         //These will have values set when new CMsettings is called in Awake
+        internal static bool kerbalx_integration_enabled;
         internal static bool use_stock_toolbar;
         internal static bool replace_editor_load_button;
         internal static bool use_editor_key_shortcuts;
@@ -55,14 +59,17 @@ namespace CraftManager
         //Toolbar Buttons
         internal static ApplicationLauncherButton main_ui_toolbar_button   = null;
 
-        //Helpers
-        public static string ksp_root = Directory.GetParent(KSPUtil.ApplicationRootPath).FullName;
-
         //StyleSheet (initialised on first call to OnGUI)
         internal static GUISkin skin = null;
 
+        //other
+        public static string ksp_root = Directory.GetParent(KSPUtil.ApplicationRootPath).FullName;
+        public static string status_info = "";
+        
 
         private void Awake(){
+            KerbalXAPI.client_version = CraftManager.version;
+            KerbalXAPI.client = "KerbalXMod"; //TODO this needs to be changed
             settings = new CMSettings();
             if(CraftManager.use_stock_toolbar){
                 GameEvents.onGUIApplicationLauncherReady.Add(add_to_toolbar);
@@ -79,6 +86,25 @@ namespace CraftManager
             }
         }
 
+
+        //Check if Token file exists and if so authenticate it with KerbalX. Otherwise instruct login window to display login fields.
+        internal static void load_and_authenticate_token(){
+            //            KerbalX.login_gui.enable_login = false;
+            CraftManager.log("logging in....");
+            KerbalXAPI.load_and_authenticate_token((resp, code) =>{
+                //                var resp_data = JSON.Parse(resp);
+                if(code == 200){                    
+                    CraftManager.log("Logged in");
+                    //                    KerbalX.login_gui.after_login_action();
+                    //                    KerbalX.login_gui.show_upgrade_available_message(resp_data["update_available"]); //triggers display of update available message if the passed string is not empty
+                }else{
+                    CraftManager.log("NOT Logged");
+                }
+                CraftManager.log(resp);
+                //                KerbalX.login_gui.enable_login = true;
+                //                KerbalX.login_gui.autoheight();
+            });
+        }
 
 
         //Bind events to add buttons to the toolbar

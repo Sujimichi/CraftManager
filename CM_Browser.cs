@@ -126,6 +126,16 @@ namespace CraftManager
             footer = false;
             prevent_click_through = false; //disable the standard click through prevention. show and hide will add control locks which are not based on mouse pos.
 
+
+            if(CraftManager.kerbalx_integration_enabled){
+                enable_request_handler();
+                if(KerbalXAPI.logged_out()){ //TODO this is a temp test thing, remove.
+                    CraftManager.load_and_authenticate_token();   
+                }
+                KerbalX.fetch_existing_craft();
+            }
+
+
             EditorLogic.fetch.saveBtn.onClick.AddListener(on_save_click); //settup click event on the stock save button.
             //override existing ations on stock load button and replace with call to toggle CM's UI.
             if(CraftManager.replace_editor_load_button){
@@ -172,6 +182,8 @@ namespace CraftManager
                 auto_focus_countdown = 10;  //delay auto_focs by x passes, to give the list time to be drawn 
                 //(not happy with this but attempting to autofocus right away selects the craft, but doesn't scroll the list to it
             }
+
+
         }
 
         protected override void on_hide(){
@@ -205,13 +217,10 @@ namespace CraftManager
                             label("Feature Comming Soon(tm)", "h2.centered", section_width);
                             GUILayout.Space(30f);
                             label("This will be an Optional feature and will enable Craft Manager to upload/update your craft on KerbalX.com.\nYou will also be able to fetch craft from KerbalX all through the Craft Manager interface", "centered", section_width);
-
-
                         });
                     }
                 });
                 draw_bottom_section(window_width);
-//                label(ops_count);
             });
             handle_auto_focus_actions();
 
@@ -652,6 +661,7 @@ namespace CraftManager
         //Botton Section: Load buttons
         protected void draw_bottom_section(float section_width){
             section((w) =>{
+                label(CraftManager.status_info);
                 fspace();
                 gui_state(CraftData.selected_craft != null, ()=>{                    
                     load_button_text = "Load";

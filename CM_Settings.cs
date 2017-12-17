@@ -20,6 +20,7 @@ namespace CraftManager
 
             //default settings. These will populate settings.cfg if the file doesn't exist and also provides
             //a reference of which values to try and fetch from the confignode.
+            settings.Add("KerbalX_integration_enabled", "True");
             settings.Add("craft_sort", "name");
             settings.Add("craft_sort_reverse", "False");
             settings.Add("sort_tags_by", "name");
@@ -42,6 +43,7 @@ namespace CraftManager
                 save();
             }
 
+            CraftManager.kerbalx_integration_enabled = bool.Parse(get("KerbalX_integration_enabled"));
             CraftManager.use_stock_toolbar = bool.Parse(get("use_stock_toolbar"));
             CraftManager.replace_editor_load_button = bool.Parse(get("replace_editor_load_button"));
             CraftManager.use_editor_key_shortcuts = bool.Parse(get("use_editor_key_shortcuts"));
