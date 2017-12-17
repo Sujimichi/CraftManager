@@ -42,7 +42,7 @@ namespace CraftManager
 
             all_craft.Clear();
             foreach(string path in craft_file_paths){                
-                all_craft.Add(new CraftData(path));
+                new CraftData(path);
             }
 
             if(CraftManager.main_ui && !CraftManager.main_ui.exclude_stock_craft){
@@ -53,7 +53,7 @@ namespace CraftManager
         public static void load_stock_craft_from_files(){            
             CraftManager.log("Loading Stock Craft");
             foreach(string path in Directory.GetFiles(Paths.joined(CraftManager.ksp_root, "Ships"), "*.craft", SearchOption.AllDirectories)){
-                all_craft.Add(new CraftData(path, true));
+                new CraftData(path, true);
             }
             if(CraftManager.main_ui){
                 CraftManager.main_ui.stock_craft_loaded = true;
@@ -132,9 +132,9 @@ namespace CraftManager
                     }else if(sort_by == "crew_capacity"){
                         return y.crew_capacity.CompareTo(x.crew_capacity);
                     }else if(sort_by == "date_created"){
-                        return x.create_time.CompareTo(y.create_time);
+                        return y.create_time.CompareTo(x.create_time);
                     }else if(sort_by == "date_updated"){
-                        return x.last_updated_time.CompareTo(y.last_updated_time);
+                        return y.last_updated_time.CompareTo(x.last_updated_time);
                     }else{
                         return x.name.CompareTo(y.name);
                     }
@@ -245,11 +245,33 @@ namespace CraftManager
         public float list_height = 0;
 
 
+        //Attributes specific to KerbalX Craft
+        public int remote_id;
+        public bool remote = false;
+
+
 
         //Initialize a new CraftData object. Takes a path to a .craft file and either populates it from attributes from the craft file
-        //or loads information from the CraftDataCache. Main logic moved to initialize() so it can be call again (reinitialized) on existing object
+        //or loads information from the CraftDataCache. Main logic moved to initialize() so it can be call again (reinitialized) on existing object      
         public CraftData(string full_path, bool stock = false){
             initialize(full_path, stock);
+            CraftData.all_craft.Add(this);
+        }
+            
+        //Initialize a new CraftData object from remote (KerbalX). Remote craft are not cached.
+        public CraftData(int id, string url, string craft_name, string type, string version, int p_count, int stages, int crew, float c_cost, float c_mass, string created_at, string updated_at){    
+            remote = true; stock_craft = false;
+            name = craft_name; alt_name = craft_name;
+            remote_id = id; path = url; construction_type = type;
+            stage_count = stages; part_count = p_count; crew_capacity = crew; cost_total = c_cost; mass_total = c_mass;
+            create_time = DateTime.Parse(created_at).ToUniversalTime().ToBinary().ToString();                
+            last_updated_time = DateTime.Parse(updated_at).ToUniversalTime().ToBinary().ToString();                
+
+            description = part_sig = checksum = "";
+            cost_dry = cost_fuel = mass_dry = mass_fuel = 0;
+            missing_parts = locked_parts = false;           
+
+            CraftData.all_craft.Add(this);
         }
 
         public void initialize(string full_path, bool stock = false){        
@@ -279,8 +301,9 @@ namespace CraftManager
             }
 
             //set timestamp data from the craft file
-            create_time = System.IO.File.GetCreationTime(path).ToBinary().ToString();
-            last_updated_time = System.IO.File.GetLastWriteTime(path).ToBinary().ToString();
+            create_time = System.IO.File.GetCreationTime(path).ToUniversalTime().ToBinary().ToString();
+//            create_time = System.IO.File.GetCreationTime(path).ToBinary().ToString();
+            last_updated_time = System.IO.File.GetLastWriteTime(path).ToUniversalTime().ToBinary().ToString();
 
             //prepare the thumbnail texture
             load_thumbnail_image();

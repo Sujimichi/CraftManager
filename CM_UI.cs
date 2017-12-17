@@ -16,7 +16,14 @@ namespace CraftManager
                 this.skin = CraftManager.skin;
             }
             GUI.skin = skin;
-            base.OnGUI();
+            try{
+                base.OnGUI();
+            }
+            catch(Exception e){
+                CraftManager.log(e.Message);
+                CraftManager.log(e.StackTrace);
+
+            }
             GUI.skin = null;
         }
 

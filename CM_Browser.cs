@@ -75,7 +75,7 @@ namespace CraftManager
 
 
         //collection of Vector2 objects to track scroll positions
-        private Dictionary<string, Vector2> scroll_pos = new Dictionary<string, Vector2>(){
+        public Dictionary<string, Vector2> scroll_pos = new Dictionary<string, Vector2>(){
             {"lhs", new Vector2()}, {"rhs", new Vector2()}, {"main", new Vector2()}
         };
         protected Rect scroll_relative_pos = new Rect(0, 0, 0, 0); //used to track the position of scroll sections. needed to render dropdown menus inside scroll section.
@@ -127,12 +127,12 @@ namespace CraftManager
             prevent_click_through = false; //disable the standard click through prevention. show and hide will add control locks which are not based on mouse pos.
 
 
-            if(CraftManager.kerbalx_integration_enabled){
+            if(KerbalX.enabled){
                 enable_request_handler();
                 if(KerbalXAPI.logged_out()){ //TODO this is a temp test thing, remove.
                     CraftManager.load_and_authenticate_token();   
                 }
-                KerbalX.fetch_existing_craft();
+//                KerbalX.fetch_existing_craft();
             }
 
 
@@ -182,17 +182,16 @@ namespace CraftManager
                 auto_focus_countdown = 10;  //delay auto_focs by x passes, to give the list time to be drawn 
                 //(not happy with this but attempting to autofocus right away selects the craft, but doesn't scroll the list to it
             }
-
-
         }
 
         protected override void on_hide(){
             close_dialog(); //incase any dialogs have been left open
         }
 
-        protected bool open_kerbalx_mode = false;
+        public bool kerbalx_mode = false;
+        protected bool show_upload_interface = false;
+        protected bool upload_interface_ready = false;
         protected bool show_headers = true;
-        protected bool kerbalx_mode_ready = false;
         //**Main GUI**//
 
         //Main GUI draw method (called by onGUI, see DryUI in KatLib).  Broken up into smaller sections to ease digestion and help prevent heart burn.
@@ -204,12 +203,12 @@ namespace CraftManager
                 GUILayout.Space(10);
                 scroll_relative_pos = GUILayoutUtility.GetLastRect();
                 section(window_width, inner_width =>{
-                    if(!kerbalx_mode_ready){
+                    if(!upload_interface_ready){
                         draw_left_hand_section(inner_width * col_widths_current[0]); //Tag list section
                         draw_main_section(inner_width * col_widths_current[1]);      //Main craft list
                     }
                     draw_right_hand_section(inner_width * col_widths_current[2]);//Craft details section
-                    if(kerbalx_mode_ready){
+                    if(upload_interface_ready){
                         v_section((col_widths_default[0] + col_widths_default[1]) * inner_width, section_width => {
                             GUILayout.Space(20f);
                             label("Upload to KerbalX", "h1.centered", section_width);
@@ -225,10 +224,10 @@ namespace CraftManager
             handle_auto_focus_actions();
 
             if(CraftData.selected_craft == null){
-                open_kerbalx_mode = false;
+                show_upload_interface = false;
             }
 
-            if(open_kerbalx_mode){
+            if(show_upload_interface){
                 show_headers = false;
                 if(col_widths_current[0] > 0){
                     col_widths_current[0] -= 0.02f;
@@ -236,10 +235,10 @@ namespace CraftManager
                 if(col_widths_current[1] > 0){
                     col_widths_current[1] -= 0.02f;                    
                 } else{
-                    kerbalx_mode_ready = true;
+                    upload_interface_ready = true;
                 }
-            } else if(!open_kerbalx_mode){
-                kerbalx_mode_ready = false;
+            } else if(!show_upload_interface){
+                upload_interface_ready = false;
                 if(col_widths_current[0] < col_widths_default[0]){
                     col_widths_current[0] += 0.02f;
                 }
@@ -272,11 +271,18 @@ namespace CraftManager
                 });
                 fspace();
 
-                if(save_menu_width == 0){               
-                    save_menu_width = GUI.skin.button.CalcSize(new GUIContent("Save: " + active_save_dir)).x;
+                if(KerbalX.enabled){
+                    button("KerbalX Craft", "button" + (kerbalx_mode ? ".down" : ""), KerbalX.load_users_craft);
                 }
-                save_menu_options.selected_item = active_save_dir;
-                dropdown("Save: " + (active_save_dir==all_saves_ref ? "All Saves" : active_save_dir), StyleSheet.assets["caret-down"], "save_menu", save_menu_options, this, save_menu_width, change_save);
+                if(kerbalx_mode){
+                    button("Local Craft", KerbalX.load_local);
+                }else{
+                    if(save_menu_width == 0){               
+                        save_menu_width = GUI.skin.button.CalcSize(new GUIContent("Save: " + active_save_dir)).x;
+                    }
+                    save_menu_options.selected_item = active_save_dir;
+                    dropdown("Save: " + (active_save_dir==all_saves_ref ? "All Saves" : active_save_dir), StyleSheet.assets["caret-down"], "save_menu", save_menu_options, this, save_menu_width, change_save);
+                }
             });
             section(() =>{
                 label("Search Craft:", "h2");
@@ -457,7 +463,13 @@ namespace CraftManager
 
                 v_section(inner_width, "tags.list_outer", (tag_list_width) => {                    
                     scroll_pos["lhs"] = scroll(scroll_pos["lhs"], "side_panel.scroll.tags", inner_width, tag_scroll_height, scroll_width => {
-                        for(int i=0; i < Tags.names.Count; i++){
+                        if(kerbalx_mode){
+                            button("Your Craft", "button" + (KerbalX.loaded_craft_type=="users" ? ".down" : ""), KerbalX.load_users_craft);
+                            button("Past Downloads", "button" + (KerbalX.loaded_craft_type=="past_downloads" ? ".down" : ""), KerbalX.load_past_dowloads);
+                            button("Download Queue", "button" + (KerbalX.loaded_craft_type=="download_queue" ? ".down" : ""), KerbalX.load_download_queue);
+
+                        }else{
+                            for(int i=0; i < Tags.names.Count; i++){
                             string tag_name = Tags.names[i];
 
                             tag_state = Tags.is_active(tag_name);
@@ -512,6 +524,7 @@ namespace CraftManager
                                 filter_craft();
                             }
                         }
+                        }
                     });
 
                     if(show_headers){
@@ -533,7 +546,6 @@ namespace CraftManager
         }
 
 
-
         //Right Hand Section: Craft Details
         protected void draw_right_hand_section(float section_width){
             v_section(section_width, (inner_width) =>{                
@@ -541,6 +553,7 @@ namespace CraftManager
 
                 scroll_pos["rhs"] = scroll(scroll_pos["rhs"], "side_panel.scroll", inner_width, main_section_height, scroll_width => {
                     if(CraftData.selected_craft == null){
+//                    if(true){                        
                         GUILayout.Space(25);
                         label("Select a craft to see info about it..", "h2.centered");
                     }else{
@@ -554,8 +567,10 @@ namespace CraftManager
                         section(()=> {
                             label("Mass", "bold.compact");
                             label(humanize(craft.mass_total), "compact");
-                            fspace();                       
-                            expand_details = GUILayout.Toggle(expand_details, "expand", "hyperlink.bold");
+                            fspace();              
+                            if(!craft.remote){
+                                expand_details = GUILayout.Toggle(expand_details, "expand", "hyperlink.bold");
+                            }
                         });
                         if(expand_details){
                             float details_width = scroll_width - 50;
@@ -586,61 +601,64 @@ namespace CraftManager
                             label(date.time_ago(), "compact");
                         });
 
-                        GUILayout.Space(15);
-
-                        gui_state(!kerbalx_mode_ready, ()=>{
-                            section(() => {
-                                button("transfer", transfer_craft_dialog);
-                                if(save_menu_options.items.Count > 2){
-                                    button("move/copy", move_copy_craft_dialog);
-                                }
-                            });
-                            section(() => {
-                                button("rename", rename_craft_dialog);
-                                button("delete", "button.delete", delete_craft_dialog);
-                            });
-                        });
-                        section(()=>{
-                            button("Share on KerbalX", ()=>{
-                                if(open_kerbalx_mode){
-                                    open_kerbalx_mode = false;
-                                }else{
-                                    open_kerbalx_mode = true;
-                                }
-                            });
-                        });
-
-                        GUILayout.Space(15);
-
-                        section((w) =>{
-                            label("Tags", "h2");
-                            fspace();
-                            scroll_relative_pos.x += (window_pos.width * (col_widths_current[0]+col_widths_current[1])) - 5f;
-                            scroll_relative_pos.y += 45f - scroll_pos["rhs"].y;
-                          
-                            tags_menu_content.selected_items = craft.tag_names();
-                            dropdown("Add Tag", StyleSheet.assets["caret-down"], "add_tag_menu", tags_menu_content, this, scroll_relative_pos, 70f, "Button", "menu.background", "menu.item.small", resp => {
-                                if(resp == "new_tag"){
-                                    create_tag_dialog(false, craft);
-                                }else{
-                                    if(craft.tag_names().Contains(resp)){
-                                        Tags.untag_craft(craft, resp);
-                                    }else{                                    
-                                        Tags.tag_craft(craft, resp);
+                        if(!craft.remote){
+                            GUILayout.Space(15);
+                            gui_state(!upload_interface_ready, ()=>{
+                                section(() => {
+                                    button("transfer", transfer_craft_dialog);
+                                    if(save_menu_options.items.Count > 2){
+                                        button("move/copy", move_copy_craft_dialog);
                                     }
-                                }
+                                });
+                                section(() => {
+                                    button("rename", rename_craft_dialog);
+                                    button("delete", "button.delete", delete_craft_dialog);
+                                });
                             });
-                        });
-                   
-                        foreach(string tag in craft.tag_names()){
-                            section(() =>{
-                                label(tag, "compact");
+
+                            section(()=>{
+                                button("Share on KerbalX", ()=>{
+                                    if(show_upload_interface){
+                                        show_upload_interface = false;
+                                    }else{
+                                        show_upload_interface = true;
+                                    }
+                                });
+                            });
+
+                            GUILayout.Space(15);
+                            
+                            section((w) =>{
+                                label("Tags", "h2");
                                 fspace();
-                                if(!Tags.instance.autotags_list.Contains(tag)){                                    
-                                    button("x", "tag.delete_button.x", ()=>{Tags.untag_craft(craft, tag);});
-                                }
+                                scroll_relative_pos.x += (window_pos.width * (col_widths_current[0]+col_widths_current[1])) - 5f;
+                                scroll_relative_pos.y += 45f - scroll_pos["rhs"].y;
+                                
+                                tags_menu_content.selected_items = craft.tag_names();
+                                dropdown("Add Tag", StyleSheet.assets["caret-down"], "add_tag_menu", tags_menu_content, this, scroll_relative_pos, 70f, "Button", "menu.background", "menu.item.small", resp => {
+                                    if(resp == "new_tag"){
+                                        create_tag_dialog(false, craft);
+                                    }else{
+                                        if(craft.tag_names().Contains(resp)){
+                                            Tags.untag_craft(craft, resp);
+                                        }else{                                    
+                                            Tags.tag_craft(craft, resp);
+                                        }
+                                    }
+                                });
                             });
-                        }                  
+                            
+                            foreach(string tag in craft.tag_names()){
+                                section(() =>{
+                                    label(tag, "compact");
+                                    fspace();
+                                    if(!Tags.instance.autotags_list.Contains(tag)){                                    
+                                        button("x", "tag.delete_button.x", ()=>{Tags.untag_craft(craft, tag);});
+                                    }
+                                });
+                            }                  
+                        }
+
 
                         GUILayout.Space(15);
 

@@ -144,6 +144,13 @@ namespace CraftManager
             });
 
 
+            define_style("button", base_skin.button, s =>{
+            });
+            define_style("button.down", base_skin.button, s =>{                
+                s.normal.background = s.active.background;
+                s.hover.background = s.focused.background;
+                s.normal.textColor = Color.green;
+            });
 
             define_style("button.large", base_skin.button, s =>{
                 s.fontSize = 20;
