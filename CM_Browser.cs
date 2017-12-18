@@ -42,7 +42,7 @@ namespace CraftManager
         protected List<string> selected_type_keys = new List<string>(){"SPH", "VAB", "Subassemblies"};
 
 
-        private string sort_opt = CraftManager.settings.get("craft_sort");
+        public string sort_opt = CraftManager.settings.get("craft_sort");
         private bool reverse_sort = bool.Parse(CraftManager.settings.get("craft_sort_reverse"));
         public bool exclude_stock_craft = bool.Parse(CraftManager.settings.get("exclude_stock_craft"));
         public string tag_sort_by = CraftManager.settings.get("sort_tags_by");
@@ -188,6 +188,7 @@ namespace CraftManager
             close_dialog(); //incase any dialogs have been left open
         }
 
+
         public bool kerbalx_mode = false;
         protected bool show_upload_interface = false;
         protected bool upload_interface_ready = false;
@@ -272,7 +273,7 @@ namespace CraftManager
                 fspace();
 
                 if(KerbalX.enabled){
-                    button("KerbalX Craft", "button" + (kerbalx_mode ? ".down" : ""), KerbalX.load_users_craft);
+                    button("KerbalX Craft", "button" + (kerbalx_mode ? ".down" : ""), KerbalX.load_remote_craft);
                 }
                 if(kerbalx_mode){
                     button("Local Craft", KerbalX.load_local);
@@ -284,7 +285,7 @@ namespace CraftManager
                     dropdown("Save: " + (active_save_dir==all_saves_ref ? "All Saves" : active_save_dir), StyleSheet.assets["caret-down"], "save_menu", save_menu_options, this, save_menu_width, change_save);
                 }
             });
-            section(() =>{
+            section(section_width, 40f, () =>{
                 label("Search Craft:", "h2");
                 GUI.SetNextControlName("main_search_field");
                 search_string = GUILayout.TextField(search_string, width(section_width/2));
@@ -296,17 +297,20 @@ namespace CraftManager
                     
                 fspace();
                 section(()=>{
-                    bool prev_exstcr = exclude_stock_craft;
-                    exclude_stock_craft = !GUILayout.Toggle(!exclude_stock_craft, "");
-                    button("include Stock Craft", "bold", ()=>{exclude_stock_craft = !exclude_stock_craft;});
-                    if(exclude_stock_craft != prev_exstcr){
-                        filter_craft();
-                        CraftManager.settings.set("exclude_stock_craft", exclude_stock_craft.ToString());
+                    if(!kerbalx_mode){
+                        bool prev_exstcr = exclude_stock_craft;
+                        exclude_stock_craft = !GUILayout.Toggle(!exclude_stock_craft, "");
+                        button("include Stock Craft", "bold", ()=>{exclude_stock_craft = !exclude_stock_craft;});
+                        if(exclude_stock_craft != prev_exstcr){
+                            filter_craft();
+                            CraftManager.settings.set("exclude_stock_craft", exclude_stock_craft.ToString());
+                        }
                     }
                 });
             });
         }
 
+        float section_header_height = 38f;
 
         //The Main craft list
         float item_last_height = 0;
@@ -316,7 +320,7 @@ namespace CraftManager
 
                 //sort menu
                 if(show_headers){
-                    section((w)=>{
+                    section(inner_width, section_header_height, (w)=>{
                         label("Showing " + CraftData.filtered.Count + " out of " + CraftData.all_craft.Count + " Craft", "h2");
                         fspace();
                         if(sort_menu_width == 0){ //calculate the initial sort menu button width. should only happen on the first pass
@@ -329,7 +333,7 @@ namespace CraftManager
                     });
                 }else{
                     v_section(()=>{
-                        GUILayout.Space(35f);
+                        GUILayout.Space(section_header_height);
                     });
                 }
 
@@ -392,6 +396,15 @@ namespace CraftManager
                             label("#" + String.Join(", #", craft.tag_names().ToArray()), "craft.tags");
                         }
 
+                        if(craft.remote){
+                            section(()=>{                                
+                                label("made in KSP: " + craft.ksp_version, "craft.tags");
+                                if(craft.author != KerbalXAPI.kx_username){
+                                    label(" by: " + craft.author, "craft.tags");
+                                }
+                            });
+                        }
+
                         if(craft.locked_parts){
                             label("This craft has locked parts", "craft.locked_parts");
                         }
@@ -438,6 +451,9 @@ namespace CraftManager
         bool archived_tag = false;
         protected void draw_left_hand_section(float section_width){
             tag_scroll_height = main_section_height-40f;    
+            if(kerbalx_mode){
+                tag_scroll_height = main_section_height-170f;                
+            }
 
             //adjustments to tag list width depending on if the edit buttons are shown and if the scroll bar is shown.
             tag_content_height = 0;
@@ -448,94 +464,112 @@ namespace CraftManager
 
             v_section(section_width, main_section_height, false, (inner_width) =>{
                 if(show_headers){
-                    section(()=>{
-                        label("Tags", "h2");
-                        label(StyleSheet.assets["tags"], 28f, 28f);
-                        fspace();
-                        tag_sort_options.selected_item = tag_sort_by;
-                        dropdown("Sort", "tag_sort_menu", tag_sort_options, this, 50f, change_tag_sort);
+                    section(inner_width, section_header_height, ()=>{
+                        if(kerbalx_mode){
+                            label("KerbalX Options", "h2");
+                        }else{
+                            label("Tags", "h2");
+                            label(StyleSheet.assets["tags"], 28f, 28f);
+                            fspace();
+                            tag_sort_options.selected_item = tag_sort_by;
+                            dropdown("Sort", "tag_sort_menu", tag_sort_options, this, 50f, change_tag_sort);
+                        }
                     });
                 }else{
                     v_section(()=>{
-                        GUILayout.Space(35f);
+                        GUILayout.Space(section_header_height);
                     });
                 }
 
-                v_section(inner_width, "tags.list_outer", (tag_list_width) => {                    
-                    scroll_pos["lhs"] = scroll(scroll_pos["lhs"], "side_panel.scroll.tags", inner_width, tag_scroll_height, scroll_width => {
-                        if(kerbalx_mode){
-                            button("Your Craft", "button" + (KerbalX.loaded_craft_type=="users" ? ".down" : ""), KerbalX.load_users_craft);
-                            button("Past Downloads", "button" + (KerbalX.loaded_craft_type=="past_downloads" ? ".down" : ""), KerbalX.load_past_dowloads);
-                            button("Download Queue", "button" + (KerbalX.loaded_craft_type=="download_queue" ? ".down" : ""), KerbalX.load_download_queue);
+                v_section(inner_width, "tags.list_outer", (tag_list_width) => {    
+                    if(kerbalx_mode){
+                        button("Your Craft", "button" + (KerbalX.loaded_craft_type=="users" ? ".down" : ""), KerbalX.load_users_craft);
+                        button("Favourites", "button" + (KerbalX.loaded_craft_type=="favourites" ? ".down" : ""), KerbalX.load_favourites);
+                        button("Past Downloads", "button" + (KerbalX.loaded_craft_type=="past_downloads" ? ".down" : ""), KerbalX.load_past_dowloads);
+                        button("Download Queue", "button" + (KerbalX.loaded_craft_type=="download_queue" ? ".down" : ""), KerbalX.load_download_queue);
 
-                        }else{
-                            for(int i=0; i < Tags.names.Count; i++){
-                            string tag_name = Tags.names[i];
-
-                            tag_state = Tags.is_active(tag_name);
-                            archived_tag = Tags.is_archived(tag_name);
-                            tag_prev_state = tag_state;
-
-                            string tag_style = "tag.section" + (tag_state ? ".selected" : "");
-                            if(archived_tag){
-                                tag_style = "tag.section.archived";
-                            } 
-                            Rect tag_container = section(tag_style, ()=>{
-
-                                int craft_count = CraftData.cache.tag_craft_count_for(tag_name, archived_tag ? "" : tag_filter_mode=="AND" ? "filtered" : "raw_count");
-                                string count_string = "(" + craft_count + ")";
-                                float count_width = skin.button.CalcSize(new GUIContent(count_string)).x;
-
-                                tag_state = GUILayout.Toggle(tag_state, "", "tag.toggle.light");
-                                label(tag_name, "tag.toggle.label" + (Tags.instance.autotags_list.Contains(tag_name) ? ".autotag" : ""), scroll_width - count_width - tag_margin_offset);
-                                label(count_string, "tag.toggle.count", count_width);
-                                
-
-                            }, (evt) => {                                
-                                if(evt.single_click || evt.double_click){
-                                    tag_state = !tag_state;
-                                }else if(evt.right_click){
-                                    DropdownMenuData menu = new DropdownMenuData(new Dictionary<string, string>{
-                                        {"select", tag_state ? "DeSelect" : "Select"}, {"archive", "Exclude"}, {"edit", "Edit"}
-                                    });
-                                    menu.special_items.Add("delete", "Delete");
-                                    menu.special_items_first = false;
-                                    Rect offset = new Rect(scroll_relative_pos);
-                                    offset.y -= scroll_pos["lhs"].y + evt.contianer.height - 45;
-                                    offset.x += 5;
-                                    gameObject.AddOrGetComponent<Dropdown>().open(evt.contianer, offset, this, menu, 0f, "menu.background", "menu.item.tag_menu", (resp) =>{                                        
-                                        Vector2 pos = new Vector2(evt.contianer.x + window_pos.x + evt.contianer.width, evt.contianer.y + window_pos.y + scroll_relative_pos.y - scroll_pos["lhs"].y + 80);
-                                        switch(resp){
-                                            case "select" : Tags.toggle_active(tag_name);break;
-                                            case "archive": Tags.toggle_archive(tag_name);break;
-                                            case "edit"   : edit_tag_dialog(tag_name, pos.y, pos.x);break;
-                                            case "delete" : delete_tag_dialog(tag_name, pos.y, pos.x);break;
-                                        }
-                                    });
-                                }
-                            });
-
-                            if(Event.current.type == EventType.Repaint){                                  
-                                tag_content_height += tag_container.height + 6;
-                            }
-
-                            if(tag_prev_state != tag_state){
-                                Tags.toggle_active(tag_name);
-                                filter_craft();
-                            }
-                        }
-                        }
-                    });
-
-                    if(show_headers){
-                        section(tag_list_width, 40f, ()=>{       
-                            tag_filter_modes.selected_item = tag_filter_mode;
-                            dropdown("Mode", "tag_filter_mode_menu", tag_filter_modes, this, 50f, change_tag_filter_mode);
-                            fspace();
-    //                        edit_tags = GUILayout.Toggle(edit_tags, "edit", "button", width(40f) );
-                            button("+", 30f, create_tag_dialog);
+                        scroll_pos["lhs"] = scroll(scroll_pos["lhs"], "side_panel.scroll.tags", inner_width-6, tag_scroll_height, scroll_width => {
+                            for(int i=0; i < KerbalX.versions.Count; i++){
+                                section("tag.section", ()=>{
+                                    KerbalX.v_toggle[KerbalX.versions[i]] = GUILayout.Toggle(KerbalX.v_toggle[KerbalX.versions[i]], "", "tag.toggle.light");
+                                    label(KerbalX.versions[i].ToString());
+                                }, (evt) => {
+                                    KerbalX.v_toggle[KerbalX.versions[i]] = !KerbalX.v_toggle[KerbalX.versions[i]];
+                                    filter_craft();
+                                });
+                            }                           
                         });
+                        section(tag_list_width, 40f, ()=>{
+                            fspace();
+                            button("All", KerbalX.select_all_versions);
+                            button("Default", KerbalX.select_default_versions);
+
+                        });
+
+                    }else{                        
+                        scroll_pos["lhs"] = scroll(scroll_pos["lhs"], "side_panel.scroll.tags", inner_width, tag_scroll_height, scroll_width => {                            
+                            for(int i=0; i < Tags.names.Count; i++){
+                                string tag_name = Tags.names[i];
+                                
+                                tag_state = Tags.is_active(tag_name);
+                                archived_tag = Tags.is_archived(tag_name);
+                                tag_prev_state = tag_state;
+                                
+                                string tag_style = "tag.section" + (tag_state ? ".selected" : "");
+                                if(archived_tag){
+                                    tag_style = "tag.section.archived";
+                                } 
+                                Rect tag_container = section(tag_style, ()=>{                                   
+                                    int craft_count = CraftData.cache.tag_craft_count_for(tag_name, archived_tag ? "" : tag_filter_mode=="AND" ? "filtered" : "raw_count");
+                                    string count_string = "(" + craft_count + ")";
+                                    float count_width = skin.button.CalcSize(new GUIContent(count_string)).x;
+                                    
+                                    tag_state = GUILayout.Toggle(tag_state, "", "tag.toggle.light");
+                                    label(tag_name, "tag.toggle.label" + (Tags.instance.autotags_list.Contains(tag_name) ? ".autotag" : ""), scroll_width - count_width - tag_margin_offset);
+                                    label(count_string, "tag.toggle.count", count_width);
+                                }, (evt) => {                                
+                                    if(evt.single_click || evt.double_click){
+                                        tag_state = !tag_state;
+                                    }else if(evt.right_click){
+                                        DropdownMenuData menu = new DropdownMenuData(new Dictionary<string, string>{
+                                            {"select", tag_state ? "DeSelect" : "Select"}, {"archive", "Exclude"}, {"edit", "Edit"}
+                                        });
+                                        menu.special_items.Add("delete", "Delete");
+                                        menu.special_items_first = false;
+                                        Rect offset = new Rect(scroll_relative_pos);
+                                        offset.y -= scroll_pos["lhs"].y + evt.contianer.height - 45;
+                                        offset.x += 5;
+                                        gameObject.AddOrGetComponent<Dropdown>().open(evt.contianer, offset, this, menu, 0f, "menu.background", "menu.item.tag_menu", (resp) =>{                                        
+                                            Vector2 pos = new Vector2(evt.contianer.x + window_pos.x + evt.contianer.width, evt.contianer.y + window_pos.y + scroll_relative_pos.y - scroll_pos["lhs"].y + 80);
+                                            switch(resp){
+                                                case "select" : Tags.toggle_active(tag_name);break;
+                                                case "archive": Tags.toggle_archive(tag_name);break;
+                                                case "edit"   : edit_tag_dialog(tag_name, pos.y, pos.x);break;
+                                                case "delete" : delete_tag_dialog(tag_name, pos.y, pos.x);break;
+                                            }
+                                        });
+                                    }
+                                });                                
+                                if(Event.current.type == EventType.Repaint){                                  
+                                    tag_content_height += tag_container.height + 6;
+                                }                                
+                                if(tag_prev_state != tag_state){
+                                    Tags.toggle_active(tag_name);
+                                    filter_craft();
+                                }
+                            }                            
+                        });
+                        if(show_headers){
+                            section(tag_list_width, 40f, ()=>{
+                                tag_filter_modes.selected_item = tag_filter_mode;
+                                dropdown("Mode", "tag_filter_mode_menu", tag_filter_modes, this, 50f, change_tag_filter_mode);
+                                fspace();
+                                //                        edit_tags = GUILayout.Toggle(edit_tags, "edit", "button", width(40f) );
+                                button("+", 30f, create_tag_dialog);
+                            });
+                        }
                     }
+
                 });
 
 
@@ -548,8 +582,10 @@ namespace CraftManager
 
         //Right Hand Section: Craft Details
         protected void draw_right_hand_section(float section_width){
-            v_section(section_width, (inner_width) =>{                
-                label("Craft Details", "h2");
+            v_section(section_width, (inner_width) =>{        
+                section(inner_width, section_header_height, ()=>{                    
+                    label("Craft Details", "h2");
+                });
 
                 scroll_pos["rhs"] = scroll(scroll_pos["rhs"], "side_panel.scroll", inner_width, main_section_height, scroll_width => {
                     if(CraftData.selected_craft == null){
@@ -600,6 +636,7 @@ namespace CraftManager
                             label("Last Updated", "bold.compact");
                             label(date.time_ago(), "compact");
                         });
+
 
                         if(!craft.remote){
                             GUILayout.Space(15);
@@ -719,13 +756,20 @@ namespace CraftManager
             Dictionary<string, object> search_criteria = new Dictionary<string, object>();
             search_criteria.Add("search", search_string);
             search_criteria.Add("type", selected_types);
-            List<string> s_tags = Tags.selected_tags();
-            List<string> a_tags = Tags.archived_tags();
-            if(s_tags.Count > 0){
-                search_criteria.Add("tags", s_tags);
-            }
-            if(a_tags.Count > 0){
-                search_criteria.Add("archived_tags", a_tags);
+            if(kerbalx_mode){
+                List<Version> s_vers = KerbalX.selected_versions;
+                if(s_vers.Count > 0){
+                    search_criteria.Add("versions", s_vers);
+                }
+            } else{
+                List<string> s_tags = Tags.selected_tags();
+                List<string> a_tags = Tags.archived_tags();
+                if(s_tags.Count > 0){
+                    search_criteria.Add("tags", s_tags);
+                }
+                if(a_tags.Count > 0){
+                    search_criteria.Add("archived_tags", a_tags);
+                }
             }
             search_criteria.Add("tag_filter_mode", tag_filter_mode);
             search_criteria.Add("sort", sort_opt);
@@ -774,11 +818,14 @@ namespace CraftManager
             filter_craft();
         }
 
-        protected void select_sort_option(string option){
+        public void select_sort_option(string option){select_sort_option(option, true);}
+        public void select_sort_option(string option, bool save = true){
             sort_opt = option;
-            sort_menu_width = GUI.skin.button.CalcSize(new GUIContent("Sort: " + sort_options.items[sort_opt])).x; //recalculate the sort menu button width
+            sort_menu_width = 0; //trigger recalculate of sort menu button width
             filter_craft();
-            CraftManager.settings.set("craft_sort", sort_opt);
+            if(save){
+                CraftManager.settings.set("craft_sort", sort_opt);
+            }
         }
 
         protected void toggle_reverse_sort(){

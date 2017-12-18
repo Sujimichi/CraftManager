@@ -32,13 +32,19 @@ namespace CraftManager
                 return CraftManager.kerbalx_integration_enabled;
             }
         }
-
-//        public static bool show_user_craft = true;
-//        public static bool show_past_downloads = false;
-//        public static bool show_download_queue = false;
-
         public static string loaded_craft_type = "";
+        public static List<Version> versions = new List<Version>();
+        public static Dictionary<Version, bool> v_toggle = new Dictionary<Version, bool>();
+        public static List<Version> selected_versions{
+            get{
+                return versions.FindAll(v => v_toggle[v]);
+            }
+        }
 
+        public static void load_remote_craft(){
+            CraftManager.main_ui.select_sort_option("date_updated", false);
+            load_users_craft();
+        }
 
         public static void load_users_craft(){
             CraftManager.status_info = "fetching craft info from KerbalX";
@@ -56,6 +62,14 @@ namespace CraftManager
             });
         }
 
+        public static void load_favourites(){
+            CraftManager.status_info = "fetching craft info from KerbalX";
+            loaded_craft_type = "favourites";
+            KerbalXAPI.fetch_favoutite_craft(craft_data =>{
+                after_load_action(craft_data);
+            });
+        }
+
         public static void load_download_queue(){
             CraftManager.status_info = "fetching craft info from KerbalX";
             loaded_craft_type = "download_queue";
@@ -66,21 +80,42 @@ namespace CraftManager
 
         private static void after_load_action(Dictionary<int, Dictionary<string, string>> craft_data){
             CraftData.all_craft.Clear();
+            versions.Clear(); v_toggle.Clear();
             foreach(KeyValuePair<int, Dictionary<string, string>> data in craft_data){
                 Dictionary<string, string> craft = data.Value;
                 new CraftData(data.Key, craft["url"], craft["name"], craft["type"], craft["version"], int.Parse(craft["part_count"]), int.Parse(craft["stages"]),
                     int.Parse(craft["crew_capacity"]), float.Parse(craft["cost"]), float.Parse(craft["mass"]), craft["created_at"], craft["updated_at"]
                 );
+                versions.AddUnique(new Version(craft["version"]));               
             }
+            versions.Sort((x, y) => y.CompareTo(x));
+            foreach(Version v in versions){
+                v_toggle.Add(v, false);
+            }
+            select_default_versions();
+
             CraftManager.status_info = "";
             CraftManager.main_ui.kerbalx_mode = true;
             CraftManager.main_ui.filter_craft();
             CraftManager.main_ui.scroll_pos["main"] = new UnityEngine.Vector2(0,0);                        
         }
 
+        public static void select_all_versions(){
+            foreach(Version v in versions){
+                v_toggle[v] = true;
+            }
+            CraftManager.main_ui.filter_craft();
+        }
+        public static void select_default_versions(){
+            for(int i = 0; i < versions.Count; i++){
+                v_toggle[versions[i]] = i < 2;
+            }
+            CraftManager.main_ui.filter_craft();
+        }
 
         public static void load_local(){
             CraftManager.main_ui.kerbalx_mode = false;
+            CraftManager.main_ui.select_sort_option(CraftManager.settings.get("craft_sort"), false);
             CraftManager.main_ui.refresh();
         }
 

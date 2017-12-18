@@ -166,6 +166,11 @@ namespace CraftManager
             fetch_craft_list("api/past_downloads.json", callback);
         }
 
+        //Get the craft the user has favourited
+        internal static void fetch_favoutite_craft(CraftListCallback callback){
+            fetch_craft_list("api/favourite_craft.json", callback);
+        }
+
         //Get the craft the user has uploaded (really rather similar to fetch_existing_craft, just slightly different info, will try to unify these two at some point)
         internal static void fetch_users_craft(CraftListCallback callback){
             fetch_craft_list("api/user_craft.json", callback);

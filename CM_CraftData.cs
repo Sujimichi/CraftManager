@@ -116,6 +116,12 @@ namespace CraftManager
                     }
                 }
             }
+            if(criteria.ContainsKey("versions")){
+                List<Version> vers = (List<Version>)criteria["versions"];
+                filtered = filtered.FindAll(craft =>{                    
+                    return vers.Contains(new Version(craft.ksp_version));
+                });
+            }
             if(criteria.ContainsKey("sort")){
                 string sort_by = (string)criteria["sort"];
                 filtered.Sort((x,y) => {
@@ -188,6 +194,7 @@ namespace CraftManager
         public string part_sig { get; set; }
         public string description { get; set; }
         public string construction_type { get; set; }
+        public string ksp_version{ get; set; }
         public int stage_count { get; set; }
         public int part_count { get; set; }
         public int crew_capacity{ get; set; }
@@ -248,6 +255,7 @@ namespace CraftManager
         //Attributes specific to KerbalX Craft
         public int remote_id;
         public bool remote = false;
+        public string author = "";
 
 
 
@@ -262,10 +270,11 @@ namespace CraftManager
         public CraftData(int id, string url, string craft_name, string type, string version, int p_count, int stages, int crew, float c_cost, float c_mass, string created_at, string updated_at){    
             remote = true; stock_craft = false;
             name = craft_name; alt_name = craft_name;
-            remote_id = id; path = url; construction_type = type;
+            remote_id = id; path = url; construction_type = type; ksp_version = version;
             stage_count = stages; part_count = p_count; crew_capacity = crew; cost_total = c_cost; mass_total = c_mass;
             create_time = DateTime.Parse(created_at).ToUniversalTime().ToBinary().ToString();                
             last_updated_time = DateTime.Parse(updated_at).ToUniversalTime().ToBinary().ToString();                
+            author = url.Split('/')[1];
 
             description = part_sig = checksum = "";
             cost_dry = cost_fuel = mass_dry = mass_fuel = 0;
@@ -345,6 +354,7 @@ namespace CraftManager
             alt_name = data.GetValue("ship");
             description = data.GetValue("description");
             construction_type = data.GetValue("type");
+            ksp_version = data.GetValue("version");
             if(!(construction_type == "SPH" || construction_type == "VAB")){
                 construction_type = "Subassembly";
             }
