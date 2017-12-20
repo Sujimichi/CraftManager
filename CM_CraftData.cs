@@ -256,7 +256,8 @@ namespace CraftManager
         public int remote_id;
         public bool remote = false;
         public string author = "";
-
+        public string url = "";
+        public bool exists_locally = false;
 
 
         //Initialize a new CraftData object. Takes a path to a .craft file and either populates it from attributes from the craft file
@@ -267,14 +268,20 @@ namespace CraftManager
         }
             
         //Initialize a new CraftData object from remote (KerbalX). Remote craft are not cached.
-        public CraftData(int id, string url, string craft_name, string type, string version, int p_count, int stages, int crew, float c_cost, float c_mass, string created_at, string updated_at){    
+        public CraftData(int id, string kx_url, string craft_name, string type, string version, int p_count, int stages, int crew, float c_cost, float c_mass, string created_at, string updated_at){    
             remote = true; stock_craft = false;
             name = craft_name; alt_name = craft_name;
-            remote_id = id; path = url; construction_type = type; ksp_version = version;
+            remote_id = id; url = kx_url; construction_type = type; ksp_version = version;
             stage_count = stages; part_count = p_count; crew_capacity = crew; cost_total = c_cost; mass_total = c_mass;
             create_time = DateTime.Parse(created_at).ToUniversalTime().ToBinary().ToString();                
             last_updated_time = DateTime.Parse(updated_at).ToUniversalTime().ToBinary().ToString();                
             author = url.Split('/')[1];
+            if(construction_type == "Subassembly"){
+                path = Paths.joined(CraftManager.ksp_root, "saves", CraftManager.main_ui.current_save_dir, "Subassemblies", name + ".craft");
+            } else{
+                path = Paths.joined(CraftManager.ksp_root, "saves", CraftManager.main_ui.current_save_dir, "Ships", construction_type, name + ".craft");
+            }
+            exists_locally = File.Exists(path);
 
             description = part_sig = checksum = "";
             cost_dry = cost_fuel = mass_dry = mass_fuel = 0;

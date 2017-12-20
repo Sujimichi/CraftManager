@@ -41,6 +41,32 @@ namespace CraftManager
             }
         }
 
+        public static void select_all_versions(){
+            foreach(Version v in versions){
+                v_toggle[v] = true;
+            }
+            CraftManager.main_ui.filter_craft();
+        }
+        public static void select_default_versions(){
+            for(int i = 0; i < versions.Count; i++){
+                v_toggle[versions[i]] = i < 2;
+            }
+            CraftManager.main_ui.filter_craft();
+        }
+
+        public delegate void DownloadCallback(ConfigNode craft_file);
+
+        public static void download(int id, DownloadCallback callback){
+            CraftManager.status_info = "Downloading craft from KerbalX...";
+            KerbalXAPI.download_craft(id, (craft_file_string, code) =>{
+                if(code==200){
+                    ConfigNode craft = ConfigNode.Parse(craft_file_string);
+                    CraftManager.status_info = "";
+                    callback(craft);
+                }
+            });
+        }
+
         public static void load_remote_craft(){
             CraftManager.main_ui.select_sort_option("date_updated", false);
             load_users_craft();
@@ -78,6 +104,14 @@ namespace CraftManager
             });
         }
 
+        public static void load_local(){
+            CraftManager.main_ui.kerbalx_mode = false;
+            CraftManager.main_ui.select_sort_option(CraftManager.settings.get("craft_sort"), false);
+            CraftManager.main_ui.refresh();
+        }
+
+
+
         private static void after_load_action(Dictionary<int, Dictionary<string, string>> craft_data){
             CraftData.all_craft.Clear();
             versions.Clear(); v_toggle.Clear();
@@ -100,35 +134,20 @@ namespace CraftManager
             CraftManager.main_ui.scroll_pos["main"] = new UnityEngine.Vector2(0,0);                        
         }
 
-        public static void select_all_versions(){
-            foreach(Version v in versions){
-                v_toggle[v] = true;
-            }
-            CraftManager.main_ui.filter_craft();
-        }
-        public static void select_default_versions(){
-            for(int i = 0; i < versions.Count; i++){
-                v_toggle[versions[i]] = i < 2;
-            }
-            CraftManager.main_ui.filter_craft();
-        }
 
-        public static void load_local(){
-            CraftManager.main_ui.kerbalx_mode = false;
-            CraftManager.main_ui.select_sort_option(CraftManager.settings.get("craft_sort"), false);
-            CraftManager.main_ui.refresh();
-        }
 
-        public static void fetch_existing_craft(){
-            CraftManager.status_info = "fetching craft info from KerbalX";
-            KerbalXAPI.fetch_existing_craft(()=>{
-                CraftManager.status_info = "";
-                CraftManager.log("fetched existing craft");
-                foreach(KeyValuePair<int, Dictionary<string, string>> pair in KerbalXAPI.user_craft){
-                    CraftManager.log(String.Join(", ", new List<string>(pair.Value.Values).ToArray()));
-                }
-            });
-        }
+
+
+//        public static void fetch_existing_craft(){
+//            CraftManager.status_info = "fetching craft info from KerbalX";
+//            KerbalXAPI.fetch_existing_craft(()=>{
+//                CraftManager.status_info = "";
+//                CraftManager.log("fetched existing craft");
+//                foreach(KeyValuePair<int, Dictionary<string, string>> pair in KerbalXAPI.user_craft){
+//                    CraftManager.log(String.Join(", ", new List<string>(pair.Value.Values).ToArray()));
+//                }
+//            });
+//        }
 
     }
 
