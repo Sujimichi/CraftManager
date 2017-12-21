@@ -11,12 +11,12 @@ namespace CraftManager
     {
 
         private void Start(){
-            if(CraftManager.kerbalx_integration_enabled){
-            enable_request_handler();
+            if(KerbalX.enabled){
+                enable_request_handler();
 
                 //try to load a token from file and if present authenticate it with KerbalX.  if token isn't present or token authentication fails then show login fields.
                 if(KerbalXAPI.logged_out()){
-                    CraftManager.load_and_authenticate_token();   
+//                    CraftManager.load_and_authenticate_token();   
                 }
             }
         }

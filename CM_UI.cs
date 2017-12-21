@@ -16,17 +16,35 @@ namespace CraftManager
                 this.skin = CraftManager.skin;
             }
             GUI.skin = skin;
-            try{
-                base.OnGUI();
-            }
-            catch(Exception e){
-                CraftManager.log(e.Message);
-                CraftManager.log(e.StackTrace);
-
-            }
+            base.OnGUI();
             GUI.skin = null;
         }
 
+
+        //Callback method which is passed to GUILayout.Window in OnGUI.  Calls WindowContent and performs common window actions
+        protected override void DrawWindow(int window_id){
+            if(prevent_click_through){
+                prevent_ui_click_through();
+            }
+
+            if(gui_locked){
+                GUI.enabled = false;
+                GUI.color = new Color(1, 1, 1, 2); //This enables the GUI to be locked from input, but without changing it's appearance. 
+            }
+            WindowContent(window_id);   //oh hey, finally, actually drawing the window content. 
+            GUI.enabled = true;
+            GUI.color = Color.white;
+
+            //add common footer elements for all windows if footer==true
+            if(footer){
+                FooterContent(window_id);
+            }
+
+            //enable draggable window if draggable == true.
+            if(draggable){
+                GUI.DragWindow();
+            }
+        }
 
         //Essential for any window which needs to make web requests.  If a window is going to trigger web requests then it needs to call this method on its Start() method
         //The RequestHandler handles sending requests asynchronously (so delays in response time don't lag the interface).  In order to do that it uses Coroutines 

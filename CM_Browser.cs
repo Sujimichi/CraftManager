@@ -26,6 +26,8 @@ namespace CraftManager
         public string current_save_dir = HighLogic.SaveFolder; //The dir of save which is currently being played
         public string active_save_dir = HighLogic.SaveFolder;   //The dir of save which has been selected in UI
 
+        public delegate void DialogAction();
+
         private DropdownMenuData save_menu_options = new DropdownMenuData();
         private DropdownMenuData tags_menu_content = new DropdownMenuData();
         private DropdownMenuData tag_sort_options = new DropdownMenuData(new Dictionary<string, string> { {"name", "Name"}, {"craft_count", "Craft Count"} });
@@ -43,7 +45,8 @@ namespace CraftManager
         private Dictionary<string, MenuOptions> load_menu = new Dictionary<string, MenuOptions>{
             {"default", new MenuOptions{text = "Load", action = "load", width = 120f, menu = new DropdownMenuData(new Dictionary<string, string> { { "merge", "Merge" }, { "subload", "Load as Subassembly" } })}},
             {"submode", new MenuOptions{text = "Load Subassembly", action = "subload", width = 300f, menu = new DropdownMenuData(new Dictionary<string, string> { { "merge", "Merge" }, { "load", "Load as Craft" } })}},
-            {"download",new MenuOptions{text = "Download & Load", action = "dl_load", width = 300f, menu = new DropdownMenuData(new Dictionary<string, string> { { "dl_load_no_save", "Load without saving" } })}}
+            {"download",new MenuOptions{text = "Download & Load", action = "dl_load", width = 300f, menu = new DropdownMenuData(new Dictionary<string, string> { { "dl_load_no_save", "Load without saving" } })}},
+            {"redownload",new MenuOptions{text = "Update & Load", action = "dl_load", width = 250f, menu = new DropdownMenuData(new Dictionary<string, string> { { "dl_load_no_save", "Load Remote version without saving" }, { "load", "Load local version" } })}}
         };
         string load_menu_mode = "default";
 
@@ -79,6 +82,12 @@ namespace CraftManager
         private float tag_margin_offset = 0;
         private float tag_scroll_height = 0;
         private bool ctrl_key_down = false;
+
+        //KerbalX specific stuff
+        public bool kerbalx_mode = false;  //displaying remote craft from kerbalx
+        protected bool show_upload_interface = false;   //when set to true starts the transition to the upload interface. 
+        protected bool upload_interface_ready = false;  //The transition is compelte when upload interface ready is set to true
+        protected bool show_headers = true;             //'headers' of the sections which are collapsed by the transition are hidden as they don't play well with being srunk
 
 
         //collection of Vector2 objects to track scroll positions
@@ -171,8 +180,6 @@ namespace CraftManager
 //            show();
         }
 
-
-
         protected override void on_show(){            
             stock_craft_loaded = false;
             if(!kerbalx_mode){
@@ -181,7 +188,6 @@ namespace CraftManager
             auto_focus_field = "main_search_field";
             InputLockManager.SetControlLock(window_id.ToString());
             interface_locked = true;
-            CraftManager.log("current craft path; " + ShipConstruction.GetSavePath(EditorLogic.fetch.ship.shipName));
 
             //if a craft which matches the name,contruction_type,and save_dir of the currently loaded craft is in the filtered results then mark it to be focused on when the UI opens
             if(EditorLogic.fetch.ship.shipName.ToLower() != "untitled space craft"){
@@ -198,10 +204,6 @@ namespace CraftManager
         }
 
 
-        public bool kerbalx_mode = false;
-        protected bool show_upload_interface = false;
-        protected bool upload_interface_ready = false;
-        protected bool show_headers = true;
         //**Main GUI**//
 
         //Main GUI draw method (called by onGUI, see DryUI in KatLib).  Broken up into smaller sections to ease digestion and help prevent heart burn.
@@ -232,34 +234,7 @@ namespace CraftManager
                 draw_bottom_section(window_width);
             });
             handle_auto_focus_actions();
-
-            if(CraftData.selected_craft == null){
-                show_upload_interface = false;
-            }
-
-            if(show_upload_interface){
-                show_headers = false;
-                if(col_widths_current[0] > 0){
-                    col_widths_current[0] -= 0.02f;
-                }
-                if(col_widths_current[1] > 0){
-                    col_widths_current[1] -= 0.02f;                    
-                } else{
-                    upload_interface_ready = true;
-                }
-            } else if(!show_upload_interface){
-                upload_interface_ready = false;
-                if(col_widths_current[0] < col_widths_default[0]){
-                    col_widths_current[0] += 0.02f;
-                }
-                if(col_widths_current[1] < col_widths_default[1]){
-                    col_widths_current[1] += 0.02f;                    
-                } else{
-                    show_headers = true;
-                    col_widths_current[0] = col_widths_default[0];
-                    col_widths_current[1] = col_widths_default[1];
-                }
-            }
+            handle_upload_interface_transition();
         }
 
         protected override void FooterContent(int window_id){
@@ -583,9 +558,7 @@ namespace CraftManager
                             });
                         }
                     }
-
                 });
-
 
             });
             if(tag_content_height != last_tag_content_height && tag_content_height != 0){
@@ -715,9 +688,7 @@ namespace CraftManager
                             }                  
                         }
 
-
                         GUILayout.Space(15);
-
                         section(() => {
                             label("Description", "h2");
                             fspace();
@@ -741,7 +712,9 @@ namespace CraftManager
                     load_menu_mode = "default";
 
                     if(CraftData.selected_craft != null){                        
-                        if(CraftData.selected_craft.remote){
+                        if(CraftData.selected_craft.remote && CraftData.selected_craft.exists_locally){
+                            load_menu_mode = "redownload";
+                        }else if(CraftData.selected_craft.remote && !CraftData.selected_craft.exists_locally){
                             load_menu_mode = "download";
                         }else if(CraftData.selected_craft.construction_type == "Subassembly"){                        
                             load_menu_mode = "submode";
@@ -802,6 +775,8 @@ namespace CraftManager
         //"load" performs a normal craft load (checks save state of existing & clears existing content before loading)
         //"merge" spawns a disconnected contruct of the craft along side an existing craft
         //"subload" loads like merge, but retains select on the loaded craft so it can be placed (same as stock subassembly load).
+        //"dl_load" download craft from KerbalX, save it to users craft (with query about replacing an existing one) and load it.
+        //"dl_load_no_save" download craft from KerbalX and load it without saving it to users craft
         protected void load_craft(string load_type, bool force = false){
             if(CraftData.selected_craft != null){
                 CraftData craft = CraftData.selected_craft;
@@ -840,8 +815,12 @@ namespace CraftManager
             }
         }
             
+        //makes a request on the API to fetch a craft from KerbalX (which matches the remote_id of the selected craft).
+        //if the first optional args is false then the downloaded craft isn't saved to the users craft, it's just loaded into the editor
+        //if the first two arguments are true then the craft will forceable replace an existing craft with the same name.
+        //third argument is used to pass through the action which follows the download (either load craft or not), but as this process can be interupted by a dialog to ask the user 
+        //which action to take (replace/cancel) this action needs to be passed back into this method after the dialog closes.
         protected void download(){download(true, false, null);}
-
         protected void download(bool save = true, bool force_overwrite = false, DialogAction action = null){
             CraftData craft = CraftData.selected_craft;
             if(craft != null && craft.remote){                
@@ -853,7 +832,7 @@ namespace CraftManager
                             if(action != null){action();}
                         });
                     } else{
-                        download_confirm_dialog();
+                        download_confirm_dialog(action);
                     }
                 } else{
                     KerbalX.download(craft.remote_id, craft_file =>{                                
@@ -866,72 +845,7 @@ namespace CraftManager
             }
         }
 
-        protected void download_confirm_dialog(DialogAction action = null){
-            string resp = "";
-            show_dialog("Overwrite", "A Craft with this name already exists", d =>{
-                section(()=>{                    
-                    button("Replace Existing Craft", "button.continue_with_save", ()=>{
-                        download(true, true, action);
-                        resp = "200";
-                    });                    
-                    button("Load Craft (without saving)", "button.continue_no_save", ()=>{
-                        load_craft("dl_load_no_save");
-                        resp = "200";
-                    });
-                });
-                GUILayout.Space(10);
-                button("Cancel", "button.cancel_load", close_dialog);
-                return resp;
-            });
-        }
 
-        public delegate void DialogAction();
-        //Show user option to save current craft or carry on loading
-        protected void load_craft_confirm_dialog(DialogAction action){
-            string resp = "";
-            show_dialog("Confirm Load", "The Current Craft has unsaved changes", d =>{
-                section((w)=>{                    
-                    button("Save Current Craft first", "button.continue_with_save", ()=>{
-                        string path = ShipConstruction.GetSavePath(EditorLogic.fetch.ship.shipName);
-                        EditorLogic.fetch.ship.SaveShip().Save(path);
-                        action(); resp = "200";
-                    });                    
-                    button("Continue Without Saving", "button.continue_no_save", ()=>{
-                        action(); resp = "200";
-                    });
-                });
-                GUILayout.Space(10);
-                button("Cancel", "button.cancel_load", close_dialog);
-                return resp;
-            });
-        }
-
-
-//        protected void load_remote(string load_type = "load"){
-//            CraftData craft = CraftData.selected_craft;
-//            if(load_type == "load"){
-//                KerbalX.download(craft.remote_id, craft_file =>{                                
-//                    string temp_path = Paths.joined(CraftManager.ksp_root, "GameData", "CraftManager", "temp.craft");
-//                    craft_file.Save(temp_path);
-//                    EditorLogic.LoadShipFromFile(temp_path);
-//                    File.Delete(temp_path);
-//                });
-//            } else if(load_type == "merge"){
-//                KerbalX.download(craft.remote_id, craft_file =>{                                
-//                    ShipConstruct ship = new ShipConstruct();
-//                    ship.LoadShip(craft_file);
-//                    EditorLogic.fetch.SpawnConstruct(ship);
-//                    this.hide();
-//                });
-//            } else if(load_type == "subload"){
-//                KerbalX.download(craft.remote_id, craft_file =>{           
-//                    ShipTemplate subassembly = new ShipTemplate();
-//                    subassembly.LoadShip(craft_file);
-//                    EditorLogic.fetch.SpawnTemplate(subassembly);
-//                    this.hide();
-//                });
-//            }
-//        }
 
         //load/reload craft from the active_save_dir and apply any active filters
         public void refresh(){
@@ -1032,6 +946,35 @@ namespace CraftManager
             }
         }
 
+        //Transitions the interface between regular browsing mode and KerbalX upload mode. shrinks/expands the left and main columns
+        private void handle_upload_interface_transition(){
+            if(CraftData.selected_craft == null){
+                show_upload_interface = false;
+            }
+            if(show_upload_interface){
+                show_headers = false;
+                if(col_widths_current[0] > 0){
+                    col_widths_current[0] -= 0.02f;
+                }
+                if(col_widths_current[1] > 0){
+                    col_widths_current[1] -= 0.02f;                    
+                } else{
+                    upload_interface_ready = true;
+                }
+            } else if(!show_upload_interface){
+                upload_interface_ready = false;
+                if(col_widths_current[0] < col_widths_default[0]){
+                    col_widths_current[0] += 0.02f;
+                }
+                if(col_widths_current[1] < col_widths_default[1]){
+                    col_widths_current[1] += 0.02f;                    
+                } else{
+                    show_headers = true;
+                    col_widths_current[0] = col_widths_default[0];
+                    col_widths_current[1] = col_widths_default[1];
+                }
+            }
+        }
 
         //**Dialogs**//
         //Various popup windows. All these dialogs use the 'show_dialog' method which is lurking below them
@@ -1043,8 +986,44 @@ namespace CraftManager
         //the delegate to be triggered by enter key press. the delagate must return a response string based on the success 
         //of the action which is then returned by submit.
 
+        protected void download_confirm_dialog(DialogAction action = null){
+            string resp = "";
+            show_dialog("Overwrite", "A Craft with this name already exists", d =>{
+                section(()=>{                    
+                    button("Replace Existing Craft", "button.continue_with_save", ()=>{
+                        download(true, true, action);
+                        resp = "200";
+                    });                    
+                    button("Load Craft (without saving)", "button.continue_no_save", ()=>{
+                        load_craft("dl_load_no_save");
+                        resp = "200";
+                    });
+                });
+                GUILayout.Space(10);
+                button("Cancel", "button.cancel_load", close_dialog);
+                return resp;
+            });
+        }
 
-
+        //Show user option to save current craft or carry on loading
+        protected void load_craft_confirm_dialog(DialogAction action){
+            string resp = "";
+            show_dialog("Confirm Load", "The Current Craft has unsaved changes", d =>{
+                section((w)=>{                    
+                    button("Save Current Craft first", "button.continue_with_save", ()=>{
+                        string path = ShipConstruction.GetSavePath(EditorLogic.fetch.ship.shipName);
+                        EditorLogic.fetch.ship.SaveShip().Save(path);
+                        action(); resp = "200";
+                    });                    
+                    button("Continue Without Saving", "button.continue_no_save", ()=>{
+                        action(); resp = "200";
+                    });
+                });
+                GUILayout.Space(10);
+                button("Cancel", "button.cancel_load", close_dialog);
+                return resp;
+            });
+        }
 
         protected void edit_description_dialog(){
             if(CraftData.selected_craft.description == null){
@@ -1065,6 +1044,7 @@ namespace CraftManager
                 return resp;
             });
         }
+
         protected void rename_craft_dialog(){ rename_craft_dialog(CraftData.selected_craft); }
         protected void rename_craft_dialog(CraftData craft){            
             craft.new_name = craft.name;
@@ -1146,6 +1126,7 @@ namespace CraftManager
                 return resp;
             });
         }
+
         protected void move_copy_craft_dialog(){ move_copy_craft_dialog(CraftData.selected_craft); }
         protected void move_copy_craft_dialog(CraftData craft){            
             string resp = "";
