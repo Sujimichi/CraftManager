@@ -22,7 +22,6 @@ namespace CraftManager
         public string login_required_message = "";
         public bool show_cancel = false;
         public bool dialog_open = false;
-        DialogContent dialog_content;
 
         public AfterLoginAction after_login_action = () => {};
 
@@ -62,35 +61,6 @@ namespace CraftManager
             }
         }
 
-        private void login_form(float form_width){
-            if (KerbalXAPI.logged_out()) {                  
-                gui_state(enable_login, () =>{                    
-                    GUILayout.Label("Enter your KerbalX username and password");
-                    section(() => {
-                        label("username", width(70f));
-                        username = GUILayout.TextField(username, 255, width(form_width-70f));
-                    });
-                    section(() => {
-                        label("password", width(70f));
-                        password = GUILayout.PasswordField(password, '*', 255, width(form_width-70f));
-                    });
-                    Event e = Event.current;
-                    if (e.type == EventType.keyDown && e.keyCode == KeyCode.Return && !String.IsNullOrEmpty(username) && !String.IsNullOrEmpty(password)) {
-                        KerbalX.login(username, password);
-                    }
-                });
-            }else if (KerbalXAPI.logged_in()) {
-                label("You are logged in as " + KerbalXAPI.logged_in_as());
-            }
-        }
-
-        private void post_login_message(DryUI d){
-            string message = "The KerbalX.key is a token that is used to authenticate you with the site." +
-                "\nIt will also persist your login, so next time you start KSP you won't need to login again." +
-                "\nIf you want to login to KerbalX from multiple KSP installs, copy the KerbalX.key file into each install.";
-            label(message);
-            button("OK", close_dialog);
-        }
 
         protected void login_content(){
             if(!modal_dialog){
@@ -102,7 +72,25 @@ namespace CraftManager
                         label(login_required_message, "h2");
                     }
 
-                    login_form(inner_width);
+                    if (KerbalXAPI.logged_out()) {                  
+                        gui_state(enable_login, () =>{                    
+                            GUILayout.Label("Enter your KerbalX username and password");
+                            section(() => {
+                                label("username", width(70f));
+                                username = GUILayout.TextField(username, 255, width(inner_width-70f));
+                            });
+                            section(() => {
+                                label("password", width(70f));
+                                password = GUILayout.PasswordField(password, '*', 255, width(inner_width-70f));
+                            });
+                            Event e = Event.current;
+                            if (e.type == EventType.keyDown && e.keyCode == KeyCode.Return && !String.IsNullOrEmpty(username) && !String.IsNullOrEmpty(password)) {
+                                KerbalX.login(username, password);
+                            }
+                        });
+                    }else if (KerbalXAPI.logged_in()) {
+                        label("You are logged in as " + KerbalXAPI.logged_in_as());
+                    }
                     if (login_successful) {
                         section(w => {
                             label("KerbalX.key saved in KSP root", width(w - 20f));
@@ -156,6 +144,14 @@ namespace CraftManager
                 CraftManager.login_ui.autoheight();
             } 
             count -= 1;
+        }
+
+        private void post_login_message(DryUI d){
+            string message = "The KerbalX.key is a token that is used to authenticate you with the site." +
+                "\nIt will also persist your login, so next time you start KSP you won't need to login again." +
+                "\nIf you want to login to KerbalX from multiple KSP installs, copy the KerbalX.key file into each install.";
+            label(message);
+            button("OK", close_dialog);
         }
 
     }
@@ -235,8 +231,10 @@ namespace CraftManager
             } else{
                 CraftManager.main_ui.show_must_be_logged_in(() =>{
                     callback();
-                    DryDialog.close();      
-                    GameObject.Destroy(CraftManager.login_ui);
+                    DryDialog.close();
+                    if(CraftManager.login_ui != null){
+                        GameObject.Destroy(CraftManager.login_ui);
+                    }
                 });
             }         
         }
