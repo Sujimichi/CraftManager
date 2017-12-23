@@ -8,7 +8,9 @@
 /* 
     TODO List
     - KerbalX Integration
-    - KX Login interface
+        - KX Login interface
+        - fetch existing craft on first craft select and check which local craft exist on KerbalX
+        
     - settings UI    
     - Tagders - Tags as folders, different mode which limits each craft to one tag and only one tag can be selected at at time.
 
@@ -56,12 +58,14 @@ namespace CraftManager
 
         //Interface Instances
         internal static CMBrowser main_ui = null;
+        internal static CMKX_login login_ui = null;
 
         //Toolbar Buttons
         internal static ApplicationLauncherButton main_ui_toolbar_button   = null;
 
         //StyleSheet (initialised on first call to OnGUI)
         internal static GUISkin skin = null;
+        internal static GUISkin alt_skin = null;
 
         //other
         public static string ksp_root = Directory.GetParent(KSPUtil.ApplicationRootPath).FullName;
@@ -77,14 +81,6 @@ namespace CraftManager
                 GameEvents.onGUIApplicationLauncherDestroyed.Add(remove_from_toolbar);
             }
             GameEvents.onGameSceneLoadRequested.Add(scene_load_request);    
-        }
-
-        //Trigger the creation of custom Skin (copy of default skin with various custom styles added to it, see stylesheet.cs)
-        private void OnGUI(){
-            if(CraftManager.skin == null){
-                CraftManager.skin = new StyleSheet(HighLogic.Skin).skin;
-//                DryUI.skin = new StyleSheet(GUI.skin).skin; //works but isn't as clear.
-            }
         }
 
 

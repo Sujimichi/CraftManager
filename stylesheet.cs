@@ -146,12 +146,17 @@ namespace CraftManager
 
             define_style("button", base_skin.button, s =>{
             });
+            define_style("button.login", base_skin.button, s =>{
+                s.fontSize = 15;
+                s.fontStyle = FontStyle.Bold;
+                s.padding = new RectOffset(0, 0, 3, 3);
+            });
+
             define_style("button.down", base_skin.button, s =>{                
                 s.normal.background = s.active.background;
                 s.hover.background = s.focused.background;
                 s.normal.textColor = Color.green;
             });
-
             define_style("button.large", base_skin.button, s =>{
                 s.fontSize = 20;
             });
@@ -204,6 +209,15 @@ namespace CraftManager
             });
 
  
+            define_style("button.login.toggle", base_skin.button, s =>{
+                s.fixedWidth = 50f;
+                s.fixedHeight = 150f;
+                s.margin = new RectOffset(0,0,0,0);
+            });
+            define_style("login.window", base_skin.window, s =>{
+                s.margin = new RectOffset(0,0,0,0);
+                s.padding = new RectOffset(10,0,20,0);
+            });
 
 
 

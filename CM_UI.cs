@@ -12,6 +12,11 @@ namespace CraftManager
         //This is needed (although kinda hacky) so set the stylesheet for the base window class.  All windows will be created as CMUI instances
         //which inherit functionality from DryUI (part of KatLib)
         protected override void OnGUI(){
+            //Trigger the creation of custom Skin (copy of default skin with various custom styles added to it, see stylesheet.cs)
+            if(CraftManager.skin == null){
+                CraftManager.skin = new StyleSheet(HighLogic.Skin).skin;
+                CraftManager.alt_skin = new StyleSheet(GUI.skin).skin; //works but isn't as clear.
+            }
             if(this.skin == null){
                 this.skin = CraftManager.skin;
             }
@@ -27,13 +32,20 @@ namespace CraftManager
                 prevent_ui_click_through();
             }
 
-            if(gui_locked){
-                GUI.enabled = false;
-                GUI.color = new Color(1, 1, 1, 2); //This enables the GUI to be locked from input, but without changing it's appearance. 
+//            if(require_login && KerbalXAPI.logged_out()){
+//
+//            }
+            if(true){
+
+                if(gui_locked){
+                    GUI.enabled = false;
+                    GUI.color = new Color(1, 1, 1, 2); //This enables the GUI to be locked from input, but without changing it's appearance. 
+                }
+                WindowContent(window_id);   //oh hey, finally, actually drawing the window content. 
+                GUI.enabled = true;
+                GUI.color = Color.white;
             }
-            WindowContent(window_id);   //oh hey, finally, actually drawing the window content. 
-            GUI.enabled = true;
-            GUI.color = Color.white;
+
 
             //add common footer elements for all windows if footer==true
             if(footer){
@@ -55,6 +67,18 @@ namespace CraftManager
                 RequestHandler request_handler = gameObject.AddOrGetComponent<RequestHandler>();
                 RequestHandler.instance = request_handler;
             }
+        }
+
+
+        public void show_must_be_logged_in(AfterLoginAction callback){
+            if(CraftManager.login_ui != null){
+                GameObject.Destroy(CraftManager.login_ui);
+            }
+            CMKX_login login_dialog = gameObject.AddOrGetComponent<CMKX_login>();
+            login_dialog.modal_dialog = true;
+            login_dialog.show_cancel = true;
+            login_dialog.login_required_message = "You need to login to KerbalX to use this feature";
+            login_dialog.after_login_action = callback;
         }
 
     }

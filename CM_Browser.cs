@@ -145,9 +145,9 @@ namespace CraftManager
 
             if(KerbalX.enabled){
                 enable_request_handler();
-                if(KerbalXAPI.logged_out()){ //TODO this is a temp test thing, remove.
-                    CraftManager.load_and_authenticate_token();   
-                }
+//                if(KerbalXAPI.logged_out()){ //TODO this is a temp test thing, remove.
+//                    CraftManager.load_and_authenticate_token();   
+//                }
 //                KerbalX.fetch_existing_craft();
             }
 
