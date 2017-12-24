@@ -84,25 +84,6 @@ namespace CraftManager
         }
 
 
-        //Check if Token file exists and if so authenticate it with KerbalX. Otherwise instruct login window to display login fields.
-        internal static void load_and_authenticate_token(){
-            //            KerbalX.login_gui.enable_login = false;
-            CraftManager.log("logging in....");
-            KerbalXAPI.load_and_authenticate_token((resp, code) =>{
-                //                var resp_data = JSON.Parse(resp);
-                if(code == 200){                    
-                    CraftManager.log("Logged in");
-                    //                    KerbalX.login_gui.after_login_action();
-                    //                    KerbalX.login_gui.show_upgrade_available_message(resp_data["update_available"]); //triggers display of update available message if the passed string is not empty
-                }else{
-                    CraftManager.log("NOT Logged");
-                }
-                CraftManager.log(resp);
-                //                KerbalX.login_gui.enable_login = true;
-                //                KerbalX.login_gui.autoheight();
-            });
-        }
-
 
         //Bind events to add buttons to the toolbar
         private void add_to_toolbar(){

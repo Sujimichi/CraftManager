@@ -22,6 +22,9 @@ namespace CraftManager
         public string login_required_message = "";
         public bool show_cancel = false;
         public bool dialog_open = false;
+        public bool window_retract = true;
+        public bool initial_token_check_complete = false;
+        public GUIStyle login_indicator = null;
 
         public AfterLoginAction after_login_action = () => {};
 
@@ -33,12 +36,12 @@ namespace CraftManager
             if(KerbalX.enabled){                
                 enable_request_handler();
                 window_title = "KerbalX::Login";
-                window_pos = new Rect(50, 50, 450, 5);
+                window_pos = new Rect(-420f, 50, 420, 5);
                 CraftManager.login_ui = this;
                 enable_request_handler();
                 //try to load a token from file and if present authenticate it with KerbalX.  if token isn't present or token authentication fails then show login fields.
                 if(KerbalXAPI.logged_out()){
-                    CraftManager.load_and_authenticate_token();   
+                    KerbalX.load_and_authenticate_token();   
                 }
 
             }
@@ -49,7 +52,7 @@ namespace CraftManager
                 if(!dialog_open){
                     dialog_open = true;
                     ModalDialog dialog = gameObject.AddOrGetComponent<ModalDialog>();
-                    dialog.dialog_pos = new Rect(Screen.width / 2 - 450 / 2, Screen.height / 2 - 100, 450f, 5f);
+                    dialog.dialog_pos = new Rect(Screen.width / 2 - 400 / 2, Screen.height / 3, 400f, 5f);
                     dialog.window_title = window_title;
                     dialog.content = new DialogContent(d =>{
                         login_content();                    
@@ -57,7 +60,42 @@ namespace CraftManager
                     dialog.skin = CraftManager.skin;
                 }
             } else{                
-                login_content();
+                section(400f, (w2) =>{
+                    alt_window_style = skin.GetStyle("login.window");                    
+                    GUILayout.BeginVertical("Window", width(400f), height(80f), GUILayout.ExpandHeight(true));
+                    login_content();
+                    GUILayout.EndVertical();
+                    v_section(50f,(w) =>{
+                        button("test", "button.login.toggle", () =>{
+                            if(window_pos.x < -5){
+                                window_retract = false;
+                            }else if(window_pos.x >= -5){
+                                window_retract = true;
+                            }
+                            initial_token_check_complete = false;
+                        });
+                        if(initial_token_check_complete && KerbalXAPI.logged_out()){
+                            window_retract = false;
+                        }
+
+                        if(login_indicator == null || !enable_login){
+                            login_indicator = "login.logging_in";
+                        } else if(KerbalXAPI.logged_in()){                            
+                            login_indicator = "login.logged_in";
+                        }else if(KerbalXAPI.logged_out()){
+                            login_indicator = "login.logged_out";
+                        }
+
+                        v_section(10f, 10f, login_indicator, (w3) => {
+                            
+                        });
+                    });
+                });
+                if(window_retract && window_pos.x > -420f){
+                    window_pos.x -= 10;
+                } else if(!window_retract && window_pos.x < -5){
+                    window_pos.x += 10;
+                }
             }
         }
 
@@ -66,8 +104,8 @@ namespace CraftManager
             if(!modal_dialog){
                 skin = CraftManager.alt_skin;
             }
-            section(450f, () =>{
-                v_section(450f, (inner_width) =>{
+            section(400f, () =>{
+                v_section(400f, (inner_width) =>{
                     if(!String.IsNullOrEmpty(login_required_message)){
                         label(login_required_message, "h2");
                     }
@@ -77,11 +115,11 @@ namespace CraftManager
                             GUILayout.Label("Enter your KerbalX username and password");
                             section(() => {
                                 label("username", width(70f));
-                                username = GUILayout.TextField(username, 255, width(inner_width-70f));
+                                username = GUILayout.TextField(username, 255, width(inner_width-85f));
                             });
                             section(() => {
                                 label("password", width(70f));
-                                password = GUILayout.PasswordField(password, '*', 255, width(inner_width-70f));
+                                password = GUILayout.PasswordField(password, '*', 255, width(inner_width-85f));
                             });
                             Event e = Event.current;
                             if (e.type == EventType.keyDown && e.keyCode == KeyCode.Return && !String.IsNullOrEmpty(username) && !String.IsNullOrEmpty(password)) {
@@ -92,8 +130,8 @@ namespace CraftManager
                         label("You are logged in as " + KerbalXAPI.logged_in_as());
                     }
                     if (login_successful) {
-                        section(w => {
-                            label("KerbalX.key saved in KSP root", width(w - 20f));
+                        section(() => {
+                            label("KerbalX.key saved in KSP root", width(inner_width - 50f));
                             button("?", 20f, ()=>{
                                 DryDialog dialog = show_dialog(post_login_message);
                                 dialog.window_title = "KerbalX Token File";
@@ -129,15 +167,6 @@ namespace CraftManager
                         });
                     }
                 });
-                //                section(50f, () =>{
-                //                    button("L", "button.login.toggle", ()=>{
-                //                        if(window_pos.x < 0){
-                //                            window_pos.x = 0;
-                //                        }else{
-                //                            window_pos.x = -400;
-                //                        }
-                //                    });
-                //                });
             });
 
             if(count == 0){
@@ -181,6 +210,7 @@ namespace CraftManager
         internal static void login(string username, string password){
             CraftManager.login_ui.enable_login = false; //disable interface while logging in to prevent multiple login clicks
             CraftManager.login_ui.login_failed = false;
+            CraftManager.login_ui.login_indicator = null;
             KerbalXAPI.login(username, password, (resp, code) =>{
                 if(code == 200){
                     var resp_data = JSON.Parse(resp);
@@ -195,6 +225,27 @@ namespace CraftManager
                 CraftManager.login_ui.autoheight();
                 CraftManager.login_ui.password = "";
 
+            });
+        }
+
+        //Check if Token file exists and if so authenticate it with KerbalX. Otherwise instruct login window to display login fields.
+        internal static void load_and_authenticate_token(){
+            CraftManager.log("logging in....");
+            CraftManager.login_ui.enable_login = false;
+            CraftManager.login_ui.login_indicator = null;
+            KerbalXAPI.load_and_authenticate_token((resp, code) =>{
+                //                var resp_data = JSON.Parse(resp);
+                if(code == 200){                    
+                    CraftManager.log("Logged in");
+                    CraftManager.login_ui.after_login_action();
+                    //                    KerbalX.login_gui.show_upgrade_available_message(resp_data["update_available"]); //triggers display of update available message if the passed string is not empty
+                }else{
+                    CraftManager.log("NOT Logged");
+                }
+                CraftManager.log(resp);
+                CraftManager.login_ui.enable_login = true;
+                CraftManager.login_ui.initial_token_check_complete = true;
+                CraftManager.login_ui.autoheight();
             });
         }
 

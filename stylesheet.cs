@@ -77,6 +77,12 @@ namespace CraftManager
             set_texture("green_background", new Color(0.2f, 0.6f, 0.2f, 1));
             set_texture("light_green_background", new Color(0.3f, 0.5f, 0.3f, 1));
             set_texture("red_background", new Color(0.51f, 0.44f, 0.44f, 0.4f));
+            set_texture("clear_background", new Color(0f, 0f, 0f, 0f));
+
+            set_texture("logging_in", Color.yellow);
+            set_texture("logged_out", Color.red);
+            set_texture("logged_in", Color.green);
+
 
 
             define_style("h1", base_skin.label, s =>{
@@ -146,12 +152,6 @@ namespace CraftManager
 
             define_style("button", base_skin.button, s =>{
             });
-            define_style("button.login", base_skin.button, s =>{
-                s.fontSize = 15;
-                s.fontStyle = FontStyle.Bold;
-                s.padding = new RectOffset(0, 0, 3, 3);
-            });
-
             define_style("button.down", base_skin.button, s =>{                
                 s.normal.background = s.active.background;
                 s.hover.background = s.focused.background;
@@ -209,14 +209,31 @@ namespace CraftManager
             });
 
  
+            define_style("button.login", base_skin.button, s =>{
+                s.fontSize = 15;
+                s.fontStyle = FontStyle.Bold;
+                s.padding = new RectOffset(0, 0, 3, 3);
+            });
             define_style("button.login.toggle", base_skin.button, s =>{
-                s.fixedWidth = 50f;
-                s.fixedHeight = 150f;
+                s.fixedWidth = 20f;
+                s.fixedHeight = 100f;
                 s.margin = new RectOffset(0,0,0,0);
             });
-            define_style("login.window", base_skin.window, s =>{
+            define_style("login.window", base_skin.box, s =>{
                 s.margin = new RectOffset(0,0,0,0);
-                s.padding = new RectOffset(10,0,20,0);
+                s.padding = new RectOffset(0,0,0,0);
+                s.normal.background = textures["clear_background"];
+            });
+            define_style("login.logging_in", base_skin.box, s =>{
+                s.normal.background = textures["logging_in"];
+                s.fixedWidth = 10f;
+                s.fixedHeight = 10f;
+            });
+            define_style("login.logged_in", "login.logging_in", s =>{
+                s.normal.background = textures["logged_in"];
+            });
+            define_style("login.logged_out", "login.logging_in", s =>{
+                s.normal.background = textures["logged_out"];
             });
 
 
