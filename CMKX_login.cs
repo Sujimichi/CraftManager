@@ -26,6 +26,10 @@ namespace CraftManager
         public bool initial_token_check_complete = false;
         public GUIStyle login_indicator = null;
 
+        public float window_out_pos = -15f;
+        public float window_in_pos = -420f;
+            
+
         public AfterLoginAction after_login_action = () => {};
 
         public int count = 5;
@@ -35,8 +39,8 @@ namespace CraftManager
         private void Start(){
             if(KerbalX.enabled){                
                 enable_request_handler();
-                window_title = "KerbalX::Login";
-                window_pos = new Rect(-420f, 50, 420, 5);
+                window_title = "";
+                window_pos = new Rect(window_in_pos, 50, 420, 5);
                 CraftManager.login_ui = this;
                 enable_request_handler();
                 //try to load a token from file and if present authenticate it with KerbalX.  if token isn't present or token authentication fails then show login fields.
@@ -60,24 +64,14 @@ namespace CraftManager
                     dialog.skin = CraftManager.skin;
                 }
             } else{                
-                section(400f, (w2) =>{
+                
+                section(400f, 5f, "login.container", (inner_width) =>{
                     alt_window_style = skin.GetStyle("login.window");                    
-                    GUILayout.BeginVertical("Window", width(400f), height(80f), GUILayout.ExpandHeight(true));
+                    GUILayout.BeginVertical("Window", width(400f), height(100f), GUILayout.ExpandHeight(true));
                     login_content();
                     GUILayout.EndVertical();
-                    v_section(50f,(w) =>{
-                        button("test", "button.login.toggle", () =>{
-                            if(window_pos.x < -5){
-                                window_retract = false;
-                            }else if(window_pos.x >= -5){
-                                window_retract = true;
-                            }
-                            initial_token_check_complete = false;
-                        });
-                        if(initial_token_check_complete && KerbalXAPI.logged_out()){
-                            window_retract = false;
-                        }
-
+                    v_section(20f, "", (w) =>{
+                        fspace();
                         if(login_indicator == null || !enable_login){
                             login_indicator = "login.logging_in";
                         } else if(KerbalXAPI.logged_in()){                            
@@ -85,15 +79,26 @@ namespace CraftManager
                         }else if(KerbalXAPI.logged_out()){
                             login_indicator = "login.logged_out";
                         }
-
-                        v_section(10f, 10f, login_indicator, (w3) => {
-                            
-                        });
+//                        v_section(10f, 10f, login_indicator, (w3) => {});
+                        label("", login_indicator);
+                    }, (evt) => {
+                        if(evt.single_click){
+                            if(window_pos.x < window_out_pos){
+                                window_retract = false;
+                            }else if(window_pos.x >= window_out_pos){
+                                window_retract = true;
+                            }
+                            initial_token_check_complete = false;
+                        }
                     });
                 });
-                if(window_retract && window_pos.x > -420f){
+
+                if(initial_token_check_complete && KerbalXAPI.logged_out()){
+                    window_retract = false;
+                }
+                if(window_retract && window_pos.x > window_in_pos){
                     window_pos.x -= 10;
-                } else if(!window_retract && window_pos.x < -5){
+                } else if(!window_retract && window_pos.x < window_out_pos){
                     window_pos.x += 10;
                 }
             }
@@ -107,7 +112,7 @@ namespace CraftManager
             section(400f, () =>{
                 v_section(400f, (inner_width) =>{
                     if(!String.IsNullOrEmpty(login_required_message)){
-                        label(login_required_message, "h2");
+                        label(login_required_message, "h3");
                     }
 
                     if (KerbalXAPI.logged_out()) {                  
@@ -169,10 +174,10 @@ namespace CraftManager
                 });
             });
 
-            if(count == 0){
-                CraftManager.login_ui.autoheight();
-            } 
-            count -= 1;
+//            if(count == 0){
+//                CraftManager.login_ui.autoheight();
+//            } 
+//            count -= 1;
         }
 
         private void post_login_message(DryUI d){

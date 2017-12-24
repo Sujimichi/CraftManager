@@ -78,6 +78,8 @@ namespace CraftManager
             set_texture("light_green_background", new Color(0.3f, 0.5f, 0.3f, 1));
             set_texture("red_background", new Color(0.51f, 0.44f, 0.44f, 0.4f));
             set_texture("clear_background", new Color(0f, 0f, 0f, 0f));
+            set_texture("grey_background", Color.gray);
+
 
             set_texture("logging_in", Color.yellow);
             set_texture("logged_out", Color.red);
@@ -219,13 +221,23 @@ namespace CraftManager
                 s.fixedHeight = 100f;
                 s.margin = new RectOffset(0,0,0,0);
             });
+
+            define_style("login.container", base_skin.window, s =>{
+                s.margin = new RectOffset(0,0,0,0);
+                s.padding = new RectOffset(0,0,0,0);
+//                s.normal.background = textures["grey_background"];
+            });
             define_style("login.window", base_skin.box, s =>{
                 s.margin = new RectOffset(0,0,0,0);
                 s.padding = new RectOffset(0,0,0,0);
+                s.border = new RectOffset(0,0,0,0);
                 s.normal.background = textures["clear_background"];
             });
+
+
             define_style("login.logging_in", base_skin.box, s =>{
                 s.normal.background = textures["logging_in"];
+                s.margin = new RectOffset(4,5,0,8);
                 s.fixedWidth = 10f;
                 s.fixedHeight = 10f;
             });
