@@ -39,7 +39,7 @@ namespace CraftManager
         private void Start(){
             if(KerbalX.enabled){                
                 enable_request_handler();
-                window_title = "";
+                window_title = null;
                 window_pos = new Rect(window_in_pos, 50, 420, 5);
                 CraftManager.login_ui = this;
                 enable_request_handler();
@@ -56,21 +56,20 @@ namespace CraftManager
                 if(!dialog_open){
                     dialog_open = true;
                     ModalDialog dialog = gameObject.AddOrGetComponent<ModalDialog>();
-                    dialog.dialog_pos = new Rect(Screen.width / 2 - 400 / 2, Screen.height / 3, 400f, 5f);
+                    dialog.dialog_pos = new Rect(Screen.width / 2 - 450f / 2, Screen.height / 3, 450f, 5f);
                     dialog.window_title = window_title;
                     dialog.content = new DialogContent(d =>{
-                        login_content();                    
+                        login_content(450f);                    
                     });
                     dialog.skin = CraftManager.skin;
                 }
             } else{                
-                
                 section(400f, 5f, "login.container", (inner_width) =>{
                     alt_window_style = skin.GetStyle("login.window");                    
                     GUILayout.BeginVertical("Window", width(400f), height(100f), GUILayout.ExpandHeight(true));
-                    login_content();
+                    login_content(400f);
                     GUILayout.EndVertical();
-                    v_section(20f, "", (w) =>{
+                    v_section(20f, w =>{
                         fspace();
                         if(login_indicator == null || !enable_login){
                             login_indicator = "login.logging_in";
@@ -79,7 +78,7 @@ namespace CraftManager
                         }else if(KerbalXAPI.logged_out()){
                             login_indicator = "login.logged_out";
                         }
-//                        v_section(10f, 10f, login_indicator, (w3) => {});
+                        label("K\ne\nr\nb\na\nl\nX", "centered", 10f);
                         label("", login_indicator);
                     }, (evt) => {
                         if(evt.single_click){
@@ -105,14 +104,15 @@ namespace CraftManager
         }
 
 
-        protected void login_content(){
+        protected void login_content(float content_width){
             if(!modal_dialog){
                 skin = CraftManager.alt_skin;
             }
-            section(400f, () =>{
-                v_section(400f, (inner_width) =>{
+            section(content_width, 110f, () =>{
+                v_section(content_width, (inner_width) =>{
+
                     if(!String.IsNullOrEmpty(login_required_message)){
-                        label(login_required_message, "h3");
+                        label(login_required_message, "h2");
                     }
 
                     if (KerbalXAPI.logged_out()) {                  
@@ -120,6 +120,7 @@ namespace CraftManager
                             GUILayout.Label("Enter your KerbalX username and password");
                             section(() => {
                                 label("username", width(70f));
+                                GUI.SetNextControlName("username_field");
                                 username = GUILayout.TextField(username, 255, width(inner_width-85f));
                             });
                             section(() => {
@@ -132,7 +133,7 @@ namespace CraftManager
                             }
                         });
                     }else if (KerbalXAPI.logged_in()) {
-                        label("You are logged in as " + KerbalXAPI.logged_in_as());
+                        label("You are logged in to KerbalX as " + KerbalXAPI.logged_in_as());
                     }
                     if (login_successful) {
                         section(() => {
@@ -174,10 +175,10 @@ namespace CraftManager
                 });
             });
 
-//            if(count == 0){
-//                CraftManager.login_ui.autoheight();
-//            } 
-//            count -= 1;
+            if(count >= 0){
+                GUI.FocusControl("username_field");
+                count -= 1;
+            } 
         }
 
         private void post_login_message(DryUI d){
