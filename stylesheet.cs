@@ -135,6 +135,13 @@ namespace CraftManager
             define_style("alert.h3", "alert", s =>{               
                 s.fontSize = 15;
             });
+            define_style("alert.h2", "alert", s =>{               
+                s.fontSize = 20;
+                s.fontStyle = FontStyle.Bold;
+            });
+            define_style("alert.h1", "alert.h2", s =>{               
+                s.fontSize = 30;
+            });
 
             define_style("modal.title", base_skin.label, s =>{
                 s.fontStyle = FontStyle.Bold;

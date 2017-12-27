@@ -282,13 +282,15 @@ namespace CraftManager
         public delegate void DownloadCallback(ConfigNode craft_file);
         public delegate void ActionCallback();
 
-        private static void remote_action_wrapper(ActionCallback callback){            
+
+
+        private static void if_logged_in_do(ActionCallback callback){            
             if(KerbalXAPI.logged_in()){
                 callback();
             } else{
                 CraftManager.main_ui.show_must_be_logged_in(() =>{
                     callback();
-                    DryDialog.close();
+                    ModalDialog.close();
                     if(CraftManager.login_ui != null){
                         GameObject.Destroy(CraftManager.login_ui);
                     }
@@ -297,79 +299,7 @@ namespace CraftManager
         }
 
 
-        public static void download(int id, DownloadCallback callback){
-            remote_action_wrapper(() =>{
-                CraftManager.status_info = "Downloading craft from KerbalX...";
-                KerbalXAPI.download_craft(id, (craft_file_string, code) =>{
-                    if(code == 200){
-                        ConfigNode craft = ConfigNode.Parse(craft_file_string);
-                        CraftManager.status_info = "";
-                        callback(craft);
-                    }
-                });
-            });
-        }
-
-
-
-
-        public static void load_remote_craft(){     
-            remote_action_wrapper(() =>{
-                CraftManager.main_ui.select_sort_option("date_updated", false);
-                load_users_craft();
-            });
-        }
-
-        public static void load_users_craft(){
-            remote_action_wrapper(() =>{
-                CraftManager.status_info = "fetching craft info from KerbalX";
-                loaded_craft_type = "users";
-                KerbalXAPI.fetch_existing_craft(() =>{                
-                    after_load_action(KerbalXAPI.user_craft);
-                });
-            });
-        }
-
-        public static void load_past_dowloads(){
-            remote_action_wrapper(() =>{
-                CraftManager.status_info = "fetching craft info from KerbalX";
-                loaded_craft_type = "past_downloads";
-                KerbalXAPI.fetch_past_downloads(craft_data =>{
-                    after_load_action(craft_data);
-                });
-            });
-        }
-
-        public static void load_favourites(){
-            remote_action_wrapper(() =>{
-                CraftManager.status_info = "fetching craft info from KerbalX";
-                loaded_craft_type = "favourites";
-                KerbalXAPI.fetch_favoutite_craft(craft_data =>{
-                    after_load_action(craft_data);
-                });
-            });
-        }
-
-        public static void load_download_queue(){
-            remote_action_wrapper(() =>{
-                CraftManager.status_info = "fetching craft info from KerbalX";
-                loaded_craft_type = "download_queue";
-                KerbalXAPI.fetch_download_queue(craft_data =>{
-                    after_load_action(craft_data);
-                });
-            });
-        }
-
-        public static void load_local(){
-            CraftManager.main_ui.kerbalx_mode = false;
-            CraftManager.main_ui.select_sort_option(CraftManager.settings.get("craft_sort"), false);
-            CraftManager.main_ui.refresh();
-        }
-
-
-
-        private static void after_load_action(Dictionary<int, Dictionary<string, string>> craft_data){
-            CraftManager.log("after_load_action called");
+        private static void after_load_action(Dictionary<int, Dictionary<string, string>> craft_data){            
             CraftData.all_craft.Clear();
             versions.Clear(); v_toggle.Clear();
             foreach(KeyValuePair<int, Dictionary<string, string>> data in craft_data){
@@ -390,6 +320,79 @@ namespace CraftManager
             CraftManager.main_ui.filter_craft();
             CraftManager.main_ui.scroll_pos["main"] = new UnityEngine.Vector2(0,0);                        
         }
+
+
+
+
+        public static void download(int id, DownloadCallback callback){
+            if_logged_in_do(() =>{
+                CraftManager.status_info = "Downloading craft from KerbalX...";
+                KerbalXAPI.download_craft(id, (craft_file_string, code) =>{
+                    if(code == 200){
+                        ConfigNode craft = ConfigNode.Parse(craft_file_string);
+                        CraftManager.status_info = "";
+                        callback(craft);
+                    }
+                });
+            });
+        }
+
+        public static void load_remote_craft(){     
+            if_logged_in_do(() =>{
+                CraftManager.main_ui.select_sort_option("date_updated", false);
+                load_users_craft();
+            });
+        }
+
+        public static void load_users_craft(){
+            if_logged_in_do(() =>{
+                CraftManager.status_info = "fetching craft info from KerbalX";
+                loaded_craft_type = "users";
+                KerbalXAPI.fetch_existing_craft(() =>{                
+                    after_load_action(KerbalXAPI.user_craft);
+                });
+            });
+        }
+
+        public static void load_past_dowloads(){
+            if_logged_in_do(() =>{
+                CraftManager.status_info = "fetching craft info from KerbalX";
+                loaded_craft_type = "past_downloads";
+                KerbalXAPI.fetch_past_downloads(craft_data =>{
+                    after_load_action(craft_data);
+                });
+            });
+        }
+
+        public static void load_favourites(){
+            if_logged_in_do(() =>{
+                CraftManager.status_info = "fetching craft info from KerbalX";
+                loaded_craft_type = "favourites";
+                KerbalXAPI.fetch_favoutite_craft(craft_data =>{
+                    after_load_action(craft_data);
+                });
+            });
+        }
+
+        public static void load_download_queue(){
+            if_logged_in_do(() =>{
+                CraftManager.status_info = "fetching craft info from KerbalX";
+                loaded_craft_type = "download_queue";
+                KerbalXAPI.fetch_download_queue(craft_data =>{
+                    after_load_action(craft_data);
+                });
+            });
+        }
+
+        public static void load_local(){
+            CraftManager.main_ui.kerbalx_mode = false;
+            CraftManager.main_ui.select_sort_option(CraftManager.settings.get("craft_sort"), false);
+            CraftManager.main_ui.refresh();
+        }
+
+
+
+
 
 
 

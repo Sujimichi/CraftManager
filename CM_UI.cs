@@ -32,11 +32,31 @@ namespace CraftManager
                 prevent_ui_click_through();
             }
 
-//            if(require_login && KerbalXAPI.logged_out()){
-//
-//            }
-            if(true){
 
+            if(KerbalXAPI.failed_to_connect){
+                
+                ModalDialog dialog = show_modal_dialog(d =>{
+                    label("Unable to Connect to KerbalX.com!", "alert.h1");
+                    label("Check your net connection and that you can reach KerbalX in a browser", "alert.h2");
+                    section(() =>{
+                        button("try again", () =>{
+                            RequestHandler.instance.try_again();
+                            ModalDialog.close();
+                        });                    
+                        button("cancel", () =>{
+                            KerbalXAPI.failed_to_connect = false;
+                            ModalDialog.close();
+                        });
+                    });
+                });
+                dialog.dialog_pos.width = 600;
+                dialog.dialog_pos.x = Screen.width / 2 - (dialog.dialog_pos.width / 2);
+                dialog.dialog_pos.y = Screen.height * 0.3f;
+                dialog.window_title = "CraftManager Error";
+            }
+
+            if(true){
+                
                 if(gui_locked){
                     GUI.enabled = false;
                     GUI.color = new Color(1, 1, 1, 2); //This enables the GUI to be locked from input, but without changing it's appearance. 

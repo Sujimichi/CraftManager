@@ -17,7 +17,7 @@ namespace CraftManager
     [KSPAddon(KSPAddon.Startup.MainMenu, true)]
     public class JumpStart : MonoBehaviour
     {
-        public bool autostart = false;
+        public bool autostart = true;
         public string save_name = "kx_dev";
 //        public string mode = "spacecenter";
         public string mode = "editor";
