@@ -90,16 +90,21 @@ namespace CraftManager
         }
 
 
-        public void show_must_be_logged_in(AfterLoginAction callback){
+        public void show_must_be_logged_in(AfterLoginAction callback){           
+            login_dialog("You need to login to KerbalX to use this feature", callback);
+        }
+
+        public void login_dialog(string message = null, AfterLoginAction callback = null){
             if(CraftManager.login_ui != null){
                 GameObject.Destroy(CraftManager.login_ui);
             }
             CMKX_login login_dialog = gameObject.AddOrGetComponent<CMKX_login>();
             login_dialog.modal_dialog = true;
             login_dialog.show_cancel = true;
-            login_dialog.login_required_message = "You need to login to KerbalX to use this feature";
+            login_dialog.login_required_message = message;
             login_dialog.after_login_action = callback;
         }
+
 
     }
 }

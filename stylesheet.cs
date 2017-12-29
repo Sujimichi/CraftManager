@@ -170,6 +170,9 @@ namespace CraftManager
             define_style("button.large", base_skin.button, s =>{
                 s.fontSize = 20;
             });
+            define_style("button.small", base_skin.button, s =>{
+                s.fontSize = 12;
+            });
             define_style("button.tight", base_skin.button, s =>{
                 s.margin.left = 0;
                 s.margin.right = 0;

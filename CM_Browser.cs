@@ -645,15 +645,23 @@ namespace CraftManager
                                 });
                             });
 
-                            section(()=>{
-                                button("Share on KerbalX", ()=>{
-                                    if(show_upload_interface){
-                                        show_upload_interface = false;
+                            if(KerbalX.enabled){
+                                section(()=>{
+                                    if(KerbalXAPI.logged_in()){
+                                        if(craft.on_kerbalx()){
+                                            button("Update craft on KerbalX", ()=>{});
+                                        }else{
+                                            button("Share on KerbalX", ()=>{
+                                                show_upload_interface = !show_upload_interface;
+                                            });
+                                        }
                                     }else{
-                                        show_upload_interface = true;
-                                    }
+                                        button("Login to KerbalX to share craft", "button.small", ()=>{
+                                            login_dialog("", KerbalX.close_login_dialog);
+                                        });
+                                    }                                   
                                 });
-                            });
+                            }
 
                             GUILayout.Space(15);
                             

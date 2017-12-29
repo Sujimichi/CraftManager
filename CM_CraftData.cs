@@ -260,6 +260,20 @@ namespace CraftManager
         public bool exists_locally = false;
 
 
+        public List<int> matching_remote_ids = null;
+        public bool on_kerbalx(){
+            if(matching_remote_ids == null){
+                matching_remote_ids = new List<int>();
+                KerbalX.find_matching_remote_craft(this);
+            }
+            if(matching_remote_ids == null){
+                return false;
+            } else{
+                return matching_remote_ids.Count > 0;            
+            }
+        }
+
+
         //Initialize a new CraftData object. Takes a path to a .craft file and either populates it from attributes from the craft file
         //or loads information from the CraftDataCache. Main logic moved to initialize() so it can be call again (reinitialized) on existing object      
         public CraftData(string full_path, bool stock = false){

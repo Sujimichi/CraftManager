@@ -35,7 +35,6 @@ namespace CraftManager
         public int count = 5;
 
 
-
         private void Start(){
             if(KerbalX.enabled){                
                 enable_request_handler();
@@ -290,14 +289,17 @@ namespace CraftManager
             } else{
                 CraftManager.main_ui.show_must_be_logged_in(() =>{
                     callback();
-                    ModalDialog.close();
-                    if(CraftManager.login_ui != null){
-                        GameObject.Destroy(CraftManager.login_ui);
-                    }
+                    close_login_dialog();
                 });
             }         
         }
 
+        public static void close_login_dialog(){
+            ModalDialog.close();
+            if(CraftManager.login_ui != null){
+                GameObject.Destroy(CraftManager.login_ui);
+            }
+        }
 
         private static void after_load_action(Dictionary<int, Dictionary<string, string>> craft_data){            
             CraftData.all_craft.Clear();
@@ -322,7 +324,31 @@ namespace CraftManager
         }
 
 
+        public delegate void RemoteCraftMatcher();
+        public static void find_matching_remote_craft(CraftData craft){
+            CraftManager.log("find_matching_remote_craft called");
+            RemoteCraftMatcher rcm = new RemoteCraftMatcher(() =>{
+                if(KerbalXAPI.user_craft != null){
+                    List<int> list = new List<int>();
+                    foreach(KeyValuePair<int, Dictionary<string, string>> pair in KerbalXAPI.user_craft){
+                        if(pair.Value["name"] == craft.name && pair.Value["type"] == craft.construction_type){
+                            list.Add(pair.Key);
+                        }
+                    }
+                    craft.matching_remote_ids = list;
+                }
 
+            });
+
+            if(KerbalXAPI.logged_in() && KerbalXAPI.user_craft == null){
+                KerbalXAPI.fetch_existing_craft(() =>{                
+                    rcm();
+                });                    
+            } else{
+                rcm();
+            }
+
+        }
 
         public static void download(int id, DownloadCallback callback){
             if_logged_in_do(() =>{

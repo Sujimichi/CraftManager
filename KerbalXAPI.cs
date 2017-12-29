@@ -24,7 +24,7 @@ namespace CraftManager
     internal class KerbalXAPI
     {
         internal static string token_path = Paths.joined(KSPUtil.ApplicationRootPath, "KerbalX.key");
-        private static string token                    = null;
+        private static string  token                    = null;
         internal static string kx_username              = null; //not used for any authentication, just for being friendly!
         internal static bool   failed_to_connect        = false;
         internal static string server_error_message     = null;
