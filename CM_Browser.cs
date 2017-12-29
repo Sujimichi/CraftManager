@@ -77,11 +77,14 @@ namespace CraftManager
         private bool expand_details = false;
         private bool tag_prev_state = false;
         private bool tag_state = false;
+        private bool ctrl_key_down = false;
         private float tag_content_height = 0;
         private float last_tag_content_height = 0;
         private float tag_margin_offset = 0;
         private float tag_scroll_height = 0;
-        private bool ctrl_key_down = false;
+        private float section_header_height = 38f;
+        private float item_last_height = 0;
+        private Rect craft_scroll_section = new Rect();
 
         //KerbalX specific stuff
         public bool kerbalx_mode = false;  //displaying remote craft from kerbalx
@@ -145,10 +148,6 @@ namespace CraftManager
 
             if(KerbalX.enabled){
                 enable_request_handler();
-//                if(KerbalXAPI.logged_out()){ //TODO this is a temp test thing, remove.
-//                    CraftManager.load_and_authenticate_token();   
-//                }
-//                KerbalX.fetch_existing_craft();
             }
 
 
@@ -182,19 +181,28 @@ namespace CraftManager
 
         protected override void on_show(){            
             stock_craft_loaded = false;
+
+            string cur_selected_name = null;
+            if(CraftData.selected_craft != null){
+                cur_selected_name = CraftData.selected_craft.name;
+            }else{
+                cur_selected_name = EditorLogic.fetch.ship.shipName;
+            }
+
             if(!kerbalx_mode){
                 refresh();
             }
+
             auto_focus_field = "main_search_field";
             InputLockManager.SetControlLock(window_id.ToString());
             interface_locked = true;
 
             //if a craft which matches the name,contruction_type,and save_dir of the currently loaded craft is in the filtered results then mark it to be focused on when the UI opens
-            if(EditorLogic.fetch.ship.shipName.ToLower() != "untitled space craft"){
+            if(cur_selected_name.ToLower() != "untitled space craft"){
                 auto_focus_craft = CraftData.filtered.Find(c => 
-                    c.construction_type == EditorDriver.editorFacility.ToString() && c.save_dir == current_save_dir && c.name == EditorLogic.fetch.ship.shipName
+                    c.construction_type == EditorDriver.editorFacility.ToString() && c.save_dir == current_save_dir && c.name == cur_selected_name
                 );
-                auto_focus_countdown = 10;  //delay auto_focs by x passes, to give the list time to be drawn 
+                auto_focus_countdown = 10;  //delay auto_focus by x passes, to give the list time to be drawn 
                 //(not happy with this but attempting to autofocus right away selects the craft, but doesn't scroll the list to it
             }
         }
@@ -221,14 +229,7 @@ namespace CraftManager
                     }
                     draw_right_hand_section(inner_width * col_widths_current[2]);//Craft details section
                     if(upload_interface_ready){
-                        v_section((col_widths_default[0] + col_widths_default[1]) * inner_width, section_width => {
-                            GUILayout.Space(20f);
-                            label("Upload to KerbalX", "h1.centered", section_width);
-                            GUILayout.Space(30f);
-                            label("Feature Comming Soon(tm)", "h2.centered", section_width);
-                            GUILayout.Space(30f);
-                            label("This will be an Optional feature and will enable Craft Manager to upload/update your craft on KerbalX.com.\nYou will also be able to fetch craft from KerbalX all through the Craft Manager interface", "centered", section_width);
-                        });
+                        draw_kerbalx_upload_section((col_widths_default[0] + col_widths_default[1]) * inner_width);
                     }
                 });
                 draw_bottom_section(window_width);
@@ -296,9 +297,6 @@ namespace CraftManager
 
 
         //The Main craft list
-        float section_header_height = 38f;
-        float item_last_height = 0;
-        Rect craft_scroll_section = new Rect();
         protected void draw_main_section(float section_width){
             v_section(section_width, main_section_height, false, (inner_width)=>{
 
@@ -710,6 +708,17 @@ namespace CraftManager
             });
         }
 
+
+        protected void draw_kerbalx_upload_section(float section_width){
+            v_section(section_width, inner_width => {
+                GUILayout.Space(20f);
+                label("Upload to KerbalX", "h1.centered", inner_width);
+                GUILayout.Space(30f);
+                label("Feature Comming Soon(tm)", "h2.centered", inner_width);
+                GUILayout.Space(30f);
+                label("This will be an Optional feature and will enable Craft Manager to upload/update your craft on KerbalX.com.\nYou will also be able to fetch craft from KerbalX all through the Craft Manager interface", "centered", inner_width);
+            });
+        }
 
         //Botton Section: Load buttons
         protected void draw_bottom_section(float section_width){
