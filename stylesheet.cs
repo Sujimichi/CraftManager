@@ -31,7 +31,8 @@ namespace CraftManager
             { "arrow-up",               GameDatabase.Instance.GetTexture(Paths.joined("CraftManager", "Assets", "arrow-up"), false) },
             { "tags",                   GameDatabase.Instance.GetTexture(Paths.joined("CraftManager", "Assets", "tags"), false) },
             { "logo_small",             GameDatabase.Instance.GetTexture(Paths.joined("CraftManager", "Assets", "KXlogo_small"), false) },     //166x30 
-            { "logo_large",             GameDatabase.Instance.GetTexture(Paths.joined("CraftManager", "Assets", "KXlogo"), false) }           //664x120 
+            { "logo_large",             GameDatabase.Instance.GetTexture(Paths.joined("CraftManager", "Assets", "KXlogo"), false) },           //664x120 
+            { "image_placeholder",      GameDatabase.Instance.GetTexture(Paths.joined("CraftManager", "Assets", "image_placeholder"), false) }
 
 
         };
@@ -221,6 +222,12 @@ namespace CraftManager
                 s.hover.textColor = new Color(0.1f, 0.4f, 0.9f, 1);
             });
 
+            define_style("image_selector.item", base_skin.label, s =>{
+                s.fixedWidth = 125f;
+                s.fixedHeight = 125f;
+                s.margin = new RectOffset(0,0,0,0);
+                s.padding = new RectOffset(0,0,0,0);
+            });
  
             define_style("button.login", base_skin.button, s =>{
                 s.fontSize = 15;

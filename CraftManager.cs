@@ -55,6 +55,7 @@ namespace CraftManager
         internal static bool replace_editor_load_button;
         internal static bool use_editor_key_shortcuts;
 
+        internal static string screenshot_dir;
 
         //Interface Instances
         internal static CMBrowser main_ui = null;

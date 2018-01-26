@@ -67,6 +67,7 @@
     <Compile Include="KerbalXAPI.cs" />
     <Compile Include="assets\plugins\simpleJSON.cs" />
     <Compile Include="CMKX_login.cs" />
+    <Compile Include="CM_ImageData.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ProjectExtensions>

@@ -32,6 +32,8 @@ namespace CraftManager
             settings.Add("use_editor_key_shortcuts", "True");
             settings.Add("tag_states", "");
 
+            settings.Add("screenshot_dir", "<ksp_install>/Screenshots");
+
             if(File.Exists(settings_path)){
                 ConfigNode settings_raw = ConfigNode.Load(settings_path);
                 ConfigNode settings_data = settings_raw.GetNode("SETTINGS");
@@ -48,6 +50,8 @@ namespace CraftManager
             CraftManager.replace_editor_load_button = bool.Parse(get("replace_editor_load_button"));
             CraftManager.use_editor_key_shortcuts = bool.Parse(get("use_editor_key_shortcuts"));
 
+            CraftManager.screenshot_dir = get("screenshot_dir");
+            CraftManager.screenshot_dir = CraftManager.screenshot_dir.Replace("<ksp_install>", KSPUtil.ApplicationRootPath);
 
         }
 

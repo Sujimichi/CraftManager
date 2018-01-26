@@ -46,7 +46,8 @@ namespace CraftManager
             {"default", new MenuOptions{text = "Load", action = "load", width = 120f, menu = new DropdownMenuData(new Dictionary<string, string> { { "merge", "Merge" }, { "subload", "Load as Subassembly" } })}},
             {"submode", new MenuOptions{text = "Load Subassembly", action = "subload", width = 300f, menu = new DropdownMenuData(new Dictionary<string, string> { { "merge", "Merge" }, { "load", "Load as Craft" } })}},
             {"download",new MenuOptions{text = "Download & Load", action = "dl_load", width = 300f, menu = new DropdownMenuData(new Dictionary<string, string> { { "dl_load_no_save", "Load without saving" } })}},
-            {"redownload",new MenuOptions{text = "Update & Load", action = "dl_load", width = 250f, menu = new DropdownMenuData(new Dictionary<string, string> { { "dl_load_no_save", "Load Remote version without saving" }, { "load", "Load local version" } })}}
+            {"redownload",new MenuOptions{text = "Update & Load", action = "dl_load", width = 250f, menu = new DropdownMenuData(new Dictionary<string, string> { { "dl_load_no_save", "Load Remote version without saving" }, { "load", "Load local version" } })}},
+            {"upload",  new MenuOptions{text = "Upload", action = "upload", width = 150f, menu = null}}
         };
         string load_menu_mode = "default";
 
@@ -91,11 +92,12 @@ namespace CraftManager
         protected bool show_upload_interface = false;   //when set to true starts the transition to the upload interface. 
         protected bool upload_interface_ready = false;  //The transition is compelte when upload interface ready is set to true
         protected bool show_headers = true;             //'headers' of the sections which are collapsed by the transition are hidden as they don't play well with being srunk
+        protected ImageData image_data;
 
 
         //collection of Vector2 objects to track scroll positions
         public Dictionary<string, Vector2> scroll_pos = new Dictionary<string, Vector2>(){
-            {"lhs", new Vector2()}, {"rhs", new Vector2()}, {"main", new Vector2()}
+            {"lhs", new Vector2()}, {"rhs", new Vector2()}, {"main", new Vector2()}, {"images", new Vector2()}
         };
         protected Rect scroll_relative_pos = new Rect(0, 0, 0, 0); //used to track the position of scroll sections. needed to render dropdown menus inside scroll section.
 
@@ -176,7 +178,7 @@ namespace CraftManager
             tags_menu_content.special_items.Add("new_tag", "New Tag");
 
             type_select(EditorDriver.editorFacility.ToString(), true);  //set selected type (SPH or VAB) based on which editor we're in.
-//            show();
+            show();
         }
 
         protected override void on_show(){            
@@ -642,10 +644,9 @@ namespace CraftManager
                                     button("delete", "button.delete", delete_craft_dialog);
                                 });
                             });
-
                             if(KerbalX.enabled){
                                 section(()=>{
-                                    if(KerbalXAPI.logged_in()){
+                                    if(KerbalXAPI.logged_in()){                                        
                                         if(craft.on_kerbalx()){
                                             button("Update craft on KerbalX", ()=>{});
                                         }else{
@@ -709,14 +710,101 @@ namespace CraftManager
         }
 
 
+
+        protected DropdownMenuData craft_styles_menu = new DropdownMenuData(KerbalX.craft_styles);
+        protected string kerbalx_section_rhs_mode = "desc";
+            
         protected void draw_kerbalx_upload_section(float section_width){
-            v_section(section_width, inner_width => {
+            CraftData craft = CraftData.selected_craft;
+
+            v_section(() =>{
                 GUILayout.Space(20f);
-                label("Upload to KerbalX", "h1.centered", inner_width);
-                GUILayout.Space(30f);
-                label("Feature Comming Soon(tm)", "h2.centered", inner_width);
-                GUILayout.Space(30f);
-                label("This will be an Optional feature and will enable Craft Manager to upload/update your craft on KerbalX.com.\nYou will also be able to fetch craft from KerbalX all through the Craft Manager interface", "centered", inner_width);
+                label("Upload to KerbalX", "h1.centered", section_width);            
+                if(CraftData.selected_craft != null){
+                        
+                    section(section_width, w => {
+                        
+                        v_section(w-404f, inner_width => {
+
+                            if(craft.upload_data == null){
+                                craft.upload_data = new KerbalXUploadData(craft);
+                            }
+                            
+                            
+                            section(()=>{
+                                label("Craft Name:", "h3");
+                                craft.upload_data.craft_name = GUILayout.TextField(craft.upload_data.craft_name);
+                            });
+                            
+                            section(()=>{
+                                label("#tags:");
+                                craft.upload_data.hash_tags = GUILayout.TextField(craft.upload_data.hash_tags);
+                            });
+                            section(()=>{
+                                fspace();
+                                label("space or comma separated (optional)", "small");
+                            });
+
+                            section(()=>{
+                                fspace();
+                                float type_width = GUI.skin.button.CalcSize(new GUIContent("Type: " + craft.upload_data.craft_type)).x + 40;
+                                section(type_width, ()=>{
+                                    dropdown("Type: " + craft.upload_data.craft_type, StyleSheet.assets["caret-down"], "craft_upload_style_menu", craft_styles_menu, this, type_width, menu_resp=>{
+                                        craft.upload_data.craft_type = menu_resp.ToString();
+                                    });
+                                });
+                            });
+                            GUILayout.Space(10f);
+
+                            section(()=>{
+                                button("edit Description", (kerbalx_section_rhs_mode == "desc" ? "button.down" : "button") , ()=>{kerbalx_section_rhs_mode = "desc";});
+                                button("edit Action Group info", (kerbalx_section_rhs_mode == "action_groups" ? "button.down" : "button") , ()=>{kerbalx_section_rhs_mode = "action_groups";});
+                                
+                            });
+                            button("Add Pictures", (kerbalx_section_rhs_mode == "images" ? "button.down" : "button") , ()=>{kerbalx_section_rhs_mode = "images";});
+
+
+                            label("pics added: " + craft.upload_data.images.Count);
+                            
+                            foreach(string error in craft.upload_data.errors){
+                                label(error, "error");
+                            }
+
+                        });
+
+                        v_section(404f, inner_width => {
+                                         
+                            if(kerbalx_section_rhs_mode == "desc"){
+                                label("Edit Description", "h2");
+                                craft.upload_data.craft_description = GUILayout.TextArea(craft.upload_data.craft_description);
+
+                            }else if(kerbalx_section_rhs_mode == "images"){
+                                label("Select Pictures to add", "h2");
+                                scroll_pos["lhs"] = scroll(scroll_pos["lhs"], "side_panel.scroll.tags", inner_width, main_section_height-60, scroll_width => {
+                                    v_section(()=>{                                    
+                                        foreach(List<Image> group in image_data.get_grouped_images(3)){
+                                            section(()=>{                                            
+                                                foreach(Image image in group){
+                                                    button(image.texture, "image_selector.item", 125f, 125f, () => {
+                                                        
+                                                        if(craft.upload_data.images.FindAll(c => c.path == image.path).Count > 0){
+                                                            craft.upload_data.images.RemoveAll(c => c.path == image.path);
+                                                        }else{
+                                                            craft.upload_data.images.Add(image);
+                                                        }                                        
+                                                    });                                        
+                                                }
+                                            });
+                                        }
+                                    });
+
+                                });
+                            }else if(kerbalx_section_rhs_mode == "action_groups"){
+                                label("Action Group info", "h2");
+                            }
+                        });
+                    });
+                }
             });
         }
 
@@ -729,7 +817,9 @@ namespace CraftManager
                     load_menu_mode = "default";
 
                     if(CraftData.selected_craft != null){                        
-                        if(CraftData.selected_craft.remote && CraftData.selected_craft.exists_locally){
+                        if(upload_interface_ready){
+                            load_menu_mode = "upload";
+                        }else if(CraftData.selected_craft.remote && CraftData.selected_craft.exists_locally){
                             load_menu_mode = "redownload";
                         }else if(CraftData.selected_craft.remote && !CraftData.selected_craft.exists_locally){
                             load_menu_mode = "download";
@@ -743,9 +833,11 @@ namespace CraftManager
                     if(anchors.ContainsKey("load_menu") && anchors["load_menu"].Contains(Event.current.mousePosition)){
                         dl_menu_option_texture = StyleSheet.assets["caret-down-green-hover"];
                     }
-                    dropdown(dl_menu_option_texture, "load_menu", load_menu[load_menu_mode].menu, this, 42f, "button.load", "menu.background", "menu.item", resp => {                    
-                        load_craft(resp);
-                    });
+                    if(load_menu[load_menu_mode].menu !=null){
+                        dropdown(dl_menu_option_texture, "load_menu", load_menu[load_menu_mode].menu, this, 42f, "button.load", "menu.background", "menu.item", resp => {                    
+                            load_craft(resp);
+                        });
+                    }
                 });
                 GUILayout.Space(8);
                 button("Close", "button.close", 120f, this.hide);
@@ -753,6 +845,8 @@ namespace CraftManager
             });
             GUILayout.Space(20);
         }
+
+
 
 
         //**Helpers**//
@@ -818,16 +912,20 @@ namespace CraftManager
                     EditorLogic.fetch.SpawnTemplate(subassembly);
                     CraftManager.main_ui.hide();
                 } else if(load_type == "dl_load"){
-                    download(true, false, ()=>{load_craft("load");});
+                    download(true, false, () =>{
+                        load_craft("load");
+                    });
                 } else if(load_type == "dl_load_no_save"){
                     if(CraftData.craft_saved || force){
                         download(false);
                         CraftManager.main_ui.hide();
-                    } else {
+                    } else{
                         load_craft_confirm_dialog(() =>{
                             load_craft(load_type, true);
                         });
                     }
+                } else if(load_type == "upload"){
+                    craft.upload_data.post();
                 }
             }
         }
@@ -977,6 +1075,8 @@ namespace CraftManager
                     col_widths_current[1] -= 0.02f;                    
                 } else{
                     upload_interface_ready = true;
+                    image_data = new ImageData();
+
                 }
             } else if(!show_upload_interface){
                 upload_interface_ready = false;

@@ -191,6 +191,73 @@ namespace CraftManager
     }
 
 
+    public class KerbalXUploadData
+    {
+
+        public CraftData craft = null;
+
+        internal string craft_name = "";
+        internal string hash_tags = "";
+        internal string craft_type = "Ship";
+        internal string craft_description = "";
+        internal bool update_existing = false;
+        internal List<Image> images = new List<Image>();
+        internal Dictionary<string, string> action_groups = new Dictionary<string, string>() { 
+            { "1", "" }, { "2", "" }, { "3", "" }, { "4", "" }, { "5", "" }, { "6", "" }, { "7", "" }, { "8", "" }, { "9", "" }, { "0", "" }, 
+            { "stage", "" }, { "gears", "" }, { "lights", "" }, { "RCS", "" }, { "SAS", "" }, { "brakes", "" }, { "abort", "" } 
+        };
+
+        public KerbalXUploadData(CraftData for_craft){
+            craft = for_craft;
+            craft_name = craft.name;
+            craft_description = craft.description;
+        }
+
+        public List<string> errors = new List<string>();
+
+        public bool is_valid{
+            get{
+                errors.Clear();
+                if(!System.IO.File.Exists(craft.path)){
+                    errors.Add("Unable to find craft file");
+                    return false;
+                }
+                if(String.IsNullOrEmpty(craft_name)){
+                    errors.Add("Craft Name can't be blank");
+                }
+                if(images.Count == 0){
+                    errors.Add("must have at least 1 image");
+                }
+                if(!KerbalX.craft_styles.Contains(craft_type)){
+                    errors.Add("must have a valid craft type");
+                }
+                return errors.Count == 0;                
+            }
+        }
+
+        public void post(){
+            if(is_valid){
+                if(update_existing){
+                } else{
+                    WWWForm craft_data = new WWWForm();
+                    craft_data.AddField("craft_name", craft_name);
+                    craft_data.AddField("craft_style", craft_type);
+                    craft_data.AddField("craft_file", System.IO.File.ReadAllText(craft.path));
+                    //TODO add part_data
+                    craft_data.AddField("action_groups", JSONX.toJSON(action_groups));
+                    craft_data.AddField("hash_tags", hash_tags);
+
+                    int pic_count = 0;
+                    foreach(Image image in images){
+                        craft_data.AddField("images[image_" + pic_count++ + "]", Convert.ToBase64String(image.read_as_jpg()));
+                    }
+
+
+
+                }
+            }
+        }
+    }
 
     public class KerbalX
     {
@@ -208,6 +275,11 @@ namespace CraftManager
                 return versions.FindAll(v => v_toggle[v]);
             }
         }
+
+        public static List<string> craft_styles = new List<string>(){
+            "Ship", "Aircraft", "Spaceplane", "Lander", "Satellite", "Station", "Base", "Probe", "Rover", "Lifter" 
+        };
+
 
         internal static void login(){
             login(CraftManager.login_ui.username, CraftManager.login_ui.password);

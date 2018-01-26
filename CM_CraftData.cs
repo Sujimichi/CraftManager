@@ -266,13 +266,10 @@ namespace CraftManager
                 matching_remote_ids = new List<int>();
                 KerbalX.find_matching_remote_craft(this);
             }
-            if(matching_remote_ids == null){
-                return false;
-            } else{
-                return matching_remote_ids.Count > 0;            
-            }
+            return matching_remote_ids.Count > 0;            
         }
 
+        public KerbalXUploadData upload_data;
 
         //Initialize a new CraftData object. Takes a path to a .craft file and either populates it from attributes from the craft file
         //or loads information from the CraftDataCache. Main logic moved to initialize() so it can be call again (reinitialized) on existing object      
