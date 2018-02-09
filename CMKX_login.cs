@@ -215,21 +215,40 @@ namespace CraftManager
 
         public List<string> errors = new List<string>();
 
+        public void toggle_image(Image image){
+            if(images.FindAll(c => c.path == image.path).Count > 0){
+                images.RemoveAll(c => c.path == image.path);
+            }else{
+                if(images.Count > 2){
+                    errors.Clear();
+                    errors.Add("You can only add 3 images");
+                } else{
+                    images.Add(image);
+                }
+            }
+        }
+
         public bool is_valid{
             get{
                 errors.Clear();
+                craft_name.Trim();
+                hash_tags.Trim();
+                craft_description.Trim();
                 if(!System.IO.File.Exists(craft.path)){
-                    errors.Add("Unable to find craft file");
+                    errors.Add("unable to find craft file");
                     return false;
                 }
                 if(String.IsNullOrEmpty(craft_name)){
-                    errors.Add("Craft Name can't be blank");
+                    errors.Add("The craft's name can't be blank");
+                }
+                if(craft_name.Length <= 2){
+                    errors.Add("The craft's name must be at least 3 characters long");
                 }
                 if(images.Count == 0){
-                    errors.Add("must have at least 1 image");
+                    errors.Add("You need to add at least 1 picture");
                 }
                 if(!KerbalX.craft_styles.Contains(craft_type)){
-                    errors.Add("must have a valid craft type");
+                    errors.Add("The craft's 'type' is not valid");
                 }
                 return errors.Count == 0;                
             }
@@ -237,27 +256,77 @@ namespace CraftManager
 
         public void post(){
             if(is_valid){
+                CraftManager.main_ui.lock_ui();
+                CraftManager.main_ui.show_transfer_indicator = true;
                 if(update_existing){
+                    CraftManager.main_ui.transfer_is_upload = false;
                 } else{
+                    CraftManager.main_ui.transfer_is_upload = true;
                     WWWForm craft_data = new WWWForm();
                     craft_data.AddField("craft_name", craft_name);
                     craft_data.AddField("craft_style", craft_type);
                     craft_data.AddField("craft_file", System.IO.File.ReadAllText(craft.path));
-                    //TODO add part_data
+                    craft_data.AddField("part_data", JSONX.toJSON(part_info()));
                     craft_data.AddField("action_groups", JSONX.toJSON(action_groups));
                     craft_data.AddField("hash_tags", hash_tags);
 
                     int pic_count = 0;
                     foreach(Image image in images){
-                        craft_data.AddField("images[image_" + pic_count++ + "]", Convert.ToBase64String(image.read_as_jpg()));
+//                        craft_data.AddField("images[image_" + pic_count++ + "]", Convert.ToBase64String(image.read_as_jpg()));
+                        craft_data.AddField("image_urls[url_" + pic_count++ + "]", "https://i.imgur.com/nSUkIe0.jpg"); //TODO switch this off again.
                     }
 
+                    KerbalXAPI.upload_craft(craft_data, (resp, code) =>{
+//                        var resp_data = JSON.Parse(resp);
+                        if(code == 200){
+                            CraftManager.log("craft uploaded OK");
+                        } else{                           
+                            CraftManager.log("craft upload failed");
+                        }
+                        CraftManager.main_ui.upload_complete_dialog(code, resp);
+                        CraftManager.main_ui.show_transfer_indicator = false;
+                        CraftManager.main_ui.unlock_ui();
+                    });
+                        
 
 
                 }
             }
         }
+
+
+        private Dictionary<string, object> part_info(){
+            Dictionary<string, object> part_data = new Dictionary<string, object>();
+
+            foreach(string part_name in craft.part_name_list){
+                if(!part_data.ContainsKey(part_name)){
+                    AvailablePart av_part = CraftData.cache.part_data[part_name];
+                    if(av_part != null){
+                        Part part = av_part.partPrefab;
+                        Dictionary<string, object> part_detail = new Dictionary<string, object>();
+                        part_detail.Add("mod", part.partInfo.partUrl.Split('/')[0]);
+                        part_detail.Add("mass", part.mass);
+                        part_detail.Add("cost", part.partInfo.cost);
+                        part_detail.Add("category", part.partInfo.category.ToString());
+                        if(part.CrewCapacity > 0){
+                            part_detail.Add("CrewCapacity", part.CrewCapacity);
+                        }
+                        part_detail.Add("TechRequired", part.partInfo.TechRequired);
+                        Dictionary<string, object> part_resources = new Dictionary<string, object>();
+                        foreach(PartResource r in part.Resources){
+                            part_resources.Add(r.resourceName, r.maxAmount);
+                        }
+                        part_detail.Add("resources", part_resources);
+                        part_data.Add(part.name, part_detail);
+
+                    }
+                }
+            }
+            return part_data;
+        }
     }
+
+
 
     public class KerbalX
     {

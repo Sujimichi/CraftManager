@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using KSP.UI.Screens;
 using UnityEngine;
 using ExtensionMethods;
+using SimpleJSON;
 
 using KatLib;
 
@@ -28,10 +29,11 @@ namespace CraftManager
 
         public delegate void DialogAction();
 
-        private DropdownMenuData save_menu_options = new DropdownMenuData();
-        private DropdownMenuData tags_menu_content = new DropdownMenuData();
+        private DropdownMenuData save_menu_options= new DropdownMenuData();
+        private DropdownMenuData tags_menu_content= new DropdownMenuData();
         private DropdownMenuData tag_sort_options = new DropdownMenuData(new Dictionary<string, string> { {"name", "Name"}, {"craft_count", "Craft Count"} });
         private DropdownMenuData tag_filter_modes = new DropdownMenuData(new List<string> { "AND", "OR" });
+        private DropdownMenuData upload_image_mode= new DropdownMenuData(new List<string> { "thumb", "list" });
         private DropdownMenuData sort_options = new DropdownMenuData(new Dictionary<string, string>{
             {"name", "Name"}, {"cost", "Cost"}, {"crew_capacity", "Crew Capacity"}, {"mass", "Mass"}, {"part_count", "Part Count"}, {"stage_count", "Stages"}, {"date_created", "Created"}, {"date_updated", "Updated"}
         });
@@ -713,23 +715,25 @@ namespace CraftManager
 
         protected DropdownMenuData craft_styles_menu = new DropdownMenuData(KerbalX.craft_styles);
         protected string kerbalx_section_rhs_mode = "desc";
+        protected List<List<Image>> grouped_images = null;
+        protected float upload_rhs_width = 420;
+        protected string image_select_mode = "thumb";
             
         protected void draw_kerbalx_upload_section(float section_width){
             CraftData craft = CraftData.selected_craft;
 
-            v_section(() =>{
+            v_section(section_width, main_section_height+40, "craft.list_container", (w_outter) =>{
                 GUILayout.Space(20f);
                 label("Upload to KerbalX", "h1.centered", section_width);            
                 if(CraftData.selected_craft != null){
                         
                     section(section_width, w => {
                         
-                        v_section(w-404f, inner_width => {
+                        v_section(w-upload_rhs_width, inner_width => {
 
                             if(craft.upload_data == null){
                                 craft.upload_data = new KerbalXUploadData(craft);
                             }
-                            
                             
                             section(()=>{
                                 label("Craft Name:", "h3");
@@ -763,39 +767,79 @@ namespace CraftManager
                             });
                             button("Add Pictures", (kerbalx_section_rhs_mode == "images" ? "button.down" : "button") , ()=>{kerbalx_section_rhs_mode = "images";});
 
-
+                            foreach(List<Image> grp in ImageData.images_in_groups_of(craft.upload_data.images, 3)){
+                                section(()=>{
+                                    foreach(Image image in grp){
+                                        v_section(()=>{
+                                            label(image.texture, 100, 72);
+                                            button("remove", "image_selector.remove_item", ()=>{
+                                                craft.upload_data.toggle_image(image);
+                                            });
+                                        });
+                                    }
+                                });
+                                
+                            }
                             label("pics added: " + craft.upload_data.images.Count);
                             
                             foreach(string error in craft.upload_data.errors){
                                 label(error, "error");
                             }
 
+
+
                         });
 
-                        v_section(404f, inner_width => {
+                        v_section(upload_rhs_width, inner_width => {
                                          
                             if(kerbalx_section_rhs_mode == "desc"){
                                 label("Edit Description", "h2");
                                 craft.upload_data.craft_description = GUILayout.TextArea(craft.upload_data.craft_description);
 
                             }else if(kerbalx_section_rhs_mode == "images"){
-                                label("Select Pictures to add", "h2");
+                                section(()=>{
+                                    label("Select Pictures to add", "h2");
+                                    fspace();
+                                    dropdown("view", "upload_image_mode_menu", upload_image_mode, this, 70f, (resp)=>{
+                                        image_select_mode = resp;    
+                                    });    
+                                });
+
+                                if(grouped_images == null){
+                                    grouped_images = image_data.get_grouped_images(3);
+                                }
                                 scroll_pos["lhs"] = scroll(scroll_pos["lhs"], "side_panel.scroll.tags", inner_width, main_section_height-60, scroll_width => {
-                                    v_section(()=>{                                    
-                                        foreach(List<Image> group in image_data.get_grouped_images(3)){
-                                            section(()=>{                                            
-                                                foreach(Image image in group){
-                                                    button(image.texture, "image_selector.item", 125f, 125f, () => {
-                                                        
-                                                        if(craft.upload_data.images.FindAll(c => c.path == image.path).Count > 0){
-                                                            craft.upload_data.images.RemoveAll(c => c.path == image.path);
-                                                        }else{
-                                                            craft.upload_data.images.Add(image);
-                                                        }                                        
-                                                    });                                        
-                                                }
-                                            });
+                                    v_section(()=>{
+                                        if(image_select_mode == "thumb"){
+                                            for(int i=0; i < grouped_images.Count; i++){
+                                                bool grp_visible = false;
+                                                List<Image> group = grouped_images[i];
+                                                section(()=>{
+                                                    if((100*i)-scroll_pos["lhs"].y <= main_section_height-60){                                                   
+                                                        grp_visible = true;
+                                                    }
+                                                    foreach(Image image in group){
+                                                        if(grp_visible){
+                                                            if(image.loaded == false){                                                        
+                                                                image.loaded = true;
+                                                                StartCoroutine(image.load_image());
+                                                            }                                                        
+                                                        }
+
+                                                        button(image.texture, (craft.upload_data.images.Contains(image) ? "image_selector.item.selected" : "image_selector.item"), 125f, 90f, () => {
+                                                            craft.upload_data.toggle_image(image);
+                                                        });                                        
+                                                    }
+                                                });
+                                            }
+                                        }else if(image_select_mode == "list"){
+                                            foreach(Image image in image_data.images){
+                                                button(image.file.Name, (craft.upload_data.images.Contains(image) ? "image_selector.item.selected" : "image_selector.item"), () => {
+                                                    craft.upload_data.toggle_image(image);
+                                                });
+                                            }
                                         }
+                                        //TODO add in 'preview' mode (single image at a time, large).
                                     });
 
                                 });
@@ -808,10 +852,21 @@ namespace CraftManager
             });
         }
 
+        public bool show_transfer_indicator = false;
+        public bool transfer_is_upload = true;
+
         //Botton Section: Load buttons
         protected void draw_bottom_section(float section_width){
             section((w) =>{
                 label(CraftManager.status_info);
+                if(show_transfer_indicator){
+                    if(transfer_is_upload){
+                        label("Uploading Craft....", "transfer_progres.text");
+                    }else{
+                        label("Updating Craft....", "transfer_progres.text");
+                    }
+                    //TODO: add progress indicator thing
+                }
                 fspace();
                 gui_state(CraftData.selected_craft != null, ()=>{                    
                     load_menu_mode = "default";
@@ -1075,8 +1130,9 @@ namespace CraftManager
                     col_widths_current[1] -= 0.02f;                    
                 } else{
                     upload_interface_ready = true;
-                    image_data = new ImageData();
-
+                    if(image_data == null){
+                        image_data = new ImageData();
+                    }
                 }
             } else if(!show_upload_interface){
                 upload_interface_ready = false;
@@ -1119,6 +1175,38 @@ namespace CraftManager
                 GUILayout.Space(10);
                 button("Cancel", "button.cancel_load", close_dialog);
                 return resp;
+            });
+        }
+
+        public void upload_complete_dialog(int remote_status_code, string response){
+//            string resp = "";
+            var resp_data = JSON.Parse(response);
+            show_dialog(remote_status_code == 200 ? "Upload Complete" : "Upload Error", "", d =>{
+                if(remote_status_code == 200){
+                    string craft_url = resp_data["url"];
+                    string craft_full_url = KerbalXAPI.url_to(craft_url);
+                    label("Your Craft has been uploaded!", "h2");
+                    button("It is now available here:\n" + craft_full_url, "hyperlink.bold", ()=>{
+                        Application.OpenURL(craft_full_url);
+                        close_dialog();
+                    });
+                    button(StyleSheet.assets["logo_large"], "centered", 664, 120, ()=> {                       
+                        Application.OpenURL(craft_full_url);
+                        close_dialog();
+                    });
+                    section(()=>{
+                        fspace();
+                        label("click the url or the logo to see your craft on KerbalX", "compact");                        
+                    });
+                }else{
+                    label("There was a problem uploading your craft. Error code " + remote_status_code, "h3");
+                    label(response); //TODO: make this nicer.
+                }
+                section(()=>{
+                    fspace();
+                    button("close", close_dialog);
+                });
+                return "";
             });
         }
 

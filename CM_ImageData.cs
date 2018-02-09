@@ -16,17 +16,16 @@ namespace CraftManager
 
     public class Image
     {
-
+//        private static Texture2D image_placeholder = (Texture2D)StyleSheet.assets["image_placeholder"];
         public FileInfo file;
-        public Texture2D texture;
+        public Texture2D texture = new Texture2D(125, 125);
         public bool loaded = false;
 
         public string name { get { return file.Name; } }
         public string path { get { return file.FullName;} }
 
-        public Image(FileInfo image_file, Texture2D image_texture){
+        public Image(FileInfo image_file){
             file = image_file; 
-            texture = image_texture;
         }
 
         //Takes a PicData object and reads the image bytes.
@@ -36,13 +35,19 @@ namespace CraftManager
             if(file.Extension.ToLower() == ".jpg"){
                 return original_image;
             } else{
-                CraftManager.log("compressing: " + file.Name);
                 Texture2D converter = new Texture2D(2, 2);
                 converter.LoadImage(original_image);
                 return converter.EncodeToJPG();
             }
         }
 
+
+        //Does the loading of the picture onto the Texture2D object, returns IEnumerator as this is called in a Coroutine.
+        public IEnumerator load_image(){            
+            yield return true;                          //doesn't seem to matter what this returns
+            byte[] pic_data = File.ReadAllBytes(file.FullName);  //read image file
+            texture.LoadImage(pic_data);                //wop it all upside the texture.
+        }
     }
 
     public class ImageData
@@ -68,32 +73,32 @@ namespace CraftManager
                 }
             }
             files.Sort((x, y) => x.CreationTime.CompareTo(y.CreationTime));
-            Texture2D image_placeholder = (Texture2D)StyleSheet.assets["image_placeholder"];
 
             foreach(FileInfo file in files){
-                images.Add(new Image(file, image_placeholder));
+                images.Add(new Image(file));
             }
 
         }
 
         public List<List<Image>> get_grouped_images(int group_size){
-            if(grouped_images.Count == 0 || grouped_images[0].Count != group_size){
-                grouped_images = images_in_groups_of(group_size);
+            if(grouped_images.Count == 0 || grouped_images[0].Count != group_size){                
+                grouped_images = ImageData.images_in_groups_of(images, group_size);
             }
             return grouped_images;
         }
 
-        public List<List<Image>> images_in_groups_of(int group_size){
+        public static List<List<Image>> images_in_groups_of(List<Image> source_images, int group_size){
             List<List<Image>> grouped = new List<List<Image>>();
             List<Image> group = new List<Image>();
-            for(int i = 0; i < images.Count; i++){
-                group.Add(images[i]);
-                if((i+1) % group_size == 0){
-                    if(group.Count != 0){
-                        grouped.Add(new List<Image>(group.ToArray()));
-                    }
+            for(int i = 0; i < source_images.Count; i++){
+                group.Add(source_images[i]);
+                if((i + 1) % group_size == 0 && group.Count != 0){
+                    grouped.Add(new List<Image>(group.ToArray()));
                     group.Clear();
+                } else if(i + 1 == source_images.Count && group.Count != 0){ //if this is the last image and the group isn't empty (but also isn't full) then add it to response 
+                    grouped.Add(new List<Image>(group.ToArray()));
                 }
+
             }
             return grouped;
         }

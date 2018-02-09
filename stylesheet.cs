@@ -160,6 +160,12 @@ namespace CraftManager
                 s.fontStyle = FontStyle.Bold;
             });
 
+            define_style("transfer_progres.text", base_skin.label, s =>{
+                s.normal.textColor = new Color(0.4f, 0.5f, 0.9f, 1);
+                s.fontSize = 20;
+                s.fontStyle = FontStyle.Bold;
+            });
+
 
             define_style("button", base_skin.button, s =>{
             });
@@ -222,12 +228,25 @@ namespace CraftManager
                 s.hover.textColor = new Color(0.1f, 0.4f, 0.9f, 1);
             });
 
-            define_style("image_selector.item", base_skin.label, s =>{
-                s.fixedWidth = 125f;
-                s.fixedHeight = 125f;
-                s.margin = new RectOffset(0,0,0,0);
-                s.padding = new RectOffset(0,0,0,0);
+
+            define_style("image_selector.item", base_skin.button, s =>{
+                s.normal.background = base_skin.label.normal.background;
+                s.hover.background = textures["pic_highlight"];
+                s.active.background = base_skin.label.normal.background;
+                s.fontSize = 14;
+                s.alignment = TextAnchor.MiddleLeft;
             });
+            define_style("image_selector.item.selected", "image_selector.item", s =>{
+                s.normal.background = textures["green_background"];
+                s.hover.background = textures["light_green_background"];
+            });
+            define_style("image_selector.remove_item", "alert", s =>{
+                s.fontSize = 12;
+                s.normal.textColor = Color.red;
+                s.alignment = TextAnchor.UpperRight;
+                s.fixedWidth = 100f;
+            });
+
  
             define_style("button.login", base_skin.button, s =>{
                 s.fontSize = 15;
