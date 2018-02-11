@@ -211,6 +211,12 @@ namespace CraftManager
             craft = for_craft;
             craft_name = craft.name;
             craft_description = craft.description;
+
+            List<string> craft_tags = new List<string>();
+            foreach(string tag in craft.tag_names()){               
+                craft_tags.Add(System.Threading.Thread.CurrentThread.CurrentCulture.TextInfo.ToTitleCase(tag.Trim()).Replace(" ", ""));
+            }
+            hash_tags = String.Join(", ", craft_tags.ToArray());
         }
 
         public List<string> errors = new List<string>();
@@ -256,7 +262,7 @@ namespace CraftManager
 
         public void post(){
             if(is_valid){
-                CraftManager.main_ui.lock_ui();
+//                CraftManager.main_ui.lock_ui();
                 CraftManager.main_ui.show_transfer_indicator = true;
                 if(update_existing){
                     CraftManager.main_ui.transfer_is_upload = false;
@@ -280,12 +286,19 @@ namespace CraftManager
 //                        var resp_data = JSON.Parse(resp);
                         if(code == 200){
                             CraftManager.log("craft uploaded OK");
+                            KerbalXAPI.fetch_existing_craft(()=>{   //refresh remote craft info 
+                                craft.matching_remote_ids = null;
+                                CraftManager.main_ui.show_upload_interface = false;
+                            });
                         } else{                           
                             CraftManager.log("craft upload failed");
                         }
-                        CraftManager.main_ui.upload_complete_dialog(code, resp);
+
+                        //return UI to craft list mode and show upload complete dialog.
                         CraftManager.main_ui.show_transfer_indicator = false;
-                        CraftManager.main_ui.unlock_ui();
+//                        CraftManager.main_ui.unlock_ui();
+                        CraftManager.main_ui.upload_complete_dialog(code, resp);
+
                     });
                         
 

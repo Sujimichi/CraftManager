@@ -91,7 +91,7 @@ namespace CraftManager
 
         //KerbalX specific stuff
         public bool kerbalx_mode = false;  //displaying remote craft from kerbalx
-        protected bool show_upload_interface = false;   //when set to true starts the transition to the upload interface. 
+        public bool show_upload_interface = false;   //when set to true starts the transition to the upload interface. 
         protected bool upload_interface_ready = false;  //The transition is compelte when upload interface ready is set to true
         protected bool show_headers = true;             //'headers' of the sections which are collapsed by the transition are hidden as they don't play well with being srunk
         protected ImageData image_data;
@@ -197,9 +197,17 @@ namespace CraftManager
                 refresh();
             }
 
+            if(KerbalX.enabled && KerbalXAPI.logged_in()){ //refresh info about which local craft are on KX
+                foreach(CraftData craft in CraftData.all_craft){
+                    craft.matching_remote_ids = null;
+                }
+                KerbalXAPI.fetch_existing_craft(() =>{});
+            }
+
             auto_focus_field = "main_search_field";
             InputLockManager.SetControlLock(window_id.ToString());
-            interface_locked = true;
+
+//            interface_locked = true; TODO is this needed?
 
             //if a craft which matches the name,contruction_type,and save_dir of the currently loaded craft is in the filtered results then mark it to be focused on when the UI opens
             if(cur_selected_name.ToLower() != "untitled space craft"){
@@ -645,24 +653,29 @@ namespace CraftManager
                                     button("rename", rename_craft_dialog);
                                     button("delete", "button.delete", delete_craft_dialog);
                                 });
-                            });
-                            if(KerbalX.enabled){
-                                section(()=>{
-                                    if(KerbalXAPI.logged_in()){                                        
-                                        if(craft.on_kerbalx()){
-                                            button("Update craft on KerbalX", ()=>{});
+
+                                if(KerbalX.enabled){
+                                    section(()=>{
+                                        if(KerbalXAPI.logged_in()){
+                                            if(upload_interface_ready == false){
+                                                if(craft.on_kerbalx()){
+                                                    button("Update craft on KerbalX", ()=>{
+                                                        
+                                                    });
+                                                }else{
+                                                    button("Share on KerbalX", ()=>{
+                                                        show_upload_interface = !show_upload_interface;
+                                                    });
+                                                }
+                                            }
                                         }else{
-                                            button("Share on KerbalX", ()=>{
-                                                show_upload_interface = !show_upload_interface;
+                                            button("Login to KerbalX to share craft", "button.small", ()=>{
+                                                login_dialog("", KerbalX.close_login_dialog);
                                             });
-                                        }
-                                    }else{
-                                        button("Login to KerbalX to share craft", "button.small", ()=>{
-                                            login_dialog("", KerbalX.close_login_dialog);
-                                        });
-                                    }                                   
-                                });
-                            }
+                                        }                                   
+                                    });
+                                }
+                            });
 
                             GUILayout.Space(15);
                             
@@ -673,16 +686,18 @@ namespace CraftManager
                                 scroll_relative_pos.y += 45f - scroll_pos["rhs"].y;
                                 
                                 tags_menu_content.selected_items = craft.tag_names();
-                                dropdown("Add Tag", StyleSheet.assets["caret-down"], "add_tag_menu", tags_menu_content, this, scroll_relative_pos, 70f, "Button", "menu.background", "menu.item.small", resp => {
-                                    if(resp == "new_tag"){
-                                        create_tag_dialog(false, craft);
-                                    }else{
-                                        if(craft.tag_names().Contains(resp)){
-                                            Tags.untag_craft(craft, resp);
-                                        }else{                                    
-                                            Tags.tag_craft(craft, resp);
+                                gui_state(!upload_interface_ready, ()=>{
+                                    dropdown("Add Tag", StyleSheet.assets["caret-down"], "add_tag_menu", tags_menu_content, this, scroll_relative_pos, 70f, "Button", "menu.background", "menu.item.small", resp => {
+                                        if(resp == "new_tag"){
+                                            create_tag_dialog(false, craft);
+                                        }else{
+                                            if(craft.tag_names().Contains(resp)){
+                                                Tags.untag_craft(craft, resp);
+                                            }else{                                    
+                                                Tags.tag_craft(craft, resp);
+                                            }
                                         }
-                                    }
+                                    });
                                 });
                             });
                             
@@ -691,7 +706,9 @@ namespace CraftManager
                                     label(tag, "compact");
                                     fspace();
                                     if(!Tags.instance.autotags_list.Contains(tag)){                                    
-                                        button("x", "tag.delete_button.x", ()=>{Tags.untag_craft(craft, tag);});
+                                        gui_state(!upload_interface_ready, ()=>{
+                                            button("x", "tag.delete_button.x", ()=>{Tags.untag_craft(craft, tag);});
+                                        });
                                     }
                                 });
                             }                  
@@ -868,7 +885,7 @@ namespace CraftManager
                     //TODO: add progress indicator thing
                 }
                 fspace();
-                gui_state(CraftData.selected_craft != null, ()=>{                    
+                gui_state(CraftData.selected_craft != null  && show_transfer_indicator == false, ()=>{
                     load_menu_mode = "default";
 
                     if(CraftData.selected_craft != null){                        
@@ -881,7 +898,8 @@ namespace CraftManager
                         }else if(CraftData.selected_craft.construction_type == "Subassembly"){                        
                             load_menu_mode = "submode";
                         }
-                    }                    
+                    }
+
                     button(load_menu[load_menu_mode].text, "button.load", load_menu[load_menu_mode].width, ()=>{ load_craft(load_menu[load_menu_mode].action);});
 
                     Texture dl_menu_option_texture = StyleSheet.assets["caret-down-green"];
@@ -895,7 +913,13 @@ namespace CraftManager
                     }
                 });
                 GUILayout.Space(8);
-                button("Close", "button.close", 120f, this.hide);
+                if(upload_interface_ready){
+                    button("<<Back", "button.close", 120f, ()=>{
+                        show_upload_interface = false;
+                    });
+                }else{                    
+                    button("Close", "button.close", 120f, this.hide);
+                }
 
             });
             GUILayout.Space(20);
@@ -1014,8 +1038,6 @@ namespace CraftManager
                 }
             }
         }
-
-
 
         //load/reload craft from the active_save_dir and apply any active filters
         public void refresh(){
