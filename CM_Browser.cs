@@ -94,7 +94,7 @@ namespace CraftManager
         public bool show_upload_interface = false;   //when set to true starts the transition to the upload interface. 
         protected bool upload_interface_ready = false;  //The transition is compelte when upload interface ready is set to true
         protected bool show_headers = true;             //'headers' of the sections which are collapsed by the transition are hidden as they don't play well with being srunk
-        protected ImageData image_data;
+        public ImageData image_data;
 
 
         //collection of Vector2 objects to track scroll positions
@@ -203,6 +203,8 @@ namespace CraftManager
                 }
                 KerbalXAPI.fetch_existing_craft(() =>{});
             }
+            grouped_images = null;
+            image_data = null;
 
             auto_focus_field = "main_search_field";
             InputLockManager.SetControlLock(window_id.ToString());
@@ -837,7 +839,8 @@ namespace CraftManager
                                                     }
                                                     foreach(Image image in group){
                                                         if(grp_visible){
-                                                            if(image.loaded == false){                                                        
+                                                            if(image.loaded == false && image_data.images_being_loaded_count < 4){                                                        
+                                                                image_data.images_being_loaded_count += 1;
                                                                 image.loaded = true;
                                                                 StartCoroutine(image.load_image());
                                                             }                                                        

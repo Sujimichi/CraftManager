@@ -47,6 +47,11 @@ namespace CraftManager
             yield return true;                          //doesn't seem to matter what this returns
             byte[] pic_data = File.ReadAllBytes(file.FullName);  //read image file
             texture.LoadImage(pic_data);                //wop it all upside the texture.
+            CraftManager.main_ui.image_data.images_being_loaded_count -=1;
+            if(CraftManager.main_ui.image_data.images_being_loaded_count < 0){
+                CraftManager.main_ui.image_data.images_being_loaded_count = 0;
+            }
+                
         }
     }
 
@@ -56,6 +61,7 @@ namespace CraftManager
         private string[] file_types = new string[] { "jpg", "png" };
         public List<Image> images = new List<Image>();
         public List<List<Image>> grouped_images = new List<List<Image>>();
+        public int images_being_loaded_count = 0;
 
         public ImageData(){
             prepare_images();
@@ -66,13 +72,15 @@ namespace CraftManager
         private void prepare_images(){
             DirectoryInfo dir = new DirectoryInfo(CraftManager.screenshot_dir);
             List<FileInfo> files = new List<FileInfo>();
+            images.Clear();
+            grouped_images.Clear();
 
             foreach(string file_type in file_types){
                 foreach(FileInfo file in dir.GetFiles ("*." + file_type)){
                     files.Add(file);
                 }
             }
-            files.Sort((x, y) => x.CreationTime.CompareTo(y.CreationTime));
+            files.Sort((x, y) => y.CreationTime.CompareTo(x.CreationTime));
 
             foreach(FileInfo file in files){
                 images.Add(new Image(file));
