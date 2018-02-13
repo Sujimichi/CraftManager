@@ -473,6 +473,17 @@ namespace CraftManager
             });
 
 
+            define_style("progbox", base_skin.label, s =>{
+                s.fixedWidth = 20f;
+                s.fixedHeight = 20f;
+                s.margin = new RectOffset(10,5,0,0);
+                s.normal.background = textures["dark_background"];
+            });
+
+            define_style("progbox.active", "progbox", s =>{
+                s.normal.background = textures["blue_background"];
+            });
+
             //set the custom styles onto the base_skin;
             skin = Instantiate(base_skin);
             GUIStyle[] temp = new GUIStyle[custom_styles.Count];

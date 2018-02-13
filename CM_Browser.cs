@@ -185,6 +185,8 @@ namespace CraftManager
 
         protected override void on_show(){            
             stock_craft_loaded = false;
+            show_transfer_indicator = false;
+            CraftManager.status_info = "";
 
             string cur_selected_name = null;
             if(CraftData.selected_craft != null){
@@ -839,7 +841,7 @@ namespace CraftManager
                                                     }
                                                     foreach(Image image in group){
                                                         if(grp_visible){
-                                                            if(image.loaded == false && image_data.images_being_loaded_count < 4){                                                        
+                                                            if(image.loaded == false && image_data.images_being_loaded_count < 3){                                                        
                                                                 image_data.images_being_loaded_count += 1;
                                                                 image.loaded = true;
                                                                 StartCoroutine(image.load_image());
@@ -875,18 +877,46 @@ namespace CraftManager
         public bool show_transfer_indicator = false;
         public bool transfer_is_upload = true;
 
+        protected int prog_pos = 0;
+        protected long prog_timer = 0;
+        protected int prog_interval = 200;
+
+
         //Botton Section: Load buttons
         protected void draw_bottom_section(float section_width){
-            section((w) =>{
-                label(CraftManager.status_info);
-                if(show_transfer_indicator){
-                    if(transfer_is_upload){
-                        label("Uploading Craft....", "transfer_progres.text");
-                    }else{
-                        label("Updating Craft....", "transfer_progres.text");
-                    }
-                    //TODO: add progress indicator thing
-                }
+            section(() =>{
+                v_section(()=>{
+                    section(()=>{
+                        label(CraftManager.status_info);
+                        if(show_transfer_indicator){
+                            if(transfer_is_upload){
+                                label("Uploading Craft....", "transfer_progres.text");
+                            }else{
+                                label("Updating Craft....", "transfer_progres.text");
+                            }
+                        }
+                    });
+
+                    section(()=>{
+                        if(CraftManager.status_info != "" || show_transfer_indicator){
+                            if((DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond) - prog_timer > prog_interval){
+                                prog_timer = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
+                                prog_pos += 1;
+                                if(prog_pos > 4){
+                                    prog_pos = 0;
+                                }
+                            }
+                            for(int i = 0; i < 5; i++){
+                                if(prog_pos == i){
+                                    label("", "progbox.active");
+                                }else{
+                                    label("", "progbox");
+                                }
+                            }
+                        }
+                    });
+                });
+
                 fspace();
                 gui_state(CraftData.selected_craft != null  && show_transfer_indicator == false, ()=>{
                     load_menu_mode = "default";

@@ -9,7 +9,6 @@
     TODO List
     - KerbalX Integration
         - KX Login interface
-        - fetch existing craft on first craft select and check which local craft exist on KerbalX
         
     - settings UI    
     - Tagders - Tags as folders, different mode which limits each craft to one tag and only one tag can be selected at at time.
@@ -18,15 +17,6 @@
     - description field does not save chars after new line. Newline used in game is some other char
     - Change to description doesn't update the editor description field
 
-    FIXED:
-    - can't set tags on stock craft
-    - cant create tags when in all saves mode
-    - fails to clear window locks when loading first craft
-    - invalid operation exception when selecting tags. modifying data in foreach?
-    - add tag dropdown menu gets wide right border if lots of tags (or maybe a long tag).
-    - change blk click to check that it is the same craft that is selected on the second click (fixed in KatLib);
-    - R and T shortcuts interfer with adding new tags, might remove those shortcuts (removed shortcuts)
-    - when opened with ctrl+o click through prevention doesn't work until window is clicked
 */
 
 using System;
