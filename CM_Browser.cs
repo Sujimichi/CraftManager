@@ -234,8 +234,11 @@ namespace CraftManager
         //The GUI is main in 5 sections, top and bottom sections span the full width, while the LHS, RHS and main sections are columns.
         protected override void WindowContent(int win_id){
             key_event_handler();
-            v_section(()=>{                
-                draw_top_section(window_width);     
+            v_section(()=>{       
+                gui_state(!upload_interface_ready, ()=>{
+                    draw_top_section(window_width);     
+                });
+                   
                 GUILayout.Space(10);
                 scroll_relative_pos = GUILayoutUtility.GetLastRect();
                 section(window_width, inner_width =>{
@@ -597,37 +600,56 @@ namespace CraftManager
                         GUILayout.Space(5);
                         CraftData craft = CraftData.selected_craft;                        
                         section(()=>{label(craft.name, "h2");});
-                        section(()=>{
-                            label("Cost", "bold.compact");
-                            label(humanize(craft.cost_total), "compact");
-                        });
-                        section(()=> {
-                            label("Mass", "bold.compact");
-                            label(humanize(craft.mass_total), "compact");
-                            fspace();              
-                            if(!craft.remote){
-                                expand_details = GUILayout.Toggle(expand_details, "expand", "hyperlink.bold");
-                            }
-                        });
+
+
                         if(expand_details){
                             float details_width = scroll_width - 50;
                             GUILayoutOption grid_width = width(details_width*0.4f);
                             section(()=>{                        
                                 label("", width(details_width*0.2f));
-                                label("Dry", "bold.compact", grid_width);
-                                label("Fuel", "bold.compact", grid_width);
+                                label("Mass", "bold.compact", grid_width);
+                                label("Cost", "bold.compact", grid_width);
                             });
                             section(()=>{                        
-                                label("Cost", "bold.compact", width(details_width*0.2f));
+                                label("Dry", "bold.compact", width(details_width*0.2f));
+                                label(humanize(craft.mass_dry), "small.compact", grid_width);
                                 label(humanize(craft.cost_dry), "small.compact", grid_width);
+                            });
+                            section(()=>{
+                                label("Fuel", "bold.compact", width(details_width*0.2f));
+                                label(humanize(craft.mass_fuel), "small.compact", grid_width);
                                 label(humanize(craft.cost_fuel), "small.compact", grid_width);
                             });
-                            section(()=>{                        
-                                label("Mass", "bold.compact", width(details_width*0.2f));
-                                label(humanize(craft.mass_dry), "small.compact", grid_width);
-                                label(humanize(craft.mass_fuel), "small.compact", grid_width);
+                            section(()=>{
+                                label("Total", "bold.compact", width(details_width*0.2f));
+                                label(humanize(craft.mass_total), "small.compact", grid_width);
+                                label(humanize(craft.cost_total), "small.compact", grid_width);
                             });
+                            section(()=>{
+                                if(!craft.remote){
+                                    fspace();              
+                                    button("collapse", "hyperlink.bold.compact", ()=>{expand_details = false;});
+                                }
+                            });
+
+
+                        }else{
+                            section(()=>{
+                                label("Cost", "bold.compact");
+                                label(humanize(craft.cost_total), "compact");
+                            });
+                            section(()=> {
+                                label("Mass", "bold.compact");
+                                label(humanize(craft.mass_total), "compact");
+                                if(!craft.remote){
+                                    fspace();              
+                                    button("expand", "hyperlink.bold.compact", ()=>{expand_details = true;});
+                                }
+                            });
+
                         }
+
+
                         section(()=>{
                             label("Crew Capacity", "bold.compact");
                             label(craft.crew_capacity.ToString(), "compact");
@@ -759,14 +781,30 @@ namespace CraftManager
                             if(craft.upload_data == null){
                                 craft.upload_data = new KerbalXUploadData(craft);
                             }
-                            
+
+                            foreach(string error in craft.upload_data.errors){
+                                label(error, "error.bold");
+                            }
+
+                            label("Step 1: Set basic Craft details", "h2");
                             section(()=>{
-                                label("Craft Name:", "h3");
+                                label("Name:", "h3", 50f);
                                 craft.upload_data.craft_name = GUILayout.TextField(craft.upload_data.craft_name);
                             });
-                            
+                                                        
                             section(()=>{
-                                label("#tags:");
+                                label("Type:", "h3", 50f);
+                                fspace();
+                                float type_width = GUI.skin.button.CalcSize(new GUIContent(craft.upload_data.craft_type)).x + 40;
+                                section(type_width, ()=>{
+                                    dropdown(craft.upload_data.craft_type, StyleSheet.assets["caret-down"], "craft_upload_style_menu", craft_styles_menu, this, type_width, menu_resp=>{
+                                        craft.upload_data.craft_type = menu_resp.ToString();
+                                    });
+                                });
+                            });
+
+                            section(()=>{
+                                label("#tags:", "h3", 50f);
                                 craft.upload_data.hash_tags = GUILayout.TextField(craft.upload_data.hash_tags);
                             });
                             section(()=>{
@@ -774,18 +812,17 @@ namespace CraftManager
                                 label("space or comma separated (optional)", "small");
                             });
 
-                            section(()=>{
-                                fspace();
-                                float type_width = GUI.skin.button.CalcSize(new GUIContent("Type: " + craft.upload_data.craft_type)).x + 40;
-                                section(type_width, ()=>{
-                                    dropdown("Type: " + craft.upload_data.craft_type, StyleSheet.assets["caret-down"], "craft_upload_style_menu", craft_styles_menu, this, type_width, menu_resp=>{
-                                        craft.upload_data.craft_type = menu_resp.ToString();
-                                    });
-                                });
-                            });
+
 
                             GUILayout.Space(10f);
-                            foreach(List<Image> grp in ImageData.images_in_groups_of(craft.upload_data.images, 3)){
+                            label("Step 2: Add some pictures ("+craft.upload_data.images.Count+"/3)", "h2");
+                            List<List<Image>> grouped_images = ImageData.images_in_groups_of(craft.upload_data.images, 3);
+
+                            if(craft.upload_data.images.Count == 0){
+                                label("You need to add at least 1 picture");
+                                label("Select some pictures -->", "bold.compact");
+                            }
+                            foreach(List<Image> grp in grouped_images){
                                 section(()=>{
                                     foreach(Image image in grp){
                                         v_section(()=>{
@@ -797,19 +834,16 @@ namespace CraftManager
                                     }
                                 });
                             }
-                            label("pics added: " + craft.upload_data.images.Count);
-
 
                             GUILayout.Space(10f);
+                            label("Step 3: Set extra info", "h2.tight");
+                            label("(optional, but recommended!)", "compact");
                             section(()=>{
                                 button("edit Description", edit_description_dialog);
-                                button("edit Action Group info", edit_action_group_dialog);
-                                
+                                button("edit Action Group info", edit_action_group_dialog);                                
                             });
                             
-                            foreach(string error in craft.upload_data.errors){
-                                label(error, "error");
-                            }
+
 
 
 

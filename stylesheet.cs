@@ -69,6 +69,17 @@ namespace CraftManager
             textures.Add(name, tex);
         }
 
+        public Texture2D make_texture(int width, int height, Color col){
+            Color[] pix = new Color[width * height];
+            for( int i = 0; i < pix.Length; ++i ){
+                pix[ i ] = col;
+            }
+            Texture2D result = new Texture2D(width, height);
+            result.SetPixels(pix);
+            result.Apply();
+            return result;
+        }
+
         public StyleSheet(GUISkin base_skin){
 
             set_texture("blue_background", new Color(0.4f, 0.5f, 0.9f, 1), TextureWrapMode.Repeat);           
@@ -105,6 +116,9 @@ namespace CraftManager
             define_style("h2.centered", "h2", s =>{
                 s.alignment = TextAnchor.LowerCenter;
             });
+            define_style("h2.tight", "h2", s =>{
+                s.margin.bottom = 0; 
+            });
             define_style("bold", base_skin.label, s =>{
                 s.fontStyle = FontStyle.Bold;
             });
@@ -130,6 +144,9 @@ namespace CraftManager
             define_style("error", base_skin.label, s =>{
                 s.normal.textColor = Color.red;
             });
+            define_style("error.bold", "error", s =>{
+                s.fontStyle = FontStyle.Bold;
+            });
             define_style("alert", base_skin.label, s =>{
                 s.normal.textColor = new Color(0.8f,0.3f,0.2f,1);
             });
@@ -153,11 +170,22 @@ namespace CraftManager
             });
 
 
-            define_style("hyperlink", base_skin.label, s =>{
+            define_style("hyperlink", base_skin.button, s =>{
+                s.normal.background = base_skin.label.normal.background;
+                s.hover.background = make_texture(2,2, Color.clear);
+                s.active.background = make_texture(2,2, Color.clear);
+                s.focused.background = make_texture(2,2, Color.clear);
+
+
+                s.fontStyle = FontStyle.Normal;
                 s.normal.textColor = new Color(0.4f, 0.5f, 0.9f, 1); //roughly KerbalX Blue - #6E91EB
+                s.hover.textColor = Color.blue;
             });
             define_style("hyperlink.bold", "hyperlink", s =>{
                 s.fontStyle = FontStyle.Bold;
+            });
+            define_style("hyperlink.bold.compact", "hyperlink.bold", s =>{
+                s.margin = new RectOffset(0,0,0,0);
             });
 
             define_style("transfer_progres.text", base_skin.label, s =>{
@@ -240,11 +268,15 @@ namespace CraftManager
                 s.normal.background = textures["green_background"];
                 s.hover.background = textures["light_green_background"];
             });
-            define_style("image_selector.remove_item", "alert", s =>{
+            define_style("image_selector.remove_item", "hyperlink", s =>{                
+                s.normal.textColor = new Color(0.75f,0.25f,0.0f,1);
+                s.hover.textColor = Color.red;
+
                 s.fontSize = 12;
-                s.normal.textColor = Color.red;
-                s.alignment = TextAnchor.UpperRight;
+                s.margin = new RectOffset(0,0,0,0);
+                s.padding = new RectOffset(0,0,0,0);
                 s.fixedWidth = 100f;
+                s.alignment = TextAnchor.UpperRight;
             });
 
  
@@ -483,6 +515,14 @@ namespace CraftManager
             define_style("progbox.active", "progbox", s =>{
                 s.normal.background = textures["blue_background"];
             });
+
+            define_style("upload_section", base_skin.box, s =>{
+//                s.border = new RectOffset(2,2,2,2);
+//                s.normal.background = make_texture(2,2, Color.green);
+            });
+          
+
+
 
             //set the custom styles onto the base_skin;
             skin = Instantiate(base_skin);
