@@ -593,7 +593,6 @@ namespace CraftManager
 
                 scroll_pos["rhs"] = scroll(scroll_pos["rhs"], "side_panel.scroll", inner_width, main_section_height, scroll_width => {
                     if(CraftData.selected_craft == null){
-//                    if(true){                        
                         GUILayout.Space(25);
                         label("Select a craft to see info about it..", "h2.centered");
                     }else{
@@ -631,8 +630,6 @@ namespace CraftManager
                                     button("collapse", "hyperlink.bold.compact", ()=>{expand_details = false;});
                                 }
                             });
-
-
                         }else{
                             section(()=>{
                                 label("Cost", "bold.compact");
@@ -1322,6 +1319,8 @@ namespace CraftManager
             }
             string resp = "";
             float area_height = 0;
+            string original_desc = new string(CraftData.selected_craft.description.ToCharArray());
+
             show_dialog("Edit Description", "Edit Description", d =>{
                 GUI.SetNextControlName("dialog_focus_field");
                 area_height = skin.textArea.CalcHeight(new GUIContent(CraftData.selected_craft.description), d.window_pos.width)+10;
@@ -1329,7 +1328,10 @@ namespace CraftManager
                 CraftData.selected_craft.description = GUILayout.TextArea(CraftData.selected_craft.description, height(area_height));
                 section(()=>{
                     fspace();
-                    button("Cancel", close_dialog);
+                    button("Cancel", ()=>{
+                        CraftData.selected_craft.description = original_desc;
+                        close_dialog();
+                    });
                     resp = submit("Save", CraftData.selected_craft.save_description);
                 });
                 return resp;
@@ -1339,16 +1341,46 @@ namespace CraftManager
         protected void edit_action_group_dialog(){
             string resp = "";
 //            float area_height = 0;
-            show_dialog("Edit Action Group info", "Edit Action Group info", d =>{
-                GUI.SetNextControlName("dialog_focus_field");
-//                area_height = skin.textArea.CalcHeight(new GUIContent(CraftData.selected_craft.description), d.window_pos.width)+10;
-//                if(area_height < 150f){area_height=150f;}
-//                CraftData.selected_craft.description = GUILayout.TextArea(CraftData.selected_craft.description, height(area_height));
-                label("not built yet");//TODO add action group edit dialog
+            show_dialog("Edit Action Group info", "Edit Action Group info", 700f, d =>{
+
+                CraftData craft = CraftData.selected_craft;
+                if(craft !=null){                    
+                    Dictionary<string, string> action_groups = craft.upload_data.action_groups;
+                    List<string> keys = new List<string>(action_groups.Keys);
+                    float label_width = 45f;
+                    GUI.SetNextControlName("dialog_focus_field");
+                    section(()=>{                        
+                        v_section(350f, (w)=>{
+                            for(int i=0; i< keys.Count; i++){
+                                section(()=>{
+                                    string key = keys[i];
+                                    if(key.Length <= 1){
+                                        label(key, width(label_width));
+                                        action_groups[key] = GUILayout.TextField(action_groups[key]);
+                                    }
+                                });
+                            }
+                        });
+                        v_section(350f, (w)=>{
+                            for(int i=0; i< craft.upload_data.action_groups.Count; i++){
+                                section(()=>{
+                                    string key = keys[i];
+                                    if(key.Length > 1){
+                                        label(key, width(label_width));
+                                        action_groups[key] = GUILayout.TextField(action_groups[key]);
+                                    }
+                                });
+                            }
+                        });
+                    });
+                }else{
+                    fspace();
+                    label("No craft is selected", "alert.h2");
+                    fspace();
+                }
                 section((w)=>{
                     fspace();
-                    button("Cancel", close_dialog);
-                    resp = submit("Save", ()=>{ return "200";});
+                    resp = submit("OK", ()=>{ return "200";});
                 });
                 return resp;
             });
@@ -1635,6 +1667,9 @@ namespace CraftManager
         }
         protected DryDialog show_dialog(string title, string heading, bool modal, InnerDialogContent content){
             return show_dialog(title, heading, Screen.height / 3, this.window_pos.x + (this.window_pos.width / 2) - (500 / 2), 500f, modal, content);
+        }
+        protected DryDialog show_dialog(string title, string heading, float dialog_width, InnerDialogContent content){
+            return show_dialog(title, heading, Screen.height / 3, this.window_pos.x + (this.window_pos.width / 2) - (dialog_width / 2), dialog_width, true, content);
         }
         protected DryDialog show_dialog(string title, string heading, float top, float left, float dialog_width, InnerDialogContent content){
             return show_dialog(title, heading, top, left, dialog_width, false, content);
