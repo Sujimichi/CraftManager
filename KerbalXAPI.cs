@@ -150,7 +150,7 @@ namespace CraftManager
         internal static void fetch_existing_craft(ActionCallback callback){
             HTTP.get(url_to("api/existing_craft.json")).set_header("token", KerbalXAPI.token).send((resp, code) =>{
                 if(code == 200){                    
-                    KerbalXAPI.user_craft = process_craft_data(resp, "id", "name", "version", "url", "type", "part_count", "crew_capacity", "cost", "mass", "stages", "created_at", "updated_at" );
+                    KerbalXAPI.user_craft = process_craft_data(resp, "id", "name", "version", "url", "type", "part_count", "crew_capacity", "cost", "mass", "stages", "created_at", "updated_at", "description" );
                     callback();
                 }
             });
@@ -192,7 +192,7 @@ namespace CraftManager
         private static void fetch_craft_list(string path, CraftListCallback callback){
             HTTP.get(url_to(path)).set_header("token", KerbalXAPI.token).send((resp, code) =>{
                 if(code == 200){
-                    callback(process_craft_data(resp, "id", "name", "version", "url", "type", "part_count", "crew_capacity", "cost", "mass", "stages", "created_at", "updated_at" ));
+                    callback(process_craft_data(resp, "id", "name", "version", "url", "type", "part_count", "crew_capacity", "cost", "mass", "stages", "created_at", "updated_at", "description" ));
                 }
             });
         }

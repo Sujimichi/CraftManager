@@ -279,9 +279,10 @@ namespace CraftManager
         }
             
         //Initialize a new CraftData object from remote (KerbalX). Remote craft are not cached.
-        public CraftData(int id, string kx_url, string craft_name, string type, string version, int p_count, int stages, int crew, float c_cost, float c_mass, string created_at, string updated_at){    
+        public CraftData(int id, string kx_url, string craft_name, string type, string version, int p_count, int stages, int crew, float c_cost, float c_mass, string created_at, string updated_at, string desc){    
+            CraftManager.log("Description: " + desc);
             remote = true; stock_craft = false;
-            name = craft_name; alt_name = craft_name;
+            name = craft_name; alt_name = craft_name; description = desc;
             remote_id = id; url = kx_url; construction_type = type; ksp_version = version;
             stage_count = stages; part_count = p_count; crew_capacity = crew; cost_total = c_cost; mass_total = c_mass;
             create_time = DateTime.Parse(created_at).ToUniversalTime().ToBinary().ToString();                
@@ -294,7 +295,7 @@ namespace CraftManager
             }
             exists_locally = File.Exists(path);
 
-            description = part_sig = checksum = "";
+            part_sig = checksum = "";
             cost_dry = cost_fuel = mass_dry = mass_fuel = 0;
             missing_parts = locked_parts = false;           
 

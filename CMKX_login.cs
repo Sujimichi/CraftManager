@@ -461,7 +461,7 @@ namespace CraftManager
             foreach(KeyValuePair<int, Dictionary<string, string>> data in craft_data){
                 Dictionary<string, string> craft = data.Value;
                 new CraftData(data.Key, craft["url"], craft["name"], craft["type"], craft["version"], int.Parse(craft["part_count"]), int.Parse(craft["stages"]),
-                    int.Parse(craft["crew_capacity"]), float.Parse(craft["cost"]), float.Parse(craft["mass"]), craft["created_at"], craft["updated_at"]
+                    int.Parse(craft["crew_capacity"]), float.Parse(craft["cost"]), float.Parse(craft["mass"]), craft["created_at"], craft["updated_at"], craft["description"]
                 );
                 versions.AddUnique(new Version(craft["version"]));               
             }
