@@ -113,6 +113,11 @@ namespace CraftManager
             define_style("h1.centered", "h1", s =>{
                 s.alignment = TextAnchor.LowerCenter;
             });
+            define_style("upload_header", "h1", s =>{
+                s.margin = new RectOffset(0,0,0,0);
+                s.padding = new RectOffset(0,0,0,0);
+                s.fontSize = 40;
+            });
             define_style("h2.centered", "h2", s =>{
                 s.alignment = TextAnchor.LowerCenter;
             });
@@ -534,157 +539,8 @@ namespace CraftManager
             GUIStyle[] temp = new GUIStyle[custom_styles.Count];
             custom_styles.Values.CopyTo(temp, 0);                
             skin.customStyles = temp;
-
             skin.window.padding.bottom = 2;
         }
-
-
-
-
-//        public static void prepare(){
-//
-//            GUISkin base_skin = HighLogic.Skin;
-//            //GUISkin base_skin = GUI.skin;
-//            
-//            GUIStyle remove_link = new GUIStyle(base_skin.label);
-//            remove_link.name = "remove_link";
-//            remove_link.padding = new RectOffset(0, 0, 0, 0);
-//            remove_link.margin = new RectOffset(2, 0, 0, 0);
-//            remove_link.normal.textColor = Color.red;
-//            remove_link.alignment = TextAnchor.LowerCenter;
-//            remove_link.fontSize = 15;
-//            
-//            GUIStyle alert = new GUIStyle(base_skin.label);
-//            alert.normal.textColor = Color.red;
-//            alert.name = "alert";
-//            
-//            GUIStyle alert_h2 = new GUIStyle(alert);
-//            alert_h2.name = "alert.h2";
-//            alert_h2.fontSize = 20;
-//            
-
-//            
-//            GUIStyle centered = new GUIStyle(base_skin.label);
-//            centered.name = "centered";
-//            centered.alignment = TextAnchor.UpperCenter;
-//            
-//            GUIStyle right_align = new GUIStyle(base_skin.label);
-//            right_align.name = "align.right";
-//            right_align.alignment = TextAnchor.UpperRight;
-//            
-//            
-//            GUIStyle no_style = new GUIStyle(base_skin.label);
-//            no_style.name = "no_style";
-//            no_style.margin = new RectOffset(0, 0, 0, 0);
-//            no_style.padding = new RectOffset(0, 0, 0, 0);
-//            
-//            GUIStyle pic_link = new GUIStyle(base_skin.label);
-//            pic_link.name = "pic.link";
-//            pic_link.padding = new RectOffset(5, 5, 5, 5);
-//            pic_link.margin = new RectOffset(0, 0, 0, 0);
-//            
-//            GUIStyle pic_hover = new GUIStyle(pic_link);
-//            pic_hover.name = "pic.hover";
-//            pic_hover.normal.textColor = Color.black;
-//            pic_hover.normal.background = blue_background;
-//            
-//            GUIStyle pic_selected = new GUIStyle(pic_link);
-//            pic_selected.name = "pic.selected";
-//            pic_selected.normal.textColor = Color.black;
-//            pic_selected.normal.background = green_background;
-//            
-//            GUIStyle pic_selected_highlight = new GUIStyle(pic_link);
-//            pic_selected_highlight.name = "pic.selected.highlighted";
-//            pic_selected_highlight.normal.textColor = Color.black;
-//            pic_selected_highlight.normal.background = light_green_background;
-//            
-//
-//
-//            //Button Styles
-//            GUIStyle login_button = new GUIStyle(base_skin.button);
-//            login_button.name = "button.login";
-//            login_button.fontSize = 15;
-//            login_button.fontStyle = FontStyle.Bold;
-//            login_button.padding = new RectOffset(0, 0, 3, 3);
-//            
-//            GUIStyle upload_button = new GUIStyle(base_skin.button);
-//            upload_button.name = "button.upload";
-//            upload_button.fontSize = 20;
-//            upload_button.fontStyle = FontStyle.Bold;
-//            upload_button.padding = new RectOffset(3, 3, 10, 10);
-//            upload_button.margin = new RectOffset(20, 20, 20, 5);
-//            
-//            GUIStyle large_button = new GUIStyle(base_skin.button);
-//            large_button.name = "button.large";
-//            large_button.fontSize = 15;
-//            large_button.padding = new RectOffset(3, 3, 10, 10);
-//            
-//            GUIStyle large_button_bold = new GUIStyle(large_button);
-//            large_button_bold.name = "button.large.bold";
-//            large_button_bold.fontStyle = FontStyle.Bold;
-//            
-//            GUIStyle wrapped_button = new GUIStyle(base_skin.button);
-//            wrapped_button.name = "button.wrapped";
-//            wrapped_button.wordWrap = true;
-//            
-//            GUIStyle bold_button = new GUIStyle(base_skin.button);
-//            bold_button.name = "button.bold";
-//            bold_button.fontStyle = FontStyle.Bold;
-//            bold_button.padding = new RectOffset(0, 0, 3, 3);
-//            bold_button.fontSize = 15;
-//            
-//            
-//            
-//            //Background (Box) Styles
-//            GUIStyle blue_box = new GUIStyle(base_skin.box);
-//            blue_box.normal.background = blue_background;
-//            blue_box.border = new RectOffset(3, 3, 3, 3);
-//            blue_box.name = "box.blue";
-//            
-//            GUIStyle dark_back = new GUIStyle();
-//            dark_back.name = "background.dark";
-//            dark_back.normal.background = dark_background;
-//            
-//            GUIStyle dark_back_offset = new GUIStyle(dark_back);
-//            dark_back_offset.name = "background.dark.margin";
-//            dark_back_offset.margin = new RectOffset(0, 0, 5, 0);
-//            
-//            
-//            //Combobox specific
-//            GUIStyle combo_field = new GUIStyle(base_skin.textField);
-//            combo_field.margin = new RectOffset(0, 0, 0, 0);
-//            combo_field.name = "combobox.filter_field";
-//            
-//            GUIStyle combo_bttn = new GUIStyle(base_skin.button);
-//            combo_bttn.margin.top = 0;
-//            combo_bttn.name = "combobox.bttn";
-//            
-//            GUIStyle combo_option = new GUIStyle(base_skin.label);
-//            combo_option.margin = new RectOffset(0, 0, 0, 0);
-//            combo_option.padding = new RectOffset(3, 3, 1, 1);
-//            combo_option.name = "combobox.option";
-//            
-//            GUIStyle combo_option_hover = new GUIStyle(combo_option);
-//            combo_option_hover.normal.background = blue_background;
-//            combo_option_hover.normal.textColor = Color.black;
-//            combo_option_hover.name = "combobox.option.hover";
-//            
-//            
-//            //DryUI.skin = Instantiate(GUI.skin);
-//            DryUI.skin = Instantiate(base_skin);
-//            
-//            DryUI.skin.customStyles = new GUIStyle[] { 
-//                h1, h2, h3, h2_centered, hyperlink, hyperlink_h2, hyperlink_h3, hyperlink_footer, remove_link, alert, alert_h2, small, centered, right_align, 
-//                pic_link, pic_hover, pic_selected, pic_selected_highlight, dark_back, dark_back_offset, blue_box, no_style, 
-//                login_button, upload_button, large_button, large_button_bold, wrapped_button, bold_button, 
-//                combo_field, combo_bttn, combo_option, combo_option_hover,
-//                craft_name, craft_info, craft_list_item, craft_list_container
-//            };
-//            DryUI.skin.window.padding.bottom = 2;
-//        }
-
-
     }
-
 }
 

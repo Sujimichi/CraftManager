@@ -235,9 +235,21 @@ namespace CraftManager
         protected override void WindowContent(int win_id){
             key_event_handler();
             v_section(()=>{       
-                gui_state(!upload_interface_ready, ()=>{
+//                gui_state(!upload_interface_ready, ()=>{
+//                    draw_top_section(window_width);     
+//                });
+                if(upload_interface_ready){
+                    v_section(()=>{
+                        GUILayout.Space(20f);
+                        section(window_width, 60f, ()=>{
+                            fspace();
+                            label("KerbalX Upload", "upload_header");
+                            fspace();
+                        });
+                    });
+                }else{
                     draw_top_section(window_width);     
-                });
+                }
                    
                 GUILayout.Space(10);
                 scroll_relative_pos = GUILayoutUtility.GetLastRect();
@@ -762,154 +774,160 @@ namespace CraftManager
         protected List<List<Image>> grouped_images = null;
         protected float upload_rhs_width = 420;
         protected string image_select_mode = "thumb";
+        float adjusted_section_width = 0;
             
         protected void draw_kerbalx_upload_section(float section_width){
+            adjusted_section_width = section_width - 35;
             CraftData craft = CraftData.selected_craft;
 
-            v_section(20, main_section_height+40, "close_section", (w) =>{
-                fspace();
-                label(">>");
-                fspace();
-            }, (evt) => {
-                if(evt.single_click){
-                    show_upload_interface = false;
-                }
+            v_section(() =>{
+                GUILayout.Space(38f);
+                v_section(20, main_section_height, "close_section", (w) =>{
+                    fspace();label(">>");fspace();
+                }, (evt) => {
+                    if(evt.single_click){
+                        show_upload_interface = false;
+                    }
+                });
             });
-            float adjusted_section_width = section_width - 30;
-            v_section(adjusted_section_width, main_section_height+40, "craft.list_container", (w_outter) =>{
-                GUILayout.Space(20f);
-                label("Upload to KerbalX", "h1.centered", adjusted_section_width);
-                if(CraftData.selected_craft != null){
+
+            v_section(() =>{
+                label("Upload Details", "h2");
+                GUILayout.Space(2f);
+                v_section(adjusted_section_width, main_section_height, "craft.list_container", (w_outter) =>{
+                    if(CraftData.selected_craft != null){
                         
-                    section(adjusted_section_width, w => {
-                        
-                        v_section(w-upload_rhs_width, inner_width => {
-
-                            if(craft.upload_data == null){
-                                craft.upload_data = new KerbalXUploadData(craft);
-                            }
-
-                            foreach(string error in craft.upload_data.errors){
-                                label(error, "error.bold");
-                            }
-
-                            label("Step 1: Set basic Craft details", "h2");
-                            section(()=>{
-                                label("Name:", "h3", 50f);
-                                craft.upload_data.craft_name = GUILayout.TextField(craft.upload_data.craft_name);
-                            });
-                                                        
-                            section(()=>{
-                                label("Type:", "h3", 50f);
-                                fspace();
-                                float type_width = GUI.skin.button.CalcSize(new GUIContent(craft.upload_data.craft_type)).x + 40;
-                                section(type_width, ()=>{
-                                    dropdown(craft.upload_data.craft_type, StyleSheet.assets["caret-down"], "craft_upload_style_menu", craft_styles_menu, this, type_width, menu_resp=>{
-                                        craft.upload_data.craft_type = menu_resp.ToString();
+                        section(adjusted_section_width, w => {
+                            
+                            v_section(w-upload_rhs_width, inner_width => {
+                                
+                                if(craft.upload_data == null){
+                                    craft.upload_data = new KerbalXUploadData(craft);
+                                }
+                                
+                                foreach(string error in craft.upload_data.errors){
+                                    label(error, "error.bold");
+                                }
+                                
+                                label("Step 1: Set basic Craft details", "h2");
+                                section(()=>{
+                                    label("Name:", "h3", 50f);
+                                    craft.upload_data.craft_name = GUILayout.TextField(craft.upload_data.craft_name);
+                                });
+                                
+                                section(()=>{
+                                    label("Type:", "h3", 50f);
+                                    fspace();
+                                    float type_width = GUI.skin.button.CalcSize(new GUIContent(craft.upload_data.craft_type)).x + 40;
+                                    section(type_width, ()=>{
+                                        dropdown(craft.upload_data.craft_type, StyleSheet.assets["caret-down"], "craft_upload_style_menu", craft_styles_menu, this, type_width, menu_resp=>{
+                                            craft.upload_data.craft_type = menu_resp.ToString();
+                                        });
                                     });
                                 });
-                            });
-
-                            section(()=>{
-                                label("#tags:", "h3", 50f);
-                                craft.upload_data.hash_tags = GUILayout.TextField(craft.upload_data.hash_tags);
-                            });
-                            section(()=>{
-                                fspace();
-                                label("space or comma separated (optional)", "small");
-                            });
-
-
-
-                            GUILayout.Space(10f);
-                            label("Step 2: Add some pictures ("+craft.upload_data.images.Count+"/3)", "h2");
-                            List<List<Image>> grouped_images = ImageData.images_in_groups_of(craft.upload_data.images, 3);
-
-                            if(craft.upload_data.images.Count == 0){
-                                label("You need to add at least 1 picture");
-                                label("Select some pictures -->", "bold.compact");
-                            }
-                            foreach(List<Image> grp in grouped_images){
+                                
                                 section(()=>{
-                                    foreach(Image image in grp){
-                                        v_section(()=>{
-                                            label(image.texture, 100, 72);
-                                            button("remove", "image_selector.remove_item", ()=>{
-                                                craft.upload_data.toggle_image(image);
-                                            });
-                                        });
-                                    }
+                                    label("#tags:", "h3", 50f);
+                                    craft.upload_data.hash_tags = GUILayout.TextField(craft.upload_data.hash_tags);
                                 });
-                            }
-
-                            GUILayout.Space(10f);
-                            label("Step 3: Set extra info", "h2.tight");
-                            label("(optional, but recommended!)", "compact");
-                            section(()=>{
-                                button("edit Description", edit_description_dialog);
-                                button("edit Action Group info", edit_action_group_dialog);                                
+                                section(()=>{
+                                    fspace();
+                                    label("space or comma separated (optional)", "small");
+                                });
+                                
+                                
+                                
+                                GUILayout.Space(10f);
+                                label("Step 2: Add some pictures ("+craft.upload_data.images.Count+"/3)", "h2");
+                                List<List<Image>> grouped_images = ImageData.images_in_groups_of(craft.upload_data.images, 3);
+                                
+                                if(craft.upload_data.images.Count == 0){
+                                    label("You need to add at least 1 picture");
+                                    label("Select some pictures -->", "bold.compact");
+                                }
+                                foreach(List<Image> grp in grouped_images){
+                                    section(()=>{
+                                        foreach(Image image in grp){
+                                            v_section(()=>{
+                                                label(image.texture, 100, 72);
+                                                button("remove", "image_selector.remove_item", ()=>{
+                                                    craft.upload_data.toggle_image(image);
+                                                });
+                                            });
+                                        }
+                                    });
+                                }
+                                
+                                GUILayout.Space(10f);
+                                label("Step 3: Set extra info", "h2.tight");
+                                label("(optional, but recommended!)", "compact");
+                                section(()=>{
+                                    button("edit Description", edit_description_dialog);
+                                    button("edit Action Group info", edit_action_group_dialog);                                
+                                });
+                                
+                                
+                                
+                                
+                                
                             });
                             
-
-
-
-
-                        });
-
-                        v_section(upload_rhs_width, inner_width => {
-                                         
-                            section(()=>{
-                                label("Select Pictures to add", "h2");
-                                fspace();
-                                dropdown("view", "upload_image_mode_menu", upload_image_mode, this, 70f, (resp)=>{
-                                    image_select_mode = resp;    
-                                });    
-                            });
-                            
-                            if(grouped_images == null){
-                                grouped_images = image_data.get_grouped_images(3);
-                            }
-                            scroll_pos["lhs"] = scroll(scroll_pos["lhs"], "side_panel.scroll.tags", inner_width, main_section_height-60, scroll_width => {
-                                v_section(()=>{
-                                    if(image_select_mode == "thumb"){
-                                        for(int i=0; i < grouped_images.Count; i++){
-                                            bool grp_visible = false;
-                                            List<Image> group = grouped_images[i];
-                                            section(()=>{
-                                                if((100*i)-scroll_pos["lhs"].y <= main_section_height-60){                                                   
-                                                    grp_visible = true;
-                                                }
-                                                foreach(Image image in group){
-                                                    if(grp_visible){
-                                                        if(image.loaded == false && image_data.images_being_loaded_count < 3){                                                        
-                                                            image_data.images_being_loaded_count += 1;
-                                                            image.loaded = true;
-                                                            StartCoroutine(image.load_image());
-                                                        }                                                        
+                            v_section(upload_rhs_width, inner_width => {
+                                
+                                section(()=>{
+                                    label("Select Pictures to add", "h2");
+                                    fspace();
+                                    dropdown("view", "upload_image_mode_menu", upload_image_mode, this, 70f, (resp)=>{
+                                        image_select_mode = resp;    
+                                    });    
+                                });
+                                
+                                if(grouped_images == null){
+                                    grouped_images = image_data.get_grouped_images(3);
+                                }
+                                scroll_pos["lhs"] = scroll(scroll_pos["lhs"], "side_panel.scroll.tags", inner_width, main_section_height-40, scroll_width => {
+                                    v_section(()=>{
+                                        if(image_select_mode == "thumb"){
+                                            for(int i=0; i < grouped_images.Count; i++){
+                                                bool grp_visible = false;
+                                                List<Image> group = grouped_images[i];
+                                                section(()=>{
+                                                    if((100*i)-scroll_pos["lhs"].y <= main_section_height){                                                   
+                                                        grp_visible = true;
                                                     }
-                                                    
-                                                    button(image.texture, (craft.upload_data.images.Contains(image) ? "image_selector.item.selected" : "image_selector.item"), 125f, 90f, () => {
-                                                        craft.upload_data.toggle_image(image);
-                                                    });                                        
-                                                }
-                                            });
+                                                    foreach(Image image in group){
+                                                        if(grp_visible){
+                                                            if(image.loaded == false && image_data.images_being_loaded_count < 3){                                                        
+                                                                image_data.images_being_loaded_count += 1;
+                                                                image.loaded = true;
+                                                                StartCoroutine(image.load_image());
+                                                            }                                                        
+                                                        }
+                                                        
+                                                        button(image.texture, (craft.upload_data.images.Contains(image) ? "image_selector.item.selected" : "image_selector.item"), 125f, 90f, () => {
+                                                            craft.upload_data.toggle_image(image);
+                                                        });                                        
+                                                    }
+                                                });
+                                            }
+                                        }else if(image_select_mode == "list"){
+                                            foreach(Image image in image_data.images){
+                                                button(image.file.Name, (craft.upload_data.images.Contains(image) ? "image_selector.item.selected" : "image_selector.item"), () => {
+                                                    craft.upload_data.toggle_image(image);
+                                                });
+                                            }
                                         }
-                                    }else if(image_select_mode == "list"){
-                                        foreach(Image image in image_data.images){
-                                            button(image.file.Name, (craft.upload_data.images.Contains(image) ? "image_selector.item.selected" : "image_selector.item"), () => {
-                                                craft.upload_data.toggle_image(image);
-                                            });
-                                        }
-                                    }
-                                    //TODO add in 'preview' mode (single image at a time, large).
+                                        //TODO add in 'preview' mode (single image at a time, large).
+                                    });
+                                    
                                 });
                                 
                             });
-
                         });
-                    });
-                }
+                    }
+                });                
             });
+
         }
 
         public bool show_transfer_indicator = false;
