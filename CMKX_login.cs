@@ -248,7 +248,7 @@ namespace CraftManager
                     errors.Add("The craft's name can't be blank");
                 }
                 if(craft_name.Length <= 2){
-                    errors.Add("The craft's name must be at least 3 characters long");
+                    errors.Add("The craft's name must be at least 3 characters");
                 }
                 if(images.Count == 0){
                     errors.Add("You need to add at least 1 picture");

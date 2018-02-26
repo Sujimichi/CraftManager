@@ -521,6 +521,11 @@ namespace CraftManager
 //                s.normal.background = make_texture(2,2, Color.green);
             });
           
+            define_style("close_section", base_skin.button, s =>{
+                s.margin = new RectOffset(0,0,0,0);
+                s.padding = new RectOffset(0,0,0,0);
+            });
+
 
 
 

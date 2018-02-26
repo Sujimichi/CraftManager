@@ -766,12 +766,22 @@ namespace CraftManager
         protected void draw_kerbalx_upload_section(float section_width){
             CraftData craft = CraftData.selected_craft;
 
-            v_section(section_width, main_section_height+40, "craft.list_container", (w_outter) =>{
+            v_section(20, main_section_height+40, "close_section", (w) =>{
+                fspace();
+                label(">>");
+                fspace();
+            }, (evt) => {
+                if(evt.single_click){
+                    show_upload_interface = false;
+                }
+            });
+            float adjusted_section_width = section_width - 30;
+            v_section(adjusted_section_width, main_section_height+40, "craft.list_container", (w_outter) =>{
                 GUILayout.Space(20f);
-                label("Upload to KerbalX", "h1.centered", section_width);            
+                label("Upload to KerbalX", "h1.centered", adjusted_section_width);
                 if(CraftData.selected_craft != null){
                         
-                    section(section_width, w => {
+                    section(adjusted_section_width, w => {
                         
                         v_section(w-upload_rhs_width, inner_width => {
 
@@ -975,7 +985,7 @@ namespace CraftManager
                 });
                 GUILayout.Space(8);
                 if(upload_interface_ready){
-                    button("<<Back", "button.close", 120f, ()=>{
+                    button("Back", "button.close", 120f, ()=>{
                         show_upload_interface = false;
                     });
                 }else{                    
@@ -1380,7 +1390,7 @@ namespace CraftManager
                 }
                 section((w)=>{
                     fspace();
-                    resp = submit("OK", ()=>{ return "200";});
+                    resp = submit("OK", "button.large", ()=>{ return "200";});
                 });
                 return resp;
             });
