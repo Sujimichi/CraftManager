@@ -777,7 +777,7 @@ namespace CraftManager
         float adjusted_section_width = 0;
             
         protected void draw_kerbalx_upload_section(float section_width){
-            adjusted_section_width = section_width - 35;
+            adjusted_section_width = section_width - 26; //account for close_section 'button' 
             CraftData craft = CraftData.selected_craft;
 
             v_section(() =>{
@@ -833,8 +833,7 @@ namespace CraftManager
                                 section(()=>{
                                     fspace();
                                     label("space or comma separated (optional)", "small");
-                                });
-                                
+                                });                                
                                 
                                 
                                 GUILayout.Space(10f);
@@ -865,11 +864,6 @@ namespace CraftManager
                                     button("edit Description", edit_description_dialog);
                                     button("edit Action Group info", edit_action_group_dialog);                                
                                 });
-                                
-                                
-                                
-                                
-                                
                             });
                             
                             v_section(upload_rhs_width, inner_width => {
@@ -927,7 +921,6 @@ namespace CraftManager
                     }
                 });                
             });
-
         }
 
         public bool show_transfer_indicator = false;
