@@ -180,7 +180,7 @@ namespace CraftManager
             tags_menu_content.special_items.Add("new_tag", "New Tag");
 
             type_select(EditorDriver.editorFacility.ToString(), true);  //set selected type (SPH or VAB) based on which editor we're in.
-            show();
+//            show();
         }
 
         protected override void on_show(){            
@@ -210,8 +210,7 @@ namespace CraftManager
 
             auto_focus_field = "main_search_field";
             InputLockManager.SetControlLock(window_id.ToString());
-
-//            interface_locked = true; TODO is this needed?
+            interface_locked = true; //will trigger unlock of interface (after slight delay) on window hide
 
             //if a craft which matches the name,contruction_type,and save_dir of the currently loaded craft is in the filtered results then mark it to be focused on when the UI opens
             if(cur_selected_name.ToLower() != "untitled space craft"){
@@ -695,7 +694,7 @@ namespace CraftManager
                                             if(upload_interface_ready == false){
                                                 if(craft.on_kerbalx()){
                                                     button("Update craft on KerbalX", ()=>{
-                                                        
+                                                        show_upload_interface = !show_upload_interface;
                                                     });
                                                 }else{
                                                     button("Share on KerbalX", ()=>{
