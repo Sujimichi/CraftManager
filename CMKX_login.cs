@@ -200,7 +200,6 @@ namespace CraftManager
         internal string hash_tags = "";
         internal string craft_type = "Ship";
         internal string craft_description = "";
-        internal bool update_existing = false;
         internal List<Image> images = new List<Image>();
         internal Dictionary<string, string> action_groups = new Dictionary<string, string>() { 
             { "1", "" }, { "2", "" }, { "3", "" }, { "4", "" }, { "5", "" }, { "6", "" }, { "7", "" }, { "8", "" }, { "9", "" }, { "0", "" }, 
@@ -262,49 +261,68 @@ namespace CraftManager
 
         public void post(){
             if(is_valid){
-//                CraftManager.main_ui.lock_ui();
                 CraftManager.main_ui.show_transfer_indicator = true;
-                if(update_existing){
-                    CraftManager.main_ui.transfer_is_upload = false;
-                } else{
-                    CraftManager.main_ui.transfer_is_upload = true;
-                    WWWForm craft_data = new WWWForm();
-                    craft_data.AddField("craft_name", craft_name);
-                    craft_data.AddField("craft_style", craft_type);
-                    craft_data.AddField("craft_file", System.IO.File.ReadAllText(craft.path));
-                    craft_data.AddField("part_data", JSONX.toJSON(part_info()));
-                    craft_data.AddField("action_groups", JSONX.toJSON(action_groups));
-                    craft_data.AddField("hash_tags", hash_tags);
-
-                    int pic_count = 0;
-                    foreach(Image image in images){
-//                        craft_data.AddField("images[image_" + pic_count++ + "]", Convert.ToBase64String(image.read_as_jpg()));
-                        craft_data.AddField("image_urls[url_" + pic_count++ + "]", "https://i.imgur.com/nSUkIe0.jpg"); //TODO switch this off again.
-                    }
-
-                    KerbalXAPI.upload_craft(craft_data, (resp, code) =>{
-//                        var resp_data = JSON.Parse(resp);
-                        if(code == 200){
-                            CraftManager.log("craft uploaded OK");
-                            KerbalXAPI.fetch_existing_craft(()=>{   //refresh remote craft info 
-                                craft.matching_remote_ids = null;
-                                CraftManager.main_ui.show_upload_interface = false;
-                            });
-                        } else{                           
-                            CraftManager.log("craft upload failed");
-                        }
-
-                        //return UI to craft list mode and show upload complete dialog.
-                        CraftManager.main_ui.show_transfer_indicator = false;
-//                        CraftManager.main_ui.unlock_ui();
-                        CraftManager.main_ui.upload_complete_dialog(code, resp);
-
-                    });
-                        
-
-
+                CraftManager.main_ui.transfer_is_upload = true;
+                WWWForm craft_data = new WWWForm();
+                craft_data.AddField("craft_name", craft_name);
+                craft_data.AddField("craft_style", craft_type);
+                craft_data.AddField("craft_file", System.IO.File.ReadAllText(craft.path));
+                craft_data.AddField("part_data", JSONX.toJSON(part_info()));
+                craft_data.AddField("action_groups", JSONX.toJSON(action_groups));
+                craft_data.AddField("hash_tags", hash_tags);
+                
+                int pic_count = 0;
+                foreach(Image image in images){
+                    //                        craft_data.AddField("images[image_" + pic_count++ + "]", Convert.ToBase64String(image.read_as_jpg()));
+                    craft_data.AddField("image_urls[url_" + pic_count++ + "]", "https://i.imgur.com/nSUkIe0.jpg"); //TODO switch this off again.
                 }
+                
+                KerbalXAPI.upload_craft(craft_data, (resp, code) =>{
+                    //                        var resp_data = JSON.Parse(resp);
+                    if(code == 200){
+                        CraftManager.log("craft uploaded OK");
+                        KerbalXAPI.fetch_existing_craft(()=>{   //refresh remote craft info 
+                            craft.matching_remote_ids = null;
+                            CraftManager.main_ui.show_upload_interface = false;
+                        });
+                    } else{                           
+                        CraftManager.log("craft upload failed");
+                    }
+                    
+                    //return UI to craft list mode and show upload complete dialog.
+                    CraftManager.main_ui.show_transfer_indicator = false;
+                    //                        CraftManager.main_ui.unlock_ui();
+                    CraftManager.main_ui.upload_complete_dialog(code, resp);
+                    
+                });
+
             }
+        }
+
+        public void put(){
+            CraftManager.log("craft_data put called");
+            CraftManager.main_ui.show_transfer_indicator = true;
+            CraftManager.main_ui.transfer_is_upload = false;
+
+            WWWForm craft_data = new WWWForm();
+            craft_data.AddField("craft_name", craft_name);
+            craft_data.AddField("craft_file", System.IO.File.ReadAllText(craft.path));
+            craft_data.AddField("part_data", JSONX.toJSON(part_info()));
+
+            KerbalXAPI.update_craft(craft.update_to_id, craft_data, (resp, code) =>{
+                if(code == 200){
+                    CraftManager.log("craft updated OK");
+                    KerbalXAPI.fetch_existing_craft(()=>{                        
+//                        craft.matching_remote_ids = null;
+                        CraftManager.main_ui.show_upload_interface = false;
+                    });
+                }else{
+                    CraftManager.log("craft update failed");
+                }
+                CraftManager.main_ui.show_transfer_indicator = false;
+                //TODO show update complete dialog, maybe? or just close and move on.
+
+            });
         }
 
 
@@ -480,7 +498,6 @@ namespace CraftManager
 
         public delegate void RemoteCraftMatcher();
         public static void find_matching_remote_craft(CraftData craft){
-            CraftManager.log("find_matching_remote_craft called");
             RemoteCraftMatcher rcm = new RemoteCraftMatcher(() =>{
                 if(KerbalXAPI.user_craft != null){
                     List<int> list = new List<int>();
