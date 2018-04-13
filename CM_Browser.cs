@@ -49,9 +49,7 @@ namespace CraftManager
             {"submode", new MenuOptions{text = "Load Subassembly", action = "subload", width = 300f, menu = new DropdownMenuData(new Dictionary<string, string> { { "merge", "Merge" }, { "load", "Load as Craft" } })}},
             {"download",new MenuOptions{text = "Download & Load", action = "dl_load", width = 300f, menu = new DropdownMenuData(new Dictionary<string, string> { { "dl_load_no_save", "Load without saving" } })}},
             {"redownload",new MenuOptions{text = "Update & Load", action = "dl_load", width = 250f, menu = new DropdownMenuData(new Dictionary<string, string> { { "dl_load_no_save", "Load Remote version without saving" }, { "load", "Load local version" } })}},
-            {"upload",  new MenuOptions{text = "Upload", action = "upload", width = 150f, menu = null}},
-            {"update",  new MenuOptions{text = "Update Yo", action = "update", width = 150f, menu = null}}
-
+            {"upload",  new MenuOptions{text = "Upload", action = "upload", width = 150f, menu = null}}
         };
         string load_menu_mode = "default";
 
@@ -456,14 +454,15 @@ namespace CraftManager
                         Rect offset = new Rect(scroll_relative_pos);
                         offset.y -= scroll_pos["main"].y + evt.contianer.height - 45;
                         offset.x = (window_width * col_widths_current[0]) + (skin.GetStyle("craft.list_container").margin.left * 3 ) + 5;
-                        gameObject.AddOrGetComponent<Dropdown>().open(evt.contianer, offset, this, menu, 0f, "menu.background", "menu.item.craft", (resp) =>{
+                        menu.set_attributes(evt.contianer, offset, this, 0f, "menu.background", "menu.item.craft", (resp) => {
                             switch(resp){
                                 case "rename"   : rename_craft_dialog(craft);break;
                                 case "transfer" : transfer_craft_dialog(craft);break;
                                 case "move_copy": move_copy_craft_dialog(craft);break;
                                 case "delete"   : delete_craft_dialog(craft);break;
-                            }
+                            }                            
                         });
+                        gameObject.AddOrGetComponent<Dropdown>().open(menu);
                     }
                 }
             });
@@ -562,15 +561,16 @@ namespace CraftManager
                                         Rect offset = new Rect(scroll_relative_pos);
                                         offset.y -= scroll_pos["lhs"].y + evt.contianer.height - 45;
                                         offset.x += 5;
-                                        gameObject.AddOrGetComponent<Dropdown>().open(evt.contianer, offset, this, menu, 0f, "menu.background", "menu.item.tag_menu", (resp) =>{                                        
+                                        menu.set_attributes(evt.contianer, offset, this, 0f, "menu.background", "menu.item.tag_menu", (resp) => {
                                             Vector2 pos = new Vector2(evt.contianer.x + window_pos.x + evt.contianer.width, evt.contianer.y + window_pos.y + scroll_relative_pos.y - scroll_pos["lhs"].y + 80);
                                             switch(resp){
                                                 case "select" : Tags.toggle_active(tag_name);break;
                                                 case "archive": Tags.toggle_archive(tag_name);break;
                                                 case "edit"   : edit_tag_dialog(tag_name, pos.y, pos.x);break;
                                                 case "delete" : delete_tag_dialog(tag_name, pos.y, pos.x);break;
-                                            }
+                                            }                                            
                                         });
+                                        gameObject.AddOrGetComponent<Dropdown>().open(menu);
                                     }
                                 });                                
                                 if(Event.current.type == EventType.Repaint){                                  
@@ -600,7 +600,6 @@ namespace CraftManager
             }
         }
 
-
         //Right Hand Section: Craft Details
         protected void draw_right_hand_section(float section_width){
             v_section(section_width, (inner_width) =>{        
@@ -616,7 +615,6 @@ namespace CraftManager
                         GUILayout.Space(5);
                         CraftData craft = CraftData.selected_craft;                        
                         section(()=>{label(craft.name, "h2");});
-
 
                         if(expand_details){
                             float details_width = scroll_width - 50;
@@ -660,9 +658,7 @@ namespace CraftManager
                                     button("expand", "hyperlink.bold.compact", ()=>{expand_details = true;});
                                 }
                             });
-
                         }
-
 
                         section(()=>{
                             label("Crew Capacity", "bold.compact");
@@ -673,7 +669,6 @@ namespace CraftManager
                             label("Last Updated", "bold.compact");
                             label(date.time_ago(), "compact");
                         });
-
 
                         if(craft.remote){
                             button("Download", download);
@@ -698,9 +693,13 @@ namespace CraftManager
                                     section((w)=>{
                                         if(KerbalXAPI.logged_in()){
                                             if(upload_interface_ready == false){
-                                                button(craft.on_kerbalx() ? "Update craft on KerbalX" : "Share on KerbalX", ()=>{
-                                                    show_upload_interface = !show_upload_interface;
-                                                });
+                                                if(craft.on_kerbalx()){
+                                                    button("Update craft on KerbalX", show_update_kerbalx_craft_dialog);
+                                                }else{
+                                                    button("Share on KerbalX", ()=>{
+                                                        show_upload_interface = !show_upload_interface;                                                        
+                                                    });
+                                                }
                                             }
                                         }else{
                                             button("Login to KerbalX to share craft", "button.small", ()=>{
@@ -715,13 +714,11 @@ namespace CraftManager
                             });
 
                             GUILayout.Space(15);
-                            
                             section((w) =>{
                                 label("Tags", "h2");
                                 fspace();
                                 scroll_relative_pos.x += (window_pos.width * (col_widths_current[0]+col_widths_current[1])) - 5f;
                                 scroll_relative_pos.y += 45f - scroll_pos["rhs"].y;
-                                
                                 tags_menu_content.selected_items = craft.tag_names();
                                 gui_state(!upload_interface_ready, ()=>{
                                     dropdown("Add Tag", StyleSheet.assets["caret-down"], "add_tag_menu", tags_menu_content, this, scroll_relative_pos, 70f, "Button", "menu.background", "menu.item.small", resp => {
@@ -797,154 +794,137 @@ namespace CraftManager
                 craft.upload_data = new KerbalXUploadData(craft);
             }
 
-            if(show_update_interface){
-                v_section(() =>{
-                    label("Upload Details (update)", "h2");
-                    v_section(adjusted_section_width, main_section_height, "craft.list_container", (w_outter) =>{
-                        if(craft.matching_remote_ids.Count == 1){
-                            label("A craft with this name is already in your KerbalX account", "h2");
-                            label("Click 'Update' to update the craft on KerbalX with this craft", "h3");
-                            craft.update_to_id = craft.matching_remote_ids[0];    
-                        }else{
-                            label("Several craft in your KerbalX account have the same name as this craft", "h2");
-                            label("Select which one you want to update", "h3");
-                            foreach(int id in craft.matching_remote_ids){
-                                label(id.ToString());
-                                button("select this", ()=>{
-                                    craft.update_to_id = id;
+
+            v_section(() =>{
+                label("Upload Details", "h2");
+                GUILayout.Space(2f);
+                v_section(adjusted_section_width, main_section_height, "craft.list_container", (w_outter) =>{
+                    if(CraftData.selected_craft != null){
+
+                        section(adjusted_section_width, w =>{
+
+                            v_section(w - upload_rhs_width, inner_width =>{
+
+                                foreach(string error in craft.upload_data.errors){
+                                    label(error, "error.bold");
+                                }
+
+                                label("Step 1: Set basic Craft details", "h2");
+                                section(() =>{
+                                    label("Name:", "h3", 50f);
+                                    craft.upload_data.craft_name = GUILayout.TextField(craft.upload_data.craft_name);
                                 });
-                            }
-                        }
-                    });
-                });
-            } else{
-                v_section(() =>{
-                    label("Upload Details", "h2");
-                    GUILayout.Space(2f);
-                    v_section(adjusted_section_width, main_section_height, "craft.list_container", (w_outter) =>{
-                        if(CraftData.selected_craft != null){
-                        
-                            section(adjusted_section_width, w =>{
-                            
-                                v_section(w - upload_rhs_width, inner_width =>{
-                                
-                                    foreach(string error in craft.upload_data.errors){
-                                        label(error, "error.bold");
-                                    }
-                                
-                                    label("Step 1: Set basic Craft details", "h2");
-                                    section(() =>{
-                                        label("Name:", "h3", 50f);
-                                        craft.upload_data.craft_name = GUILayout.TextField(craft.upload_data.craft_name);
-                                    });
-                                
-                                    section(() =>{
-                                        label("Type:", "h3", 50f);
-                                        fspace();
-                                        float type_width = GUI.skin.button.CalcSize(new GUIContent(craft.upload_data.craft_type)).x + 40;
-                                        section(type_width, () =>{
-                                            dropdown(craft.upload_data.craft_type, StyleSheet.assets["caret-down"], "craft_upload_style_menu", craft_styles_menu, this, type_width, menu_resp =>{
-                                                craft.upload_data.craft_type = menu_resp.ToString();
-                                            });
+
+                                section(() =>{
+                                    label("Type:", "h3", 50f);
+                                    fspace();
+                                    float type_width = GUI.skin.button.CalcSize(new GUIContent(craft.upload_data.craft_type)).x + 40;
+                                    section(type_width, () =>{
+                                        dropdown(craft.upload_data.craft_type, StyleSheet.assets["caret-down"], "craft_upload_style_menu", craft_styles_menu, this, type_width, menu_resp =>{
+                                            craft.upload_data.craft_type = menu_resp.ToString();
                                         });
                                     });
-                                
+                                });
+
+                                section(() =>{
+                                    label("#tags:", "h3", 50f);
+                                    craft.upload_data.hash_tags = GUILayout.TextField(craft.upload_data.hash_tags);
+                                });
+                                section(() =>{
+                                    fspace();
+                                    label("space or comma separated (optional)", "small");
+                                });                                
+
+
+                                GUILayout.Space(10f);
+                                label("Step 2: Add some pictures (" + craft.upload_data.images.Count + "/3)", "h2");
+                                List<List<Image>> grouped_images = ImageData.images_in_groups_of(craft.upload_data.images, 3);
+
+                                if(craft.upload_data.images.Count == 0){
+                                    label("You need to add at least 1 picture");
+                                    label("Select some pictures -->", "bold.compact");
+                                }
+                                foreach(List<Image> grp in grouped_images){
                                     section(() =>{
-                                        label("#tags:", "h3", 50f);
-                                        craft.upload_data.hash_tags = GUILayout.TextField(craft.upload_data.hash_tags);
+                                        foreach(Image image in grp){
+                                            v_section(() =>{
+                                                label(image.texture, 100, 72);
+                                                button("remove", "image_selector.remove_item", () =>{
+                                                    craft.upload_data.toggle_image(image);
+                                                });
+                                            });
+                                        }
                                     });
-                                    section(() =>{
-                                        fspace();
-                                        label("space or comma separated (optional)", "small");
-                                    });                                
-                                
-                                
-                                    GUILayout.Space(10f);
-                                    label("Step 2: Add some pictures (" + craft.upload_data.images.Count + "/3)", "h2");
-                                    List<List<Image>> grouped_images = ImageData.images_in_groups_of(craft.upload_data.images, 3);
-                                
-                                    if(craft.upload_data.images.Count == 0){
-                                        label("You need to add at least 1 picture");
-                                        label("Select some pictures -->", "bold.compact");
-                                    }
-                                    foreach(List<Image> grp in grouped_images){
-                                        section(() =>{
-                                            foreach(Image image in grp){
-                                                v_section(() =>{
-                                                    label(image.texture, 100, 72);
-                                                    button("remove", "image_selector.remove_item", () =>{
-                                                        craft.upload_data.toggle_image(image);
-                                                    });
+                                }
+
+                                GUILayout.Space(10f);
+                                label("Step 3: Set extra info", "h2.tight");
+                                label("(optional, but recommended!)", "compact");
+                                section(() =>{
+                                    button("edit Description", edit_description_dialog);
+                                    button("edit Action Group info", edit_action_group_dialog);                                
+                                });
+
+                                GUILayout.Space(10f);
+                                label("OR", "h2");
+                                button("Update one of your existing craft", show_update_kerbalx_craft_dialog);
+                            });
+
+                            v_section(upload_rhs_width, inner_width =>{
+
+                                section(() =>{
+                                    label("Select Pictures to add", "h2");
+                                    fspace();
+                                    dropdown("view", "upload_image_mode_menu", upload_image_mode, this, 70f, (resp) =>{
+                                        image_select_mode = resp;    
+                                    });    
+                                });
+
+                                if(grouped_images == null){
+                                    grouped_images = image_data.get_grouped_images(3);
+                                }
+                                scroll_pos["lhs"] = scroll(scroll_pos["lhs"], "side_panel.scroll.tags", inner_width, main_section_height - 40, scroll_width =>{
+                                    v_section(() =>{
+                                        if(image_select_mode == "thumb"){
+                                            for(int i = 0; i < grouped_images.Count; i++){
+                                                bool grp_visible = false;
+                                                List<Image> group = grouped_images[i];
+                                                section(() =>{
+                                                    if((100 * i) - scroll_pos["lhs"].y <= main_section_height){                                                   
+                                                        grp_visible = true;
+                                                    }
+                                                    foreach(Image image in group){
+                                                        if(grp_visible){
+                                                            if(image.loaded == false && image_data.images_being_loaded_count < 3){                                                        
+                                                                image_data.images_being_loaded_count += 1;
+                                                                image.loaded = true;
+                                                                StartCoroutine(image.load_image());
+                                                            }                                                        
+                                                        }
+
+                                                        button(image.texture, (craft.upload_data.images.Contains(image) ? "image_selector.item.selected" : "image_selector.item"), 125f, 90f, () =>{
+                                                            craft.upload_data.toggle_image(image);
+                                                        });                                        
+                                                    }
                                                 });
                                             }
-                                        });
-                                    }
-                                
-                                    GUILayout.Space(10f);
-                                    label("Step 3: Set extra info", "h2.tight");
-                                    label("(optional, but recommended!)", "compact");
-                                    section(() =>{
-                                        button("edit Description", edit_description_dialog);
-                                        button("edit Action Group info", edit_action_group_dialog);                                
-                                    });
-                                });
-                            
-                                v_section(upload_rhs_width, inner_width =>{
-                                
-                                    section(() =>{
-                                        label("Select Pictures to add", "h2");
-                                        fspace();
-                                        dropdown("view", "upload_image_mode_menu", upload_image_mode, this, 70f, (resp) =>{
-                                            image_select_mode = resp;    
-                                        });    
-                                    });
-                                
-                                    if(grouped_images == null){
-                                        grouped_images = image_data.get_grouped_images(3);
-                                    }
-                                    scroll_pos["lhs"] = scroll(scroll_pos["lhs"], "side_panel.scroll.tags", inner_width, main_section_height - 40, scroll_width =>{
-                                        v_section(() =>{
-                                            if(image_select_mode == "thumb"){
-                                                for(int i = 0; i < grouped_images.Count; i++){
-                                                    bool grp_visible = false;
-                                                    List<Image> group = grouped_images[i];
-                                                    section(() =>{
-                                                        if((100 * i) - scroll_pos["lhs"].y <= main_section_height){                                                   
-                                                            grp_visible = true;
-                                                        }
-                                                        foreach(Image image in group){
-                                                            if(grp_visible){
-                                                                if(image.loaded == false && image_data.images_being_loaded_count < 3){                                                        
-                                                                    image_data.images_being_loaded_count += 1;
-                                                                    image.loaded = true;
-                                                                    StartCoroutine(image.load_image());
-                                                                }                                                        
-                                                            }
-                                                        
-                                                            button(image.texture, (craft.upload_data.images.Contains(image) ? "image_selector.item.selected" : "image_selector.item"), 125f, 90f, () =>{
-                                                                craft.upload_data.toggle_image(image);
-                                                            });                                        
-                                                        }
-                                                    });
-                                                }
-                                            } else if(image_select_mode == "list"){
-                                                foreach(Image image in image_data.images){
-                                                    button(image.file.Name, (craft.upload_data.images.Contains(image) ? "image_selector.item.selected" : "image_selector.item"), () =>{
-                                                        craft.upload_data.toggle_image(image);
-                                                    });
-                                                }
+                                        } else if(image_select_mode == "list"){
+                                            foreach(Image image in image_data.images){
+                                                button(image.file.Name, (craft.upload_data.images.Contains(image) ? "image_selector.item.selected" : "image_selector.item"), () =>{
+                                                    craft.upload_data.toggle_image(image);
+                                                });
                                             }
-                                            //TODO add in 'preview' mode (single image at a time, large).
-                                        });
-                                    
+                                        }
+                                        //TODO add in 'preview' mode (single image at a time, large).
                                     });
-                                
+
                                 });
+
                             });
-                        }
-                    });                
-                });
-            }
+                        });
+                    }
+                });                
+            });
         }
 
         public bool show_transfer_indicator = false;
@@ -990,19 +970,13 @@ namespace CraftManager
                     });
                 });
 
-                fspace();
-                bool action_button_active = false;
-                action_button_active = CraftData.selected_craft != null && show_transfer_indicator == false;
-                if(action_button_active && show_update_interface && CraftData.selected_craft.update_to_id == 0){
-                    action_button_active = false;
-                }
-                    
-                gui_state(action_button_active, ()=>{
+                fspace();                   
+                gui_state(CraftData.selected_craft != null && show_transfer_indicator == false, ()=>{
                     load_menu_mode = "default";
 
                     if(CraftData.selected_craft != null){                        
                         if(upload_interface_ready){
-                            load_menu_mode = show_update_interface ? "update" : "upload";
+                            load_menu_mode = "upload";
                         }else if(CraftData.selected_craft.remote && CraftData.selected_craft.exists_locally){
                             load_menu_mode = "redownload";
                         }else if(CraftData.selected_craft.remote && !CraftData.selected_craft.exists_locally){
@@ -1117,8 +1091,6 @@ namespace CraftManager
                     }
                 } else if(load_type == "upload"){
                     craft.upload_data.post();
-                } else if(load_type == "update"){
-                    show_update_confirm_dialog();
                 }
             }
         }
@@ -1252,18 +1224,12 @@ namespace CraftManager
             }
         }
 
-        private bool show_update_interface = false;
 
         //Transitions the interface between regular browsing mode and KerbalX upload mode. shrinks/expands the left and main columns
         private void handle_upload_interface_transition(){
-            show_update_interface = false;
             if(CraftData.selected_craft == null){
                 show_upload_interface = false;
-            } else{
-                if(CraftData.selected_craft.on_kerbalx()){
-                    show_update_interface = true;
-                }
-            }
+            } 
 
             if(show_upload_interface){
                 show_headers = false;
@@ -1354,19 +1320,98 @@ namespace CraftManager
             });
         }
 
-        protected void show_update_confirm_dialog(){
+        protected void show_update_kerbalx_craft_dialog(){
             string resp = "";
             CraftManager.log("show_update_confirm_dialog called");
-            show_dialog("Confirm Update", "Are you sure you want to update this craft?", d =>{
-                label("This will update the KerbalX craft:");
-                label(KerbalXAPI.user_craft[CraftData.selected_craft.update_to_id]["url"]);
-                label("with this craft file:");
-                label(CraftData.selected_craft.path);
+            CraftData craft = CraftData.selected_craft;
+            if(craft.upload_data == null){ //create new instance of upload data if it's not already been set
+                craft.upload_data = new KerbalXUploadData(craft);
+            }
+            craft.update_to_id = craft.matching_remote_ids.Count == 0 ? 0 : craft.matching_remote_ids[0];
 
-                button("Cancel", "button.large", close_dialog);
-                button("Confirm Update", "button.large", ()=>{
-                    CraftData.selected_craft.upload_data.put();
-                    close_dialog();
+            string menu_label = "";
+            string kx_url = "";
+            bool show_craft_select_menu = craft.matching_remote_ids.Count != 1;
+            Rect d_offset = new Rect();
+
+            Dictionary<string, string> upload_select_data_matching = new Dictionary<string,  string>();
+            Dictionary<string, string> upload_select_data_all = new Dictionary<string, string>();
+
+            foreach(int id in craft.matching_remote_ids){
+                upload_select_data_matching.Add(id.ToString(), KerbalXAPI.user_craft[id]["url"].Replace(("/" + KerbalXAPI.logged_in_as()+ "/"), ""));
+            }
+            foreach(KeyValuePair<int, Dictionary<string, string>> c in KerbalXAPI.user_craft){
+                upload_select_data_all.Add(c.Key.ToString(), c.Value["url"].Replace(("/" + KerbalXAPI.logged_in_as()+ "/"), ""));
+            }
+
+            DropdownMenuData upload_select_menu = new DropdownMenuData();
+            DropdownMenuData upload_select_menu_2 = new DropdownMenuData();
+            if(craft.matching_remote_ids.Count == 0){
+                upload_select_menu.set_data(upload_select_data_all);
+            } else{
+                upload_select_menu.set_data(upload_select_data_matching);                 
+            }
+            upload_select_menu_2.set_data(upload_select_data_all);
+
+            show_dialog("Update KerbalX Craft", "", d =>{
+                d_offset.x = -d.window_pos.x; d_offset.y = -d.window_pos.y;
+
+                if(craft.update_to_id != 0){
+                    menu_label = KerbalXAPI.user_craft[craft.update_to_id]["url"].Replace(("/" + KerbalXAPI.logged_in_as() + "/"), "");
+                    kx_url = KerbalXAPI.url_to(KerbalXAPI.user_craft[craft.update_to_id]["url"]);
+                }else{
+                    menu_label = "Select a craft";
+                }
+
+                if(show_craft_select_menu){
+                    if(craft.matching_remote_ids.Count > 1){
+                        label("There are " + craft.matching_remote_ids.Count + " craft in your account with the same name as this craft");
+                    }
+                    label("Select which craft you want to update");
+                    dropdown(menu_label, StyleSheet.assets["caret-down"], "upload_select_menu", upload_select_menu, d, d_offset, d.window_pos.width*0.8f, (sel)=>{
+                        craft.update_to_id = int.Parse(sel);
+                    });
+                    if(upload_select_menu.items != upload_select_data_all){
+                        section(()=>{
+                            fspace();
+                            button("show all your craft in menu", "hyperlink", ()=>{                    
+                                upload_select_menu.set_data(upload_select_data_all);
+                                open_dropdown(upload_select_menu);
+                            });
+                        });
+                    }
+                }
+
+                if(!String.IsNullOrEmpty(kx_url)){                    
+                    label("This will update the KerbalX craft:");
+                    section((w)=>{
+                        button(kx_url, "hyperlink.update_url", 500f, 800f, ()=>{ Application.OpenURL(kx_url); });
+                        if(!show_craft_select_menu){
+                            dropdown("edit", StyleSheet.assets["caret-down"], "upload_select_menu_2", upload_select_menu_2, d, d_offset, d.window_pos.width*0.8f, (sel)=>{
+                                craft.update_to_id = int.Parse(sel);
+                            });
+                        }                        
+                    });
+                    section(()=>{
+                        fspace();
+                        label("make sure this is the craft you want to update!", "small.compact");
+                    });
+                }
+
+                GUILayout.Space(10f);
+                gui_state(craft.update_to_id > 0, ()=>{
+                    button("Confirm Update", "button.large", ()=>{
+                        craft.upload_data.put();
+                        close_dialog();
+                    });
+                });
+                GUILayout.Space(4f);
+                section(()=>{
+                    button("Upload as a new Craft", "button.large", ()=> {
+                        show_upload_interface = true;
+                        close_dialog();
+                    });
+                    button("Cancel", "button.large", close_dialog);                    
                 });
                 return resp;
             });

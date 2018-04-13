@@ -380,6 +380,10 @@ namespace CraftManager
             "Ship", "Aircraft", "Spaceplane", "Lander", "Satellite", "Station", "Base", "Probe", "Rover", "Lifter" 
         };
 
+        public delegate void DownloadCallback(ConfigNode craft_file);
+        public delegate void ActionCallback();
+        public delegate void RemoteCraftMatcher();
+
 
         internal static void login(){
             login(CraftManager.login_ui.username, CraftManager.login_ui.password);
@@ -450,10 +454,6 @@ namespace CraftManager
             CraftManager.main_ui.filter_craft();
         }
 
-        public delegate void DownloadCallback(ConfigNode craft_file);
-        public delegate void ActionCallback();
-
-
 
         private static void if_logged_in_do(ActionCallback callback){            
             if(KerbalXAPI.logged_in()){
@@ -496,7 +496,7 @@ namespace CraftManager
         }
 
 
-        public delegate void RemoteCraftMatcher();
+
         public static void find_matching_remote_craft(CraftData craft){
             RemoteCraftMatcher rcm = new RemoteCraftMatcher(() =>{
                 if(KerbalXAPI.user_craft != null){
@@ -506,6 +506,7 @@ namespace CraftManager
                             list.Add(pair.Key);
                         }
                     }
+                    list.Sort();
                     craft.matching_remote_ids = list;
                 }
 

@@ -192,6 +192,11 @@ namespace CraftManager
             define_style("hyperlink.bold.compact", "hyperlink.bold", s =>{
                 s.margin = new RectOffset(0,0,0,0);
             });
+            define_style("hyperlink.update_url", "hyperlink.bold", s =>{
+                s.fontSize = 20;
+                s.wordWrap = true;
+                s.margin = new RectOffset(0,0,0,0);
+            });
 
             define_style("transfer_progres.text", base_skin.label, s =>{
                 s.normal.textColor = new Color(0.4f, 0.5f, 0.9f, 1);
