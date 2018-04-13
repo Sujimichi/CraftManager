@@ -777,7 +777,7 @@ namespace CraftManager
             
         protected void draw_kerbalx_upload_section(float section_width){
             adjusted_section_width = section_width - 26; //account for close_section 'button' 
-            CraftData craft = CraftData.selected_craft;
+
 
             v_section(() =>{
                 GUILayout.Space(38f);
@@ -790,9 +790,7 @@ namespace CraftManager
                 });
             });
 
-            if(craft.upload_data == null){ //create new instance of upload data if it's not already been set
-                craft.upload_data = new KerbalXUploadData(craft);
-            }
+
 
 
             v_section(() =>{
@@ -800,6 +798,10 @@ namespace CraftManager
                 GUILayout.Space(2f);
                 v_section(adjusted_section_width, main_section_height, "craft.list_container", (w_outter) =>{
                     if(CraftData.selected_craft != null){
+                        CraftData craft = CraftData.selected_craft;                        
+                        if(craft.upload_data == null){ //create new instance of upload data if it's not already been set
+                            craft.upload_data = new KerbalXUploadData(craft);
+                        }
 
                         section(adjusted_section_width, w =>{
 
@@ -922,6 +924,8 @@ namespace CraftManager
 
                             });
                         });
+                    }else{
+                        show_upload_interface = false;
                     }
                 });                
             });
@@ -1089,7 +1093,7 @@ namespace CraftManager
                             load_craft(load_type, true);
                         });
                     }
-                } else if(load_type == "upload"){
+                } else if(load_type == "upload"){                    
                     craft.upload_data.post();
                 }
             }

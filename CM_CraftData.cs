@@ -225,8 +225,6 @@ namespace CraftManager
         }
 
 
-
-
         //Attribues which are always set from craft file/path, not loaded from cache
         public Texture2D thumbnail;
         public string create_time;
@@ -271,6 +269,8 @@ namespace CraftManager
         }
 
         public KerbalXUploadData upload_data;
+
+
 
         //Initialize a new CraftData object. Takes a path to a .craft file and either populates it from attributes from the craft file
         //or loads information from the CraftDataCache. Main logic moved to initialize() so it can be call again (reinitialized) on existing object      

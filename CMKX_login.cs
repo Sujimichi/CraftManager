@@ -199,7 +199,7 @@ namespace CraftManager
         internal string craft_name = "";
         internal string hash_tags = "";
         internal string craft_type = "Ship";
-        internal string craft_description = "";
+//        internal string craft_description = "";
         internal List<Image> images = new List<Image>();
         internal Dictionary<string, string> action_groups = new Dictionary<string, string>() { 
             { "1", "" }, { "2", "" }, { "3", "" }, { "4", "" }, { "5", "" }, { "6", "" }, { "7", "" }, { "8", "" }, { "9", "" }, { "0", "" }, 
@@ -207,9 +207,10 @@ namespace CraftManager
         };
 
         public KerbalXUploadData(CraftData for_craft){
+            CraftManager.log("setting up UploadData for " + for_craft.name);
             craft = for_craft;
             craft_name = craft.name;
-            craft_description = craft.description;
+//            craft_description = craft.description;
 
             List<string> craft_tags = new List<string>();
             foreach(string tag in craft.tag_names()){               
@@ -238,7 +239,6 @@ namespace CraftManager
                 errors.Clear();
                 craft_name.Trim();
                 hash_tags.Trim();
-                craft_description.Trim();
                 if(!System.IO.File.Exists(craft.path)){
                     errors.Add("unable to find craft file");
                     return false;
@@ -273,7 +273,7 @@ namespace CraftManager
                 
                 int pic_count = 0;
                 foreach(Image image in images){
-                    //                        craft_data.AddField("images[image_" + pic_count++ + "]", Convert.ToBase64String(image.read_as_jpg()));
+//                    craft_data.AddField("images[image_" + pic_count++ + "]", Convert.ToBase64String(image.read_as_jpg()));
                     craft_data.AddField("image_urls[url_" + pic_count++ + "]", "https://i.imgur.com/nSUkIe0.jpg"); //TODO switch this off again.
                 }
                 
