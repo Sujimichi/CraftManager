@@ -118,13 +118,12 @@ namespace CraftManager
         private void Start(){
             window_title = null;
 
-            window_pos = new Rect(Screen.width-270, 50, 250, 5);
+            window_pos = new Rect(Screen.width-220, 50, 200, 5);
             CraftManager.camera = this;
         }
 
         protected override void WindowContent(int win_id) { 
-            label("Position the craft how you want and");
-
+            label("Position the craft how you want and", "h2");
             section("Button", () =>{
                 label("Take Screenshot", "button.text.large");
                 GUILayout.Label(StyleSheet.assets["camera"], width(42f), height(42f));
@@ -133,10 +132,7 @@ namespace CraftManager
                     grab_screenshot();
                 }
             });
-
-//            button("grab screenshot", grab_screenshot);
-//            button(StyleSheet.assets["camera"], "button", 50, 20, grab_screenshot);
-            button("close", close);
+            button("cancel", close);
         }
 
         private void grab_screenshot(){

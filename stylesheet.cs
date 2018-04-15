@@ -233,7 +233,7 @@ namespace CraftManager
                 s.padding = new RectOffset(0,0,0,0);
             });
             define_style("button.text.large", "button.text", s =>{
-                s.fontSize = 30;
+                s.fontSize = 25;
                 s.fontStyle = FontStyle.Bold;
             });
 
