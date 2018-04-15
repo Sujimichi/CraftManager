@@ -786,20 +786,16 @@ namespace CraftManager
         protected void draw_kerbalx_upload_section(float section_width){
             adjusted_section_width = section_width - 26; //account for close_section 'button' 
 
-
             v_section(() =>{
                 GUILayout.Space(38f);
                 v_section(20, main_section_height, "close_section", (w) =>{
                     fspace();label(">>");fspace();
                 }, (evt) => {
                     if(evt.single_click){
-                        show_upload_interface = false;
+                        close_upload_interface();
                     }
                 });
             });
-
-
-
 
             v_section(() =>{
                 label("Upload Details", "h2");
@@ -808,7 +804,7 @@ namespace CraftManager
                     if(CraftData.selected_craft != null){
                         CraftData craft = CraftData.selected_craft;                        
                         if(craft.upload_data == null){ //create new instance of upload data if it's not already been set
-                            craft.upload_data = new KerbalXUploadData(craft);
+                            craft.upload_data = KerbalXUploadData.prepare_for(craft);
                         }
 
                         section(adjusted_section_width, w =>{
@@ -912,15 +908,15 @@ namespace CraftManager
                                                             }                                                        
                                                         }
 
-                                                        button(image.texture, (craft.upload_data.images.Contains(image) ? "image_selector.item.selected" : "image_selector.item"), 125f, 90f, () =>{
+                                                        button(image.texture, (craft.upload_data.has_image(image) ? "image_selector.item.selected" : "image_selector.item"), 125f, 90f, () =>{
                                                             craft.upload_data.toggle_image(image);
-                                                        });                                        
+                                                        });
                                                     }
                                                 });
                                             }
                                         } else if(image_select_mode == "list"){
                                             foreach(Image image in image_data.images){
-                                                button(image.file.Name, (craft.upload_data.images.Contains(image) ? "image_selector.item.selected" : "image_selector.item"), () =>{
+                                                button(image.file.Name, (craft.upload_data.has_image(image) ? "image_selector.item.selected" : "image_selector.item"), () =>{
                                                     craft.upload_data.toggle_image(image);
                                                 });
                                             }
@@ -933,7 +929,8 @@ namespace CraftManager
                             });
                         });
                     }else{
-//                        show_upload_interface = false;
+//                        close_upload_interface()
+                            
                     }
                 });                
             });
@@ -1005,7 +1002,7 @@ namespace CraftManager
                 GUILayout.Space(8);
                 if(upload_interface_ready){
                     button("Back", "button.close", 120f, ()=>{
-                        show_upload_interface = false;
+                        close_upload_interface();
                     });
                 }else{                    
                     button("Close", "button.close", 120f, this.hide);
@@ -1228,14 +1225,14 @@ namespace CraftManager
             }
         }
 
+        private void close_upload_interface(){
+            show_upload_interface = false;
+            auto_focus_craft = CraftData.selected_craft;
+            auto_focus_countdown = 10;
+        }
 
         //Transitions the interface between regular browsing mode and KerbalX upload mode. shrinks/expands the left and main columns
         private void handle_upload_interface_transition(){
-//            if(CraftData.selected_craft == null){
-//                CraftManager.log("no craft selected, closing upload interface");
-//                show_upload_interface = false;
-//            } 
-
             if(show_upload_interface){
                 show_headers = false;
                 if(col_widths_current[0] > 0){
@@ -1330,7 +1327,7 @@ namespace CraftManager
             CraftManager.log("show_update_confirm_dialog called");
             CraftData craft = CraftData.selected_craft;
             if(craft.upload_data == null){ //create new instance of upload data if it's not already been set
-                craft.upload_data = new KerbalXUploadData(craft);
+                craft.upload_data = KerbalXUploadData.prepare_for(craft);
             }
             craft.update_to_id = craft.matching_remote_ids.Count == 0 ? 0 : craft.matching_remote_ids[0];
 

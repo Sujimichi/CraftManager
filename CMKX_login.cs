@@ -199,18 +199,33 @@ namespace CraftManager
         internal string craft_name = "";
         internal string hash_tags = "";
         internal string craft_type = "Ship";
-//        internal string craft_description = "";
         internal List<Image> images = new List<Image>();
         internal Dictionary<string, string> action_groups = new Dictionary<string, string>() { 
             { "1", "" }, { "2", "" }, { "3", "" }, { "4", "" }, { "5", "" }, { "6", "" }, { "7", "" }, { "8", "" }, { "9", "" }, { "0", "" }, 
             { "stage", "" }, { "gears", "" }, { "lights", "" }, { "RCS", "" }, { "SAS", "" }, { "brakes", "" }, { "abort", "" } 
         };
 
+        //keeps hold of created instances of KerbalXUploadData so they can be reloaded 
+        internal static Dictionary<string, KerbalXUploadData> upload_data_store = new Dictionary<string, KerbalXUploadData>();
+
+        //returns a new instance of KerbalXUploadData for the given craft or returns an existing instance if one has already been created.
+        public static KerbalXUploadData prepare_for(CraftData for_craft){
+            KerbalXUploadData data;
+            if(upload_data_store.ContainsKey(for_craft.path)){
+                CraftManager.log("loading existing upload data for: " + for_craft.name);
+                data = upload_data_store[for_craft.path];
+            } else{
+                CraftManager.log("creating new upload data for: " + for_craft.name);
+                data = new KerbalXUploadData(for_craft);
+                upload_data_store.Add(for_craft.path, data);
+            }
+            return data;
+        }
+
         public KerbalXUploadData(CraftData for_craft){
             CraftManager.log("setting up UploadData for " + for_craft.name);
             craft = for_craft;
             craft_name = craft.name;
-//            craft_description = craft.description;
 
             List<string> craft_tags = new List<string>();
             foreach(string tag in craft.tag_names()){               
@@ -220,6 +235,12 @@ namespace CraftManager
         }
 
         public List<string> errors = new List<string>();
+
+
+        //returns true/false if images contains the given image, but unlike images.Contains(image), this checks by image path rather than instance of image object
+        public bool has_image(Image image){
+            return images.FindAll(c => c.path == image.path).Count > 0;
+        }
 
         public void toggle_image(Image image){
             if(images.FindAll(c => c.path == image.path).Count > 0){
