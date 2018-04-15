@@ -304,7 +304,7 @@ namespace CraftManager
                         CraftManager.log("craft uploaded OK");
                         KerbalXAPI.fetch_existing_craft(()=>{   //refresh remote craft info 
                             craft.matching_remote_ids = null;
-                            CraftManager.main_ui.show_upload_interface = false;
+                            CraftManager.main_ui.close_upload_interface();
                         });
                     } else{                           
                         CraftManager.log("craft upload failed");
@@ -335,7 +335,7 @@ namespace CraftManager
                     CraftManager.log("craft updated OK");
                     KerbalXAPI.fetch_existing_craft(()=>{                        
 //                        craft.matching_remote_ids = null;
-                        CraftManager.main_ui.show_upload_interface = false;
+                        CraftManager.main_ui.close_upload_interface();
                     });
                 }else{
                     CraftManager.log("craft update failed");

@@ -50,6 +50,7 @@ namespace CraftManager
         //Interface Instances
         internal static CMBrowser main_ui = null;
         internal static CMKX_login login_ui = null;
+        internal static GrabImage camera = null;
 
         //Toolbar Buttons
         internal static ApplicationLauncherButton main_ui_toolbar_button   = null;

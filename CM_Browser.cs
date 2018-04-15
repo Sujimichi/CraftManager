@@ -712,7 +712,7 @@ namespace CraftManager
                                                     button("Update craft on KerbalX", show_update_kerbalx_craft_dialog);
                                                 }else{
                                                     button("Share on KerbalX", ()=>{
-                                                        show_upload_interface = !show_upload_interface;                                                        
+                                                        show_upload_interface = true;
                                                     });
                                                 }
                                             }
@@ -881,7 +881,11 @@ namespace CraftManager
                                 section(() =>{
                                     label("Select Pictures to add", "h2");
                                     fspace();
-                                    dropdown("view", "upload_image_mode_menu", upload_image_mode, this, 70f, (resp) =>{
+                                    button("take new picture", ()=>{
+                                        hide();
+                                        gameObject.AddOrGetComponent<GrabImage>();
+                                    });
+                                    dropdown("view", StyleSheet.assets["caret-down"], "upload_image_mode_menu", upload_image_mode, this, 70f, (resp) =>{
                                         image_select_mode = resp;    
                                     });    
                                 });
@@ -1225,7 +1229,7 @@ namespace CraftManager
             }
         }
 
-        private void close_upload_interface(){
+        public void close_upload_interface(){
             show_upload_interface = false;
             auto_focus_craft = CraftData.selected_craft;
             auto_focus_countdown = 10;

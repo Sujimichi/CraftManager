@@ -32,9 +32,8 @@ namespace CraftManager
             { "tags",                   GameDatabase.Instance.GetTexture(Paths.joined("CraftManager", "Assets", "tags"), false) },
             { "logo_small",             GameDatabase.Instance.GetTexture(Paths.joined("CraftManager", "Assets", "KXlogo_small"), false) },     //166x30 
             { "logo_large",             GameDatabase.Instance.GetTexture(Paths.joined("CraftManager", "Assets", "KXlogo"), false) },           //664x120 
-            { "image_placeholder",      GameDatabase.Instance.GetTexture(Paths.joined("CraftManager", "Assets", "image_placeholder"), false) }
-
-
+            { "image_placeholder",      GameDatabase.Instance.GetTexture(Paths.joined("CraftManager", "Assets", "image_placeholder"), false) },
+            { "camera",                 GameDatabase.Instance.GetTexture(Paths.joined("CraftManager", "Assets", "camera"), false) }
         };
 
         public GUISkin skin;
@@ -232,6 +231,10 @@ namespace CraftManager
                 s.margin.top = 0;
                 s.margin.bottom = 0;
                 s.padding = new RectOffset(0,0,0,0);
+            });
+            define_style("button.text.large", "button.text", s =>{
+                s.fontSize = 30;
+                s.fontStyle = FontStyle.Bold;
             });
 
             define_style("button.delete", base_skin.button, s =>{

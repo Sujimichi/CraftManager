@@ -113,6 +113,66 @@ namespace CraftManager
 
     }
 
+    public class GrabImage : CMUI
+    {
+        private void Start(){
+            window_title = null;
+
+            window_pos = new Rect(Screen.width-270, 50, 250, 5);
+            CraftManager.camera = this;
+        }
+
+        protected override void WindowContent(int win_id) { 
+            label("Position the craft how you want and");
+
+            section("Button", () =>{
+                label("Take Screenshot", "button.text.large");
+                GUILayout.Label(StyleSheet.assets["camera"], width(42f), height(42f));
+            }, evt =>{
+                if(evt.single_click){
+                    grab_screenshot();
+                }
+            });
+
+//            button("grab screenshot", grab_screenshot);
+//            button(StyleSheet.assets["camera"], "button", 50, 20, grab_screenshot);
+            button("close", close);
+        }
+
+        private void grab_screenshot(){
+            hide();
+            string filename = "screenshot - " + string.Format("{0:yyyy-MM-dd_hh-mm-ss}", DateTime.Now) + ".png";
+            CraftManager.log("grabbing screenshot: " + filename);
+
+            Application.CaptureScreenshot(filename);
+//            ScreenCapture.CaptureScreenshot(filename);
+            StartCoroutine(shutter(filename));        //shutter re-opens the windows. well, it's kinda the exact opposite of what a shutter does, but yeah....whatever
+        }
+
+        public IEnumerator shutter(string filename){    
+            yield return true;                           //doesn't seem to matter what this returns
+            Thread.Sleep(100);                           //delay before re-opening windows
+            //Application.CaptureScreenshot seems insistant on plonking the picture in KSP_Data, so this next bit relocates the pic to join it's friends in the screenshot folder
+            string origin_path = Paths.joined(KSPUtil.ApplicationRootPath, "KSP_Data", filename);    //location where screenshot is created (as a png)
+            string png_path = Paths.joined(CraftManager.screenshot_dir, filename);                        //location where it will be moved to
+            if(File.Exists((origin_path))){
+                CraftManager.log("moving file: " + origin_path + " to: " + png_path);
+                File.Move(origin_path, png_path);
+            } else{                                                                                       //TODO find less hacky way of solving which Data folder to look in
+                origin_path = Paths.joined(KSPUtil.ApplicationRootPath, "KSP_x64_Data", filename);        //location where screenshot is created (as a png)
+                if(File.Exists((origin_path))){
+                    CraftManager.log("moving file: " + origin_path + " to: " + png_path);
+                    File.Move(origin_path, png_path);
+                }
+            }
+            close();
+        }
+
+        public void close(){
+            CraftManager.main_ui.show();
+            GameObject.Destroy(CraftManager.camera);            
+        }
+    }
 
 }
 
