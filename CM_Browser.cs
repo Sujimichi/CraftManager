@@ -81,6 +81,7 @@ namespace CraftManager
         private bool tag_prev_state = false;
         private bool tag_state = false;
         private bool ctrl_key_down = false;
+        private bool archived_tag = false;
         private float tag_content_height = 0;
         private float last_tag_content_height = 0;
         private float tag_margin_offset = 0;
@@ -89,12 +90,28 @@ namespace CraftManager
         private float item_last_height = 0;
         private Rect craft_scroll_section = new Rect();
 
+        public bool show_transfer_indicator = false;
+        public bool transfer_is_upload = true;
+
+        protected int prog_pos = 0;
+        protected long prog_timer = 0;
+        protected int prog_interval = 200;
+
+
         //KerbalX specific stuff
         public bool kerbalx_mode = false;  //displaying remote craft from kerbalx
         public bool show_upload_interface = false;   //when set to true starts the transition to the upload interface. 
         protected bool upload_interface_ready = false;  //The transition is compelte when upload interface ready is set to true
         protected bool show_headers = true;             //'headers' of the sections which are collapsed by the transition are hidden as they don't play well with being srunk
         public ImageData image_data;
+
+        protected DropdownMenuData craft_styles_menu = new DropdownMenuData(KerbalX.craft_styles);
+        protected List<List<Image>> grouped_images = null;
+        protected float upload_rhs_width = 420;
+        protected string image_select_mode = "thumb";
+        float adjusted_section_width = 0;
+
+
 
 
         //collection of Vector2 objects to track scroll positions
@@ -183,6 +200,11 @@ namespace CraftManager
             show();
         }
 
+        protected override void before_show(){
+            
+        }
+
+        //TODO add before_show() filter to DryUI try putting this lot in it
         protected override void on_show(){            
             stock_craft_loaded = false;
             show_transfer_indicator = false;
@@ -238,9 +260,6 @@ namespace CraftManager
         protected override void WindowContent(int win_id){
             key_event_handler();
             v_section(()=>{       
-//                gui_state(!upload_interface_ready, ()=>{
-//                    draw_top_section(window_width);     
-//                });
                 if(upload_interface_ready){
                     v_section(()=>{
                         GUILayout.Space(20f);
@@ -329,7 +348,6 @@ namespace CraftManager
             });
         }
 
-
         //The Main craft list
         protected void draw_main_section(float section_width){
             v_section(section_width, main_section_height, false, (inner_width)=>{
@@ -380,7 +398,6 @@ namespace CraftManager
                 }
             });            
         }
-
 
         //Individual Craft Content for main list.
         protected void draw_craft_list_item(CraftData craft, float section_width){
@@ -468,9 +485,7 @@ namespace CraftManager
             });
         }
 
-
         //Left Hand Section: Tags
-        bool archived_tag = false;
         protected void draw_left_hand_section(float section_width){
             tag_scroll_height = main_section_height-40f;    
             if(kerbalx_mode){
@@ -766,15 +781,8 @@ namespace CraftManager
                 });
             });
         }
-
-
-
-        protected DropdownMenuData craft_styles_menu = new DropdownMenuData(KerbalX.craft_styles);
-        protected List<List<Image>> grouped_images = null;
-        protected float upload_rhs_width = 420;
-        protected string image_select_mode = "thumb";
-        float adjusted_section_width = 0;
             
+        //KerbalX upload section (replaces main and rhs sections)
         protected void draw_kerbalx_upload_section(float section_width){
             adjusted_section_width = section_width - 26; //account for close_section 'button' 
 
@@ -925,19 +933,11 @@ namespace CraftManager
                             });
                         });
                     }else{
-                        show_upload_interface = false;
+//                        show_upload_interface = false;
                     }
                 });                
             });
         }
-
-        public bool show_transfer_indicator = false;
-        public bool transfer_is_upload = true;
-
-        protected int prog_pos = 0;
-        protected long prog_timer = 0;
-        protected int prog_interval = 200;
-
 
         //Botton Section: Load buttons
         protected void draw_bottom_section(float section_width){
@@ -1231,9 +1231,10 @@ namespace CraftManager
 
         //Transitions the interface between regular browsing mode and KerbalX upload mode. shrinks/expands the left and main columns
         private void handle_upload_interface_transition(){
-            if(CraftData.selected_craft == null){
-                show_upload_interface = false;
-            } 
+//            if(CraftData.selected_craft == null){
+//                CraftManager.log("no craft selected, closing upload interface");
+//                show_upload_interface = false;
+//            } 
 
             if(show_upload_interface){
                 show_headers = false;
