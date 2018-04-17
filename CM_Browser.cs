@@ -356,6 +356,8 @@ namespace CraftManager
             });
         }
 
+        private bool craft_list_overflow = false;
+
         //The Main craft list
         protected void draw_main_section(float section_width){
             v_section(section_width, main_section_height, false, (inner_width)=>{
@@ -380,8 +382,11 @@ namespace CraftManager
                 }
 
                 //Main craft list scrolling section
-                scroll_pos["main"] = scroll(scroll_pos["main"], "craft.list_container", inner_width, main_section_height, craft_list_width => {
+                scroll_pos["main"] = scroll(scroll_pos["main"], "craft.list_container", inner_width, main_section_height, craft_list_width => {                    
                     item_last_height = 0;
+                    if(!craft_list_overflow){
+                        craft_list_width += 20;
+                    }
                     foreach(CraftData craft in CraftData.filtered){
                         draw_craft_list_item(craft, craft_list_width); //render each craft
 
@@ -394,6 +399,10 @@ namespace CraftManager
                         }
                     }
                 });
+
+                if(Event.current.type == EventType.Repaint){
+                    craft_list_overflow = item_last_height+10 >= main_section_height;
+                }
 
                 //an attempt at enabling the user to drag the craft list up and down. it works, but can be a bit laggy (but then so is the stock list when dragged)
                 //and I can't make it so the user can drag it fast and let go and have it keep sliding. 
