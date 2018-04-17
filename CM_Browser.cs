@@ -261,18 +261,11 @@ namespace CraftManager
             key_event_handler();
             v_section(()=>{       
                 if(upload_interface_ready){
-                    v_section(()=>{
-                        GUILayout.Space(20f);
-                        section(window_width, 60f, ()=>{
-                            fspace();
-                            label("KerbalX Upload", "upload_header");
-                            fspace();
-                        });
-                    });
+                    draw_kerbalx_header(window_width);
                 }else{
-                    draw_top_section(window_width);     
+                    draw_top_section(window_width);
                 }
-                   
+
                 GUILayout.Space(10);
                 scroll_relative_pos = GUILayoutUtility.GetLastRect();
                 section(window_width, inner_width =>{
@@ -298,6 +291,18 @@ namespace CraftManager
 
         //**GUI Sections**//
 
+        //GUI Top section when in upload mode
+        protected void draw_kerbalx_header(float section_width){
+            v_section(()=>{
+                GUILayout.Space(20f);
+                section(section_width, 60f, ()=>{
+                    fspace();
+                    label("KerbalX Upload", "upload_header");
+                    fspace();
+                });
+            });
+        }
+
         //GUI Top Section
         protected void draw_top_section(float section_width){
             section((w) =>{
@@ -309,7 +314,33 @@ namespace CraftManager
                     button("All", "craft_type_Sel", 30f, type_select_all);
                 });
                 fspace();
+                if(!kerbalx_mode){
+                    section("stock_craft_toggle", ()=>{                        
+                        bool prev_exstcr = exclude_stock_craft;
+                        exclude_stock_craft = !GUILayout.Toggle(!exclude_stock_craft, "");
+                        button("include Stock Craft", "stock_craft_toggle_button", ()=>{exclude_stock_craft = !exclude_stock_craft;});
+                        if(exclude_stock_craft != prev_exstcr){
+                            filter_craft();
+                            CraftManager.settings.set("exclude_stock_craft", exclude_stock_craft.ToString());
+                        }
+                    });
+                }
+                button(StyleSheet.assets["cog"], "button", 30f, 30f, ()=>{SettingsUI.open(gameObject);});
 
+            });
+            section(() =>{
+                section(() =>{
+                    label("Search Craft:", "h2");
+                    GUI.SetNextControlName("main_search_field");
+                    search_string = GUILayout.TextField(search_string, width(section_width/2));
+                    if(last_search != search_string){
+                        filter_craft();
+                    }
+                    last_search = search_string;
+                    button("clear", 40f, clear_search);
+                    
+                });
+                fspace();
                 if(KerbalX.enabled){
                     button("KerbalX Craft", "button" + (kerbalx_mode ? ".down" : ""), KerbalX.load_remote_craft);
                 }
@@ -322,29 +353,6 @@ namespace CraftManager
                     save_menu_options.selected_item = active_save_dir;
                     dropdown("Save: " + (active_save_dir==all_saves_ref ? "All Saves" : active_save_dir), StyleSheet.assets["caret-down"], "save_menu", save_menu_options, this, save_menu_width, change_save);
                 }
-            });
-            section(section_width, 40f, () =>{
-                label("Search Craft:", "h2");
-                GUI.SetNextControlName("main_search_field");
-                search_string = GUILayout.TextField(search_string, width(section_width/2));
-                if(last_search != search_string){
-                    filter_craft();
-                }
-                last_search = search_string;
-                button("clear", 40f, clear_search);
-                    
-                fspace();
-                section(()=>{
-                    if(!kerbalx_mode){
-                        bool prev_exstcr = exclude_stock_craft;
-                        exclude_stock_craft = !GUILayout.Toggle(!exclude_stock_craft, "");
-                        button("include Stock Craft", "bold", ()=>{exclude_stock_craft = !exclude_stock_craft;});
-                        if(exclude_stock_craft != prev_exstcr){
-                            filter_craft();
-                            CraftManager.settings.set("exclude_stock_craft", exclude_stock_craft.ToString());
-                        }
-                    }
-                });
             });
         }
 

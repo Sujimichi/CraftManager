@@ -117,7 +117,6 @@ namespace CraftManager
     {
         private void Start(){
             window_title = null;
-
             window_pos = new Rect(Screen.width-220, 50, 200, 5);
             CraftManager.camera = this;
         }

@@ -33,7 +33,8 @@ namespace CraftManager
             { "logo_small",             GameDatabase.Instance.GetTexture(Paths.joined("CraftManager", "Assets", "KXlogo_small"), false) },     //166x30 
             { "logo_large",             GameDatabase.Instance.GetTexture(Paths.joined("CraftManager", "Assets", "KXlogo"), false) },           //664x120 
             { "image_placeholder",      GameDatabase.Instance.GetTexture(Paths.joined("CraftManager", "Assets", "image_placeholder"), false) },
-            { "camera",                 GameDatabase.Instance.GetTexture(Paths.joined("CraftManager", "Assets", "camera"), false) }
+            { "camera",                 GameDatabase.Instance.GetTexture(Paths.joined("CraftManager", "Assets", "camera"), false) },
+            { "cog",                    GameDatabase.Instance.GetTexture(Paths.joined("CraftManager", "Assets", "cog"), false) }
         };
 
         public GUISkin skin;
@@ -539,8 +540,17 @@ namespace CraftManager
                 s.padding = new RectOffset(0,0,0,0);
             });
 
+            define_style("top_controls.section", new GUIStyle(), s =>{
+                s.margin = new RectOffset(0,0,0,0);
+                s.padding = new RectOffset(0,0,0,0);
+            });
 
-
+            define_style("stock_craft_toggle", new GUIStyle(), s =>{
+                s.padding.top += 6;
+            });
+            define_style("stock_craft_toggle_button", "bold", s =>{
+                s.padding.top += 4;
+            });
 
             //set the custom styles onto the base_skin;
             skin = Instantiate(base_skin);
