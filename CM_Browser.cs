@@ -294,7 +294,7 @@ namespace CraftManager
         //GUI Top section when in upload mode
         protected void draw_kerbalx_header(float section_width){
             v_section(()=>{
-                GUILayout.Space(20f);
+                GUILayout.Space(15f);
                 section(section_width, 60f, ()=>{
                     fspace();
                     label("KerbalX Upload", "upload_header");
@@ -362,7 +362,7 @@ namespace CraftManager
 
                 //sort menu
                 if(show_headers){
-                    section(inner_width, section_header_height, (w)=>{
+                    section(inner_width, section_header_height, ()=>{
                         label("Showing " + CraftData.filtered.Count + " out of " + CraftData.all_craft.Count + " Craft", "h2");
                         fspace();
                         if(sort_menu_width == 0){ //calculate the initial sort menu button width. should only happen on the first pass
@@ -370,7 +370,7 @@ namespace CraftManager
                         }
                         //render dropdown menu of sort options
                         sort_options.selected_item = sort_opt;
-                        dropdown("Sort: " + sort_options.items[sort_opt], "sort_menu", sort_options, this, sort_menu_width, "button.tight", select_sort_option);
+                        dropdown("Sort: " + sort_options.items[sort_opt], StyleSheet.assets["caret-down"], "sort_menu", sort_options, this, sort_menu_width, select_sort_option);
                         button(StyleSheet.assets[reverse_sort ? "arrow-up" : "arrow-down"], "button.tight.right_margin", 28f, 28f, toggle_reverse_sort); 
                     });
                 }else{
@@ -517,7 +517,7 @@ namespace CraftManager
                             label(StyleSheet.assets["tags"], 28f, 28f);
                             fspace();
                             tag_sort_options.selected_item = tag_sort_by;
-                            dropdown("Sort", "tag_sort_menu", tag_sort_options, this, 50f, change_tag_sort);
+                            dropdown("Sort", StyleSheet.assets["caret-down"], "tag_sort_menu", tag_sort_options, this, 50f, change_tag_sort);
                         }
                     });
                 }else{
@@ -608,9 +608,8 @@ namespace CraftManager
                         if(show_headers){
                             section(tag_list_width, 40f, ()=>{
                                 tag_filter_modes.selected_item = tag_filter_mode;
-                                dropdown("Mode", "tag_filter_mode_menu", tag_filter_modes, this, 50f, change_tag_filter_mode);
+                                dropdown("Mode", StyleSheet.assets["caret-down"], "tag_filter_mode_menu", tag_filter_modes, this, 50f, change_tag_filter_mode);
                                 fspace();
-                                //                        edit_tags = GUILayout.Toggle(edit_tags, "edit", "button", width(40f) );
                                 button("+", 30f, create_tag_dialog);
                             });
                         }
@@ -1613,7 +1612,6 @@ namespace CraftManager
 
             DropdownMenuData move_copy_save_menu = new DropdownMenuData(new Dictionary<string, string>(save_menu_options.items));
             List<string> keys = new List<string>(move_copy_save_menu.items.Keys);
-//            string key = keys.Find(k => (k.Equals(craft.save_dir) || k.Equals("Current Save (" + craft.save_dir + ")")));
             List<string> rem_keys = keys.FindAll(k => k.Contains(craft.save_dir) );
             foreach(string key in rem_keys){                
                 move_copy_save_menu.items.Remove(key);
@@ -1621,12 +1619,11 @@ namespace CraftManager
             move_copy_save_menu.items.Remove(all_saves_ref);
             Rect d_offset = new Rect();
 
-            show_dialog("Move/Copy Craft", "Move or Copy this craft to another save:", d =>{
+            show_dialog("Move/Copy Craft", "", d =>{
                 section(500f, (inner_width)=>{
-                    GUILayout.Space(inner_width*0.3f);
-
+                    label("Move or Copy this craft to another save:", "h2");
                     d_offset.x = -d.window_pos.x; d_offset.y = -d.window_pos.y;
-                    dropdown("Select Save", "copy_transfer_save_menu", move_copy_save_menu, d, d_offset, inner_width*0.4f, "button.large", "menu.background", "menu.item", (selected_save_name) => {
+                    dropdown("Select Save", StyleSheet.assets["caret-down"], "copy_transfer_save_menu", move_copy_save_menu, d, d_offset, inner_width/2, "button.large", "menu.background", "menu.item", (selected_save_name) => {
                         resp = "";
                         selected_save = selected_save_name;
                     });           

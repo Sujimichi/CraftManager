@@ -530,11 +530,7 @@ namespace CraftManager
                 s.normal.background = textures["blue_background"];
             });
 
-            define_style("upload_section", base_skin.box, s =>{
-//                s.border = new RectOffset(2,2,2,2);
-//                s.normal.background = make_texture(2,2, Color.green);
-            });
-          
+
             define_style("close_section", base_skin.button, s =>{
                 s.margin = new RectOffset(0,0,0,0);
                 s.padding = new RectOffset(0,0,0,0);
