@@ -286,7 +286,6 @@ namespace CraftManager
             
         //Initialize a new CraftData object from remote (KerbalX). Remote craft are not cached.
         public CraftData(int id, string kx_url, string craft_name, string type, string version, int p_count, int stages, int crew, float c_cost, float c_mass, string created_at, string updated_at, string desc){    
-            CraftManager.log("Description: " + desc);
             remote = true; stock_craft = false;
             name = craft_name; alt_name = craft_name; description = desc;
             remote_id = id; url = kx_url; construction_type = type; ksp_version = version;
