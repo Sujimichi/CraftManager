@@ -396,6 +396,13 @@ namespace CraftManager
                     foreach(CraftData craft in CraftData.filtered){
                         draw_craft_list_item(craft, craft_list_width); //render each craft
 
+                        //partially working approach to only drawing the craft which are in focus, it works, but mousewheel scrolling results in flicker and the You are pushing more GUIClips than you are popping error
+//                        if(calculate_heights || (craft.list_position + craft.list_height > scroll_pos["main"].y && craft.list_position < scroll_pos["main"].y + main_section_height)){
+////                            CraftManager.log(craft.name + " is visible");
+//                        }else{
+//                            draw_craft_list_placeholder(craft_list_width, craft.list_height-5);
+//                        }
+
                         //this is used to get the top offset position of each item in the craft list and that is stored on the CraftData object
                         //facilitates maintaining focus on list items when using the up/down arrow keys to scroll.
                         if(calculate_heights && Event.current.type == EventType.Repaint){
@@ -417,6 +424,10 @@ namespace CraftManager
 
 
         //Individual Craft Content for main list.
+        protected void draw_craft_list_placeholder(float section_width, float section_height){
+            section(section_width-(30f), section_height, "craft.list_item", (inner_width)=>{ //subtractions from width to account for margins and scrollbar
+            });
+        }
         protected void draw_craft_list_item(CraftData craft, float section_width){
             section(section_width-(30f), "craft.list_item" + (craft.selected ? ".selected" : ""), (inner_width)=>{ //subtractions from width to account for margins and scrollbar
                 section(inner_width-80f,()=>{
@@ -1034,7 +1045,6 @@ namespace CraftManager
 
 
 
-
         //**Helpers**//
 
         //Collect currently active filters into a Dictionary<string, object> which is then be passed to 
@@ -1171,8 +1181,7 @@ namespace CraftManager
         }
 
         //load/reload craft from the active_save_dir and apply any active filters
-        public void refresh(){
-            CraftManager.log("Refreshing data");
+        public void refresh(){            
             CraftData.load_craft_from_files(active_save_dir==all_saves_ref ? null : active_save_dir);
             filter_craft();
         }
