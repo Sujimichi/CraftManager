@@ -357,6 +357,8 @@ namespace CraftManager
         }
 
         private bool craft_list_overflow = false;
+        private bool craft_list_drag_active = false;
+        private Vector2 craft_list_drag_force = new Vector2();
 
         //The Main craft list
         protected void draw_main_section(float section_width){
@@ -408,17 +410,11 @@ namespace CraftManager
                     craft_list_overflow = item_last_height+10 >= main_section_height;
                 }
 
-                //an attempt at enabling the user to drag the craft list up and down. it works, but can be a bit laggy (but then so is the stock list when dragged)
-                //and I can't make it so the user can drag it fast and let go and have it keep sliding. 
-                craft_scroll_section = GUILayoutUtility.GetLastRect();
-                if(craft_scroll_section.Contains(Event.current.mousePosition)){
-                    if(Event.current.button == 0 && Event.current.type == EventType.MouseDrag){
-                        scroll_pos["main"] -= Event.current.delta;
-                        Event.current.Use();
-                    }
-                }
+                drag_scroll(GUILayoutUtility.GetLastRect());
+  
             });            
         }
+
 
         //Individual Craft Content for main list.
         protected void draw_craft_list_item(CraftData craft, float section_width){
@@ -1148,6 +1144,30 @@ namespace CraftManager
                     });
                 }
             }
+        }
+
+        //an attempt at enabling the user to drag the craft list up and down. it works, but can be a bit laggy (but then so is the stock list when dragged)
+        //and I can't make it so the user can drag it fast and let go and have it keep sliding. 
+        private void drag_scroll(Rect craft_scroll_section){
+            if(Input.GetMouseButtonUp(0)){
+                craft_list_drag_active = false;
+            }else if(craft_scroll_section.Contains(Event.current.mousePosition) && Event.current.button == 0 && Event.current.type == EventType.MouseDrag){
+                craft_list_drag_active = true;
+            }
+
+            if(craft_list_drag_active){
+                craft_list_drag_force = Event.current.delta;
+                scroll_pos["main"] -= craft_list_drag_force;
+
+                //                    Event.current.Use();
+            }else if(craft_list_drag_force.y >= 1 || craft_list_drag_force.y <= -1){
+                scroll_pos["main"] -= craft_list_drag_force;
+                if(craft_list_drag_force.y > 0){
+                    craft_list_drag_force.y -= 0.2f;
+                }else if(craft_list_drag_force.y < 0){
+                    craft_list_drag_force.y += 0.2f;
+                }
+            }            
         }
 
         //load/reload craft from the active_save_dir and apply any active filters
