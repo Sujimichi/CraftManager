@@ -382,6 +382,10 @@ namespace CraftManager
                 }
 
                 //Main craft list scrolling section
+                bool calculate_heights = false;
+                if(CraftData.filtered.FindAll(c => c.list_height == 0).Count > 0){
+                    calculate_heights = true;
+                }
                 scroll_pos["main"] = scroll(scroll_pos["main"], "craft.list_container", inner_width, main_section_height, craft_list_width => {                    
                     item_last_height = 0;
                     if(!craft_list_overflow){
@@ -392,7 +396,7 @@ namespace CraftManager
 
                         //this is used to get the top offset position of each item in the craft list and that is stored on the CraftData object
                         //facilitates maintaining focus on list items when using the up/down arrow keys to scroll.
-                        if(Event.current.type == EventType.Repaint){
+                        if(calculate_heights && Event.current.type == EventType.Repaint){
                             craft.list_position = item_last_height;
                             craft.list_height = GUILayoutUtility.GetLastRect().height + 5; //+5 for margin
                             item_last_height += craft.list_height;
@@ -400,7 +404,7 @@ namespace CraftManager
                     }
                 });
 
-                if(Event.current.type == EventType.Repaint){
+                if(calculate_heights && Event.current.type == EventType.Repaint){
                     craft_list_overflow = item_last_height+10 >= main_section_height;
                 }
 

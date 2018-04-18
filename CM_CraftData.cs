@@ -65,7 +65,7 @@ namespace CraftManager
             if(CraftData.cache != null){
                 CraftData.cache.tag_craft_count_store.Clear();
             }
-            filtered = all_craft;    
+            filtered = all_craft;
 
             if((bool)criteria["exclude_stock"]){
                 filtered = filtered.FindAll(craft => !craft.stock_craft);
@@ -148,6 +148,11 @@ namespace CraftManager
                 if(criteria.ContainsKey("reverse_sort") && (bool)criteria["reverse_sort"]){
                     filtered.Reverse();
                 }
+            }
+
+            //reset the list_height values on filtered craft so they are recalculated when the list is first drawn
+            for(int i = 0; i < filtered.Count; i++){
+                filtered[i].list_height = 0;
             }
         }
             
