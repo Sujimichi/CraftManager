@@ -188,6 +188,36 @@ namespace CraftManager
             button("OK", close_dialog);
         }
 
+        //Shows an upgrade available message after login if the server provides a upload available message string
+        public void show_upgrade_available_message(string message) {
+            if (!String.IsNullOrEmpty(message)) {
+                
+                DryDialog dialog = show_dialog((d) => {
+                    v_section(w => {
+                        label("A new version of CraftManager is available");
+                        label(message);
+                        section("dialog.section", ()=>{
+                            button("visit KerbalX to download the latest version", "hyperlink", ()=>{
+                                Application.OpenURL(KerbalXAPI.url_to("mod"));
+                            });                            
+                        });
+                        section(w2 => {                           
+                            button("Remind me later", close_dialog);
+                            button("Don't notify me about this update", ()=>{
+                                KerbalXAPI.dismiss_current_update_notification();
+                                close_dialog();
+                                
+                            });
+                        });
+
+                    });
+                });
+                dialog.window_title = "CraftManager - Update Available";
+                dialog.window_pos = new Rect(window_pos.x + window_pos.width + 10, window_pos.y, 400f, 5);
+            }
+        }
+
+
     }
 
 
@@ -418,7 +448,7 @@ namespace CraftManager
                     var resp_data = JSON.Parse(resp);
                     CraftManager.login_ui.login_successful = true;
                     CraftManager.login_ui.after_login_action();
-//                    CraftManager.login_ui.show_upgrade_available_message(resp_data["update_available"]); //triggers display of update available message if the passed string is not empty
+                    CraftManager.login_ui.show_upgrade_available_message(resp_data["update_available"]); //triggers display of update available message if the passed string is not empty
                 } else{
                     CraftManager.login_ui.login_failed = true;
                     CraftManager.login_ui.enable_login = true;
@@ -436,11 +466,11 @@ namespace CraftManager
             CraftManager.login_ui.enable_login = false;
             CraftManager.login_ui.login_indicator = null;
             KerbalXAPI.load_and_authenticate_token((resp, code) =>{
-                //                var resp_data = JSON.Parse(resp);
                 if(code == 200){                    
+                    var resp_data = JSON.Parse(resp);
                     CraftManager.log("Logged in");
                     CraftManager.login_ui.after_login_action();
-                    //                    KerbalX.login_gui.show_upgrade_available_message(resp_data["update_available"]); //triggers display of update available message if the passed string is not empty
+                    CraftManager.login_ui.show_upgrade_available_message(resp_data["update_available"]); //triggers display of update available message if the passed string is not empty
                 }else{
                     CraftManager.log("NOT Logged");
                 }

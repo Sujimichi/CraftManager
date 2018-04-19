@@ -263,7 +263,7 @@ namespace CraftManager
 
         //**Main GUI**//
 
-        //Main GUI draw method (called by onGUI, see DryUI in KatLib).  Broken up into smaller sections to ease digestion and help prevent heart burn.
+        //Main GUI draw method (c\alled by onGUI, see DryUI in KatLib).  Broken up into smaller sections to ease digestion and help prevent heart burn.
         //The GUI is main in 5 sections, top and bottom sections span the full width, while the LHS, RHS and main sections are columns.
         protected override void WindowContent(int win_id){
             key_event_handler();
