@@ -1962,13 +1962,12 @@ namespace CraftManager
                 }else if(GUI.GetNameOfFocusedControl() != "main_search_field" && ctrl_key_down && e.keyCode == KeyCode.T){
                     create_tag_dialog();
                     e.Use();
-                } else if(e.keyCode == KeyCode.UpArrow){
+                } else if(e.keyCode == KeyCode.UpArrow && !upload_interface_ready){
                     jump_to_craft(CraftData.filtered.IndexOf(CraftData.selected_craft) - 1);
                     e.Use();
-                } else if(e.keyCode == KeyCode.DownArrow){
+                } else if(e.keyCode == KeyCode.DownArrow && !upload_interface_ready){
                     jump_to_craft(CraftData.filtered.IndexOf(CraftData.selected_craft) + 1);
                     e.Use();
-
                 }else if(GUI.GetNameOfFocusedControl() != "main_search_field" && CraftData.selected_craft != null){
                     if(e.keyCode == KeyCode.Return || e.keyCode == KeyCode.KeypadEnter){                       
                         load_craft(CraftData.selected_craft.construction_type == "Subassembly" ? "subload" : "load");
