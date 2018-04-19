@@ -189,6 +189,9 @@ namespace CraftManager
             define_style("hyperlink.bold", "hyperlink", s =>{
                 s.fontStyle = FontStyle.Bold;
             });
+            define_style("hyperlink.left", "hyperlink", s =>{
+                s.alignment = TextAnchor.UpperLeft;
+            });
             define_style("hyperlink.bold.compact", "hyperlink.bold", s =>{
                 s.margin = new RectOffset(0,0,0,0);
             });

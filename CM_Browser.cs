@@ -88,7 +88,6 @@ namespace CraftManager
         private float tag_scroll_height = 0;
         private float section_header_height = 38f;
         private float item_last_height = 0;
-        private Rect craft_scroll_section = new Rect();
 
         public bool show_transfer_indicator = false;
         public bool transfer_is_upload = true;
@@ -96,6 +95,10 @@ namespace CraftManager
         protected int prog_pos = 0;
         protected long prog_timer = 0;
         protected int prog_interval = 200;
+
+        private bool craft_list_overflow = false;
+        private bool craft_list_drag_active = false;
+        private Vector2 craft_list_drag_force = new Vector2();
 
 
         //KerbalX specific stuff
@@ -204,7 +207,6 @@ namespace CraftManager
             
         }
 
-        //TODO add before_show() filter to DryUI try putting this lot in it
         protected override void on_show(){            
             stock_craft_loaded = false;
             show_transfer_indicator = false;
@@ -244,6 +246,11 @@ namespace CraftManager
             close_dialog(); //incase any dialogs have been left open
         }
 
+        protected override void on_error(){
+            show_transfer_indicator = false;
+            CraftManager.status_info = "";
+        }
+
         protected void update_existing_craft_info(){
             if(KerbalX.enabled && KerbalXAPI.logged_in()){ //refresh info about which local craft are on KX
                 foreach(CraftData craft in CraftData.all_craft){
@@ -252,6 +259,7 @@ namespace CraftManager
                 KerbalXAPI.fetch_existing_craft(() =>{});
             }
         }
+
 
         //**Main GUI**//
 
@@ -356,9 +364,6 @@ namespace CraftManager
             });
         }
 
-        private bool craft_list_overflow = false;
-        private bool craft_list_drag_active = false;
-        private Vector2 craft_list_drag_force = new Vector2();
 
         //The Main craft list
         protected void draw_main_section(float section_width){

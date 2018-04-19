@@ -67,7 +67,7 @@ namespace CraftManager
 
         private void Awake(){
             KerbalXAPI.client_version = CraftManager.version;
-            KerbalXAPI.client = "KerbalXMod"; //TODO this needs to be changed
+            KerbalXAPI.client = "CraftManager";
             settings = new CMSettings();
             if(CraftManager.use_stock_toolbar){
                 GameEvents.onGUIApplicationLauncherReady.Add(add_to_toolbar);
