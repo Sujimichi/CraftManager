@@ -30,12 +30,13 @@ namespace CraftManager
         protected delegate void HelpContent(float content_width);
         HelpContent content;
 
+
         protected override void WindowContent(int win_id){ 
             section((w) =>{
                 v_section(lhs_width, 300f, "dialog.section", (w2) =>{
-                    button("Intro", ()=>{content = intro_content;});
-                    button("Keyboard Shortcuts", ()=>{content = keyboard_shortcuts;});
-                    button("Tags", ()=>{content = tags_content;});
+                    button("Intro", ()=>{switch_content("intro");});
+                    button("Keyboard Shortcuts", ()=>{switch_content("keyboard_shortcuts");});
+                    button("Tags", ()=>{switch_content("tags");});
                 });
                 v_section(10, 300f, (w2)=>{
                     label("");
@@ -52,18 +53,42 @@ namespace CraftManager
             });
         }
 
+        public void switch_content(string content_name){
+            switch(content_name){
+                case "intro" :              content = intro_content;break;
+                case "keyboard_shortcuts" : content = keyboard_shortcuts;break;
+                case "tags" :               content = tags_content;break;
+                default :                   content = intro_content;break;
+            }
+            scroll_pos.y = 0;
+        }
+
         private void intro_content(float content_width){
             label("Craft Manager Basics", "h2");
             label("CraftManager enables you to search, sort, group your craft with tags, move/copy/load craft from other saves and post your creations on KerbalX.");
             label(
-                "The top left of the interface lets you switch between SPH/VAB and subassembly craft.\n" +
-                "You can hold CTRL while clicking to select them together or press 'All'."
+                "The top left of the interface lets you switch between SPH/VAB and Subassembly craft.\n" +
+                "(You can hold CTRL while clicking to select them together or press 'All'.)"
             );
+
+            label("In the top right, the 'Include Stock Craft' toggle lets you show/hide the stock craft that come with KSP");
+            label("and to the right of that is a menu to access your settings and this help section....so you probablly already found that if you're here!", "small.compact");
+
             label(
-                "The search field allows you to search for craft by name (ctrl+f will refocus the cursor into the search field and pressing tab or the down arrow will move your focus onto the craft list).\n" +
-                "You can move up and down the craft list with up/down keys, mouse scroll, or by dragging the list.\n" + 
-                "Click once on a craft in the list to view details about it on the right side and double click to load it, or click the load button at the bottom."
+                "On the left is the main search field which allows you to search for craft by name.\n" + 
+                "To the right of the search field is the 'KerbalX Craft' button (only shown if KerbalX integration is enabled) that will switch you to browsing your craft on KerbalX\n." + 
+                "And right of that is a dropdown menu which lets you switch between the different saves (in this KSP install) so you can view/load craft from other saves"
             );
+
+            label(
+                "The main section of the interace is divided into 3 panels. On the left are the tags, in the middle is the craft list and when you click on a craft, its details will be shown in the right hand panel"
+            );
+            section(() =>{
+                label("see more about ");
+                button("tags,", "hyperlink.left", ()=>{switch_content("tags");});
+                button("the craft list,", "hyperlink.left", ()=>{switch_content("craft_list");});
+                button("craft details panel", "hyperlink.left", ()=>{switch_content("craft_details");});
+            });
         }
 
         private void keyboard_shortcuts(float content_width){

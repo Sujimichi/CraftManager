@@ -202,7 +202,7 @@ namespace CraftManager
 
             type_select(EditorDriver.editorFacility.ToString(), true);  //set selected type (SPH or VAB) based on which editor we're in.
             if(DevTools.autostart){
-                show();                
+//                show();                
                 HelpUI.open(gameObject);
             }
         }

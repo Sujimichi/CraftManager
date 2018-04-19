@@ -195,6 +195,7 @@ namespace CraftManager
             });
             define_style("hyperlink.left", "hyperlink", s =>{
                 s.alignment = TextAnchor.UpperLeft;
+                s.stretchWidth = false;
             });
             define_style("hyperlink.bold.compact", "hyperlink.bold", s =>{
                 s.margin = new RectOffset(0,0,0,0);
