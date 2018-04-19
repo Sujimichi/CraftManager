@@ -1953,25 +1953,32 @@ namespace CraftManager
             Event e = Event.current;
 
             if(e.type == EventType.keyDown){
+                //'esc' - close interface
                 if(e.type == EventType.keyDown && e.keyCode == KeyCode.Escape) {
                     e.Use();
                     this.hide();
+                //'ctrl+f' - focus on main search field
                 }else if(GUI.GetNameOfFocusedControl() != "main_search_field" && ctrl_key_down && e.keyCode == KeyCode.F){
                     GUI.FocusControl("main_search_field");
                     e.Use();
+                //'ctrl+t' - create new tag
                 }else if(GUI.GetNameOfFocusedControl() != "main_search_field" && ctrl_key_down && e.keyCode == KeyCode.T){
                     create_tag_dialog();
                     e.Use();
+                //'up arrow' move up in craft list
                 } else if(e.keyCode == KeyCode.UpArrow && !upload_interface_ready){
                     jump_to_craft(CraftData.filtered.IndexOf(CraftData.selected_craft) - 1);
                     e.Use();
+                //'down arrow' move down in craft list  
                 } else if(e.keyCode == KeyCode.DownArrow && !upload_interface_ready){
                     jump_to_craft(CraftData.filtered.IndexOf(CraftData.selected_craft) + 1);
                     e.Use();
+                //'enter key' - load selected craft (if focus is not on search field)
                 }else if(GUI.GetNameOfFocusedControl() != "main_search_field" && CraftData.selected_craft != null){
                     if(e.keyCode == KeyCode.Return || e.keyCode == KeyCode.KeypadEnter){                       
                         load_craft(CraftData.selected_craft.construction_type == "Subassembly" ? "subload" : "load");
                     }                
+                //'tab' - move focus from search field to craft list.
                 } else if(GUI.GetNameOfFocusedControl() == "main_search_field" && e.keyCode == KeyCode.Tab){
                     jump_to_craft(0);
                     e.Use();            
