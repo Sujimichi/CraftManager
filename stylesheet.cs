@@ -138,6 +138,10 @@ namespace CraftManager
                 s.margin.top = 0;
                 s.margin.bottom = 2;
             });
+
+            define_style("line", "compact", s =>{                
+                s.margin.bottom = 0;
+            });
             define_style("bold.compact", "compact", s =>{
                 s.fontStyle = FontStyle.Bold;
             });

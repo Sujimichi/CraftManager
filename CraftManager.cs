@@ -52,6 +52,7 @@ namespace CraftManager
         internal static CMKX_login login_ui = null;
         internal static GrabImage camera = null;
         internal static SettingsUI settings_ui = null;
+        internal static HelpUI help_ui = null;
 
         //Toolbar Buttons
         internal static ApplicationLauncherButton main_ui_toolbar_button   = null;

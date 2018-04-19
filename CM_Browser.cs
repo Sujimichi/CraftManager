@@ -34,6 +34,7 @@ namespace CraftManager
         private DropdownMenuData tag_sort_options = new DropdownMenuData(new Dictionary<string, string> { {"name", "Name"}, {"craft_count", "Craft Count"} });
         private DropdownMenuData tag_filter_modes = new DropdownMenuData(new List<string> { "AND", "OR" });
         private DropdownMenuData upload_image_mode= new DropdownMenuData(new List<string> { "thumb", "list" });
+        private DropdownMenuData more_menu = new DropdownMenuData(new List<string> { "settings", "help" });
         private DropdownMenuData sort_options = new DropdownMenuData(new Dictionary<string, string>{
             {"name", "Name"}, {"cost", "Cost"}, {"crew_capacity", "Crew Capacity"}, {"mass", "Mass"}, {"part_count", "Part Count"}, {"stage_count", "Stages"}, {"date_created", "Created"}, {"date_updated", "Updated"}
         });
@@ -202,6 +203,7 @@ namespace CraftManager
             type_select(EditorDriver.editorFacility.ToString(), true);  //set selected type (SPH or VAB) based on which editor we're in.
             if(DevTools.autostart){
                 show();                
+                HelpUI.open(gameObject);
             }
         }
 
@@ -335,7 +337,12 @@ namespace CraftManager
                         }
                     });
                 }
-                button(StyleSheet.assets["cog"], "button", 30f, 30f, ()=>{SettingsUI.open(gameObject);});
+                dropdown(StyleSheet.assets["cog"], "more_menu", more_menu, this, 30f, "button", "menu.background", "menu.item", (resp) => {
+                    switch(resp){
+                        case "settings" : SettingsUI.open(gameObject); break;
+                        case "help" : HelpUI.open(gameObject); break;
+                    }
+                });
 
             });
             section(() =>{
@@ -1744,11 +1751,7 @@ namespace CraftManager
                 tag_name = GUILayout.TextField(tag_name);
 
                 if(show_rule_opts){
-                    section(()=>{                    
-                        rule_based = GUILayout.Toggle(rule_based, "Use Auto Tag rule", "Button");
-                        label("(experimental WIP)");
-                        fspace();
-                    });
+                    rule_based = GUILayout.Toggle(rule_based, "Use Auto Tag rule", "Button");
                 }
 
                 if(rule_based){

@@ -99,7 +99,7 @@ namespace CraftManager
             float inner_width = lhs_width + rhs_width;
             window_title = "Craft Manager Settings";
             if(CraftManager.main_ui != null){                
-                window_pos = new Rect(CraftManager.main_ui.window_pos.x + CraftManager.main_ui.window_pos.width / 2 - inner_width / 2, CraftManager.main_ui.window_pos.y + 50, inner_width, 5);
+                window_pos = new Rect(CraftManager.main_ui.window_pos.x + CraftManager.main_ui.window_pos.width / 2 - inner_width / 2, CraftManager.main_ui.window_pos.y + 100, inner_width, 5);
             } else{
                 window_pos = new Rect(Screen.width/2 - inner_width/2, Screen.height/3, inner_width, 5);
             }
@@ -208,5 +208,8 @@ namespace CraftManager
             GameObject.Destroy(CraftManager.settings_ui);            
         }
     }
+
+
+
 }
 
