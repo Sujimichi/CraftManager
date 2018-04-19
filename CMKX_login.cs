@@ -36,17 +36,18 @@ namespace CraftManager
 
 
         private void Start(){
+            window_title = null;
+            window_pos = new Rect(window_in_pos, 50, 420, 5);
+            CraftManager.login_ui = this;
             if(KerbalX.enabled){                
                 enable_request_handler();
-                window_title = null;
-                window_pos = new Rect(window_in_pos, 50, 420, 5);
-                CraftManager.login_ui = this;
                 enable_request_handler();
                 //try to load a token from file and if present authenticate it with KerbalX.  if token isn't present or token authentication fails then show login fields.
                 if(KerbalXAPI.logged_out()){
                     KerbalX.load_and_authenticate_token();   
                 }
-
+            } else{
+                GameObject.Destroy(CraftManager.login_ui);
             }
         }
 
@@ -116,7 +117,7 @@ namespace CraftManager
 
                     if (KerbalXAPI.logged_out()) {                  
                         gui_state(enable_login, () =>{                    
-                            GUILayout.Label("Enter your KerbalX username and password");
+                            label("CraftManager - KerbalX.com login");
                             section(() => {
                                 label("username", width(70f));
                                 GUI.SetNextControlName("username_field");
@@ -132,7 +133,8 @@ namespace CraftManager
                             }
                         });
                     }else if (KerbalXAPI.logged_in()) {
-                        label("You are logged in to KerbalX as " + KerbalXAPI.logged_in_as());
+                        label("CraftManager has logged you into KerbalX.com");
+                        label("Welcome back " + KerbalXAPI.logged_in_as());
                     }
                     if (login_successful) {
                         section(() => {
@@ -472,7 +474,7 @@ namespace CraftManager
                     CraftManager.login_ui.after_login_action();
                     CraftManager.login_ui.show_upgrade_available_message(resp_data["update_available"]); //triggers display of update available message if the passed string is not empty
                 }else{
-                    CraftManager.log("NOT Logged");
+                    CraftManager.log("NOT Logged in");
                 }
                 CraftManager.log(resp);
                 CraftManager.login_ui.enable_login = true;

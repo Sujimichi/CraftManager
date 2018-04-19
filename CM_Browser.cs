@@ -200,7 +200,9 @@ namespace CraftManager
             tags_menu_content.special_items.Add("new_tag", "New Tag");
 
             type_select(EditorDriver.editorFacility.ToString(), true);  //set selected type (SPH or VAB) based on which editor we're in.
-            show();
+            if(DevTools.autostart){
+                show();                
+            }
         }
 
         protected override void before_show(){
@@ -736,7 +738,7 @@ namespace CraftManager
                                     button("delete", "button.delete", delete_craft_dialog);
                                 });
 
-                                if(KerbalX.enabled){
+                                if(KerbalX.enabled && !craft.stock_craft){
                                     section((w)=>{
                                         if(KerbalXAPI.logged_in()){
                                             if(upload_interface_ready == false){
@@ -750,7 +752,7 @@ namespace CraftManager
                                             }
                                         }else{
                                             button("Login to KerbalX to share craft", "button.small", ()=>{
-                                                login_dialog("", ()=>{
+                                                show_must_be_logged_in(()=>{
                                                     update_existing_craft_info();
                                                     KerbalX.close_login_dialog();
                                                 });
