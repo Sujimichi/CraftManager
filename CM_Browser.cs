@@ -1750,8 +1750,13 @@ namespace CraftManager
                 if(rule_based){
                     section(()=>{
                         prev_rule_attr = rule_attr;    
-                        dropdown((String.IsNullOrEmpty(rule_attr) ? "Select an Attribute" : rule_attrs.items[rule_attr]), "tag_rule_attr_menu", rule_attrs, d, d_offset, d.window_pos.width*0.4f, (sel_attr)=>{
-                            rule_attr = sel_attr;
+                        section(d.window_pos.width*0.35f, ()=>{
+                            dropdown((String.IsNullOrEmpty(rule_attr) ? "Select an Attribute" : rule_attrs.items[rule_attr]), StyleSheet.assets["caret-down"], 
+                                "tag_rule_attr_menu", rule_attrs, d, d_offset, d.window_pos.width*0.35f, 
+                                (sel_attr)=>{
+                                    rule_attr = sel_attr;
+                                }
+                            );
                         });
 
                         if(prev_rule_attr != rule_attr || first_pass){                        
@@ -1778,13 +1783,15 @@ namespace CraftManager
                                     rule_value = "True";
                                 }
                                 rule_comparator = "equal_to";
-                                label("==", "Button", width(d.window_pos.width*0.2f));
-                                dropdown(rule_value, "tag_rule_bool_opt_menu", bool_opts, d, d_offset, d.window_pos.width*0.2f, (bool_val)=>{
+                                label("==", "Button", width(d.window_pos.width*0.25f));
+                                dropdown(rule_value, StyleSheet.assets["caret-down"], "tag_rule_bool_opt_menu", bool_opts, d, d_offset, d.window_pos.width*0.25f, (bool_val)=>{
                                     rule_value = bool_val;
                                 });
                             }else{
-                                dropdown(rule_comparators.items[rule_comparator], "tag_rule_comp_menu", rule_comparators, d, d_offset, d.window_pos.width*0.2f, (sel_comparator)=>{
-                                    rule_comparator = sel_comparator;
+                                section(d.window_pos.width*0.25f, ()=>{
+                                    dropdown(rule_comparators.items[rule_comparator], StyleSheet.assets["caret-down"], "tag_rule_comp_menu", rule_comparators, d, d_offset, d.window_pos.width*0.25f, (sel_comparator)=>{
+                                        rule_comparator = sel_comparator;
+                                    });
                                 });
                                 rule_value = GUILayout.TextField(rule_value);
                             }
