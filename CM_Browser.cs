@@ -507,10 +507,11 @@ namespace CraftManager
                         if(save_menu_options.items.Count > 2){menu.items.Add("move_copy", "Move/Copy");}
                         menu.special_items.Add("delete", "Delete");
                         menu.special_items_first = false;
-                        Rect offset = new Rect(scroll_relative_pos);
-                        offset.y -= scroll_pos["main"].y + evt.contianer.height - 45;
-                        offset.x = (window_width * col_widths_current[0]) + (skin.GetStyle("craft.list_container").margin.left * 3 ) + 5;
-                        menu.set_attributes(evt.contianer, offset, this, 0f, "menu.background", "menu.item.craft", (resp) => {
+                        menu.offset_menu = false;
+                        Rect offset = new Rect(0,0,0,0);
+                        Rect container = new Rect(Input.mousePosition.x-this.window_pos.x, Screen.height-Input.mousePosition.y-this.window_pos.y, 0,0);
+
+                        menu.set_attributes(container, offset, this, 0f, "menu.background", "menu.item.craft", (resp) => {
                             switch(resp){
                                 case "rename"   : rename_craft_dialog(craft);break;
                                 case "transfer" : transfer_craft_dialog(craft);break;
@@ -612,10 +613,10 @@ namespace CraftManager
                                         });
                                         menu.special_items.Add("delete", "Delete");
                                         menu.special_items_first = false;
-                                        Rect offset = new Rect(scroll_relative_pos);
-                                        offset.y -= scroll_pos["lhs"].y + evt.contianer.height - 45;
-                                        offset.x += 5;
-                                        menu.set_attributes(evt.contianer, offset, this, 0f, "menu.background", "menu.item.tag_menu", (resp) => {
+                                        menu.offset_menu = false;
+                                        Rect offset = new Rect(0,0,0,0);
+                                        Rect container = new Rect(Input.mousePosition.x-this.window_pos.x, Screen.height-Input.mousePosition.y-this.window_pos.y, 0,0);
+                                        menu.set_attributes(container, offset, this, 0f, "menu.background", "menu.item.tag_menu", (resp) => {
                                             Vector2 pos = new Vector2(evt.contianer.x + window_pos.x + evt.contianer.width, evt.contianer.y + window_pos.y + scroll_relative_pos.y - scroll_pos["lhs"].y + 80);
                                             switch(resp){
                                                 case "select" : Tags.toggle_active(tag_name);break;
