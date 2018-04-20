@@ -201,9 +201,10 @@ namespace CraftManager
             tags_menu_content.special_items.Add("new_tag", "New Tag");
 
             type_select(EditorDriver.editorFacility.ToString(), true);  //set selected type (SPH or VAB) based on which editor we're in.
+
             if(DevTools.autostart){
 //                show();                
-                HelpUI.open(gameObject);
+//                HelpUI.open(gameObject);
             }
         }
 
@@ -337,7 +338,7 @@ namespace CraftManager
                         }
                     });
                 }
-                dropdown(StyleSheet.assets["cog"], "more_menu", more_menu, this, 30f, "button", "menu.background", "menu.item", (resp) => {
+                dropdown(StyleSheet.assets["menu"], "more_menu", more_menu, this, 30f, "button", "menu.background", "menu.item", (resp) => {
                     switch(resp){
                         case "settings" : SettingsUI.open(gameObject); break;
                         case "help" : HelpUI.open(gameObject); break;

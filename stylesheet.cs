@@ -34,7 +34,7 @@ namespace CraftManager
             { "logo_large",             GameDatabase.Instance.GetTexture(Paths.joined("CraftManager", "Assets", "KXlogo"), false) },           //664x120 
             { "image_placeholder",      GameDatabase.Instance.GetTexture(Paths.joined("CraftManager", "Assets", "image_placeholder"), false) },
             { "camera",                 GameDatabase.Instance.GetTexture(Paths.joined("CraftManager", "Assets", "camera"), false) },
-            { "cog",                    GameDatabase.Instance.GetTexture(Paths.joined("CraftManager", "Assets", "cog"), false) }
+            { "menu",                   GameDatabase.Instance.GetTexture(Paths.joined("CraftManager", "Assets", "menu"), false) }
         };
 
         public GUISkin skin;
@@ -195,7 +195,12 @@ namespace CraftManager
             });
             define_style("hyperlink.left", "hyperlink", s =>{
                 s.alignment = TextAnchor.UpperLeft;
+            });
+            define_style("hyperlink.inline", "hyperlink", s =>{
+                s.alignment = TextAnchor.UpperLeft;
                 s.stretchWidth = false;
+                s.padding = base_skin.label.padding;
+                s.margin = base_skin.label.margin;                    
             });
             define_style("hyperlink.bold.compact", "hyperlink.bold", s =>{
                 s.margin = new RectOffset(0,0,0,0);

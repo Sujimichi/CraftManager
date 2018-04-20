@@ -14,6 +14,7 @@ namespace CraftManager
         float rhs_width = 600;
         float lhs_width = 150;
         Vector2 scroll_pos = new Vector2();
+        bool return_to_top = false;
 
         private void Start(){
             float inner_width = lhs_width + rhs_width + 10;
@@ -42,6 +43,10 @@ namespace CraftManager
                     label("");
                 });
                 v_section(rhs_width, 300f, "dialog.section", (w2) =>{
+                    if(return_to_top){
+                        scroll_pos.y = 0; //setting y=0 in switch_content wasn't working, so a flag (return_to_top) is set and triggers the change here.
+                        return_to_top = false;
+                    }
                     scroll_pos = scroll(scroll_pos, w2-8, 294f, (inner_width)=>{
                         content(inner_width-80);
                     });
@@ -60,8 +65,9 @@ namespace CraftManager
                 case "tags" :               content = tags_content;break;
                 default :                   content = intro_content;break;
             }
-            scroll_pos.y = 0;
+            return_to_top = true;
         }
+
 
         private void intro_content(float content_width){
             label("Craft Manager Basics", "h2");
@@ -85,9 +91,9 @@ namespace CraftManager
             );
             section(() =>{
                 label("see more about ");
-                button("tags,", "hyperlink.left", ()=>{switch_content("tags");});
-                button("the craft list,", "hyperlink.left", ()=>{switch_content("craft_list");});
-                button("craft details panel", "hyperlink.left", ()=>{switch_content("craft_details");});
+                button("tags,", "hyperlink.inline", ()=>{switch_content("tags");});
+                button("the craft list,", "hyperlink.inline", ()=>{switch_content("craft_list");});
+                button("craft details panel", "hyperlink.inline", ()=>{switch_content("craft_details");});
             });
         }
 
