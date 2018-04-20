@@ -109,7 +109,8 @@ namespace CraftManager
             string path = sanitize_path(craft.path);
             if(craft_data.ContainsKey(path) && craft_data[path].GetValue("checksum") == craft.checksum && craft_data[path].GetValue("part_sig") == installed_part_sig){
                 try{
-                    CraftManager.log("loading from CACHE: " + Path.GetFileNameWithoutExtension(path));
+//                    CraftManager.log("loading from CACHE: " + Path.GetFileNameWithoutExtension(path));
+                    CraftData.cache_load_count += 1; //increment count of craft loaded from cache
                     ConfigNode node = craft_data[path];                    
                     foreach(var prop in craft.GetType().GetProperties()){               
                         if(prop.CanWrite){                            

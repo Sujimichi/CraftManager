@@ -16,7 +16,8 @@ namespace CraftManager
         public static List<CraftData> filtered  = new List<CraftData>();  //will hold the results of search/filtering to be shown in the UI.
         public static CraftDataCache cache = null;
 
-
+        public static int file_load_count = 0;
+        public static int cache_load_count= 0;
 
         public static int save_state = 0;
         public static bool loading_craft = false;
@@ -32,6 +33,8 @@ namespace CraftManager
                 cache = new CraftDataCache();                
             }
             CraftManager.log("Loading Craft Files");
+            file_load_count = 0;
+            cache_load_count = 0;
 
             string[] craft_file_paths;
             if(save_dir == null){
@@ -47,6 +50,12 @@ namespace CraftManager
 
             if(CraftManager.main_ui && !CraftManager.main_ui.exclude_stock_craft){
                 load_stock_craft_from_files();
+            }
+            if(cache_load_count > 0){
+                CraftManager.log("Loaded " + cache_load_count + " craft from cache");
+            }
+            if(file_load_count > 0){
+                CraftManager.log("Loaded " + file_load_count + " craft from file");
             }
         }
 
@@ -157,9 +166,10 @@ namespace CraftManager
         }
             
         public static void select_craft(CraftData craft){
-            foreach(CraftData list_craft in filtered){
-                list_craft.selected = list_craft == craft;
+            for(int i = 0; i < CraftData.all_craft.Count; i++){
+                CraftData.all_craft[i].selected = false;
             }
+            craft.selected = true;
         }
 
         public static void toggle_selected(CraftData craft){
@@ -369,7 +379,7 @@ namespace CraftManager
         //Parse .craft file and read info
         private void read_craft_info_from_file(){
             name = Path.GetFileNameWithoutExtension(path);
-            CraftManager.log("Loading from FILE: " + name);
+            CraftData.file_load_count += 1; //increment count of craft loaded from file
 
             ConfigNode data = ConfigNode.Load(path);
             ConfigNode[] parts = data.GetNodes();
