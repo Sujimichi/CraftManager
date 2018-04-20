@@ -247,10 +247,10 @@ namespace CraftManager
         public static KerbalXUploadData prepare_for(CraftData for_craft){
             KerbalXUploadData data;
             if(upload_data_store.ContainsKey(for_craft.path)){
-                CraftManager.log("loading existing upload data for: " + for_craft.name);
+                CraftManager.log("loading upload data for: " + for_craft.name);
                 data = upload_data_store[for_craft.path];
             } else{
-                CraftManager.log("creating new upload data for: " + for_craft.name);
+                CraftManager.log("creating upload data for: " + for_craft.name);
                 data = new KerbalXUploadData(for_craft);
                 upload_data_store.Add(for_craft.path, data);
             }
@@ -258,7 +258,6 @@ namespace CraftManager
         }
 
         public KerbalXUploadData(CraftData for_craft){
-            CraftManager.log("setting up UploadData for " + for_craft.name);
             craft = for_craft;
             craft_name = craft.name;
 
@@ -431,6 +430,7 @@ namespace CraftManager
                 return versions.FindAll(v => v_toggle[v]);
             }
         }
+        public static int download_queue_size = 0;
 
         public static List<string> craft_styles = new List<string>(){
             "Ship", "Aircraft", "Spaceplane", "Lander", "Satellite", "Station", "Base", "Probe", "Rover", "Lifter" 
@@ -532,6 +532,8 @@ namespace CraftManager
             }
         }
 
+
+        private static Dictionary<string, bool> selected_types_prev_state = null;
         private static void after_load_action(Dictionary<int, Dictionary<string, string>> craft_data){            
             CraftData.all_craft.Clear();
             versions.Clear(); v_toggle.Clear();
@@ -550,6 +552,10 @@ namespace CraftManager
 
             CraftManager.status_info = "";
             CraftManager.main_ui.kerbalx_mode = true;
+            if(selected_types_prev_state == null){
+                selected_types_prev_state = new Dictionary<string, bool>(CraftManager.main_ui.selected_types);
+            }
+            CraftManager.main_ui.type_select_all(true);
             CraftManager.main_ui.filter_craft();
             CraftManager.main_ui.scroll_pos["main"] = new UnityEngine.Vector2(0,0);                        
         }
@@ -606,6 +612,16 @@ namespace CraftManager
             }
         }
 
+        public static void check_download_queue(){
+            if(KerbalXAPI.logged_in()){
+                CraftManager.status_info = "checking KerbalX download queue";
+                KerbalXAPI.fetch_download_queue(craft_data =>{
+                    download_queue_size = craft_data.Count;
+                    CraftManager.status_info = "";
+                });
+            }
+        }
+
         public static void load_remote_craft(){     
             if_logged_in_do(() =>{
                 CraftManager.main_ui.select_sort_option("date_updated", false);
@@ -653,30 +669,21 @@ namespace CraftManager
             });
         }
 
+
+
         public static void load_local(){
             CraftManager.main_ui.kerbalx_mode = false;
             CraftManager.main_ui.select_sort_option(CraftManager.settings.get("craft_sort"), false);
+            CraftManager.main_ui.selected_types = selected_types_prev_state;
+            selected_types_prev_state = null;
+            CraftManager.main_ui.selected_type_count = 0;
+            foreach(KeyValuePair<string, bool> pair in CraftManager.main_ui.selected_types){
+                if(pair.Value == true){
+                    CraftManager.main_ui.selected_type_count += 1;
+                }
+            }
             CraftManager.main_ui.refresh();
         }
-
-
-
-
-
-
-
-
-
-//        public static void fetch_existing_craft(){
-//            CraftManager.status_info = "fetching craft info from KerbalX";
-//            KerbalXAPI.fetch_existing_craft(()=>{
-//                CraftManager.status_info = "";
-//                CraftManager.log("fetched existing craft");
-//                foreach(KeyValuePair<int, Dictionary<string, string>> pair in KerbalXAPI.user_craft){
-//                    CraftManager.log(String.Join(", ", new List<string>(pair.Value.Values).ToArray()));
-//                }
-//            });
-//        }
 
     }
 

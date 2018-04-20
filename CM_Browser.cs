@@ -55,8 +55,8 @@ namespace CraftManager
         string load_menu_mode = "default";
 
 
-        private Dictionary<string, bool> selected_types = new Dictionary<string, bool>() { { "SPH", false }, { "VAB", false }, { "Subassemblies", false } };
-        private int selected_type_count = 1;
+        internal Dictionary<string, bool> selected_types = new Dictionary<string, bool>() { { "SPH", false }, { "VAB", false }, { "Subassemblies", false } };
+        internal int selected_type_count = 1;
         protected List<string> selected_type_keys = new List<string>(){"SPH", "VAB", "Subassemblies"};
 
 
@@ -202,10 +202,17 @@ namespace CraftManager
 
             type_select(EditorDriver.editorFacility.ToString(), true);  //set selected type (SPH or VAB) based on which editor we're in.
 
+            GameEvents.OnAppFocus.Add(on_app_focus);
+
             if(DevTools.autostart){
-//                show();                
+                show();                
 //                HelpUI.open(gameObject);
             }
+        }
+                
+
+        protected override void OnDestroy(){
+            GameEvents.OnAppFocus.Remove(on_app_focus);
         }
 
         protected override void before_show(){
@@ -227,7 +234,10 @@ namespace CraftManager
             if(!kerbalx_mode){
                 refresh();
             }
-            update_remote_craft_info();
+            if(KerbalX.enabled){
+                update_remote_craft_info();
+                KerbalX.check_download_queue();
+            }
 
             grouped_images = null;
             image_data = null;
@@ -253,6 +263,12 @@ namespace CraftManager
         protected override void on_error(){
             show_transfer_indicator = false;
             CraftManager.status_info = "";
+        }
+
+        public void on_app_focus(bool focus_on){
+            if(focus_on){
+                KerbalX.check_download_queue();
+            }
         }
 
         protected void update_remote_craft_info(){
@@ -316,7 +332,7 @@ namespace CraftManager
         protected void draw_top_section(float section_width){
             section((w) =>{
                 //SPH, VAB, Subs select buttons
-                section(400, () =>{
+                section(400, (w2) =>{
                     foreach(string opt in selected_type_keys){
                         button(opt, "craft_type_sel" + (selected_types[opt] ? ".active" : ""), ()=>{type_select(opt, !selected_types[opt]);});
                     }
@@ -576,7 +592,7 @@ namespace CraftManager
                                 });
                             }                           
                         });
-                        section(tag_list_width, 40f, ()=>{
+                        section(tag_list_width, 38f, ()=>{
                             fspace();
                             button("All", KerbalX.select_all_versions);
                             button("Default", KerbalX.select_default_versions);
@@ -978,7 +994,13 @@ namespace CraftManager
 
         //Botton Section: Load buttons
         protected void draw_bottom_section(float section_width){
-            section(() =>{
+            section("thin.section", () =>{
+//                GUILayout.Space(10);
+                if(KerbalX.download_queue_size > 0){
+                    button(KerbalX.download_queue_size + " craft waiting to download", "download_waiting", KerbalX.load_download_queue);
+                }
+            });
+            section("bottom.section", () =>{
                 v_section(()=>{
                     section(()=>{
                         label(CraftManager.status_info);
@@ -1010,7 +1032,6 @@ namespace CraftManager
                         }
                     });
                 });
-
                 fspace();                   
                 gui_state(CraftData.selected_craft != null && show_transfer_indicator == false, ()=>{
                     load_menu_mode = "default";
@@ -1041,15 +1062,12 @@ namespace CraftManager
                 });
                 GUILayout.Space(8);
                 if(upload_interface_ready){
-                    button("Back", "button.close", 120f, ()=>{
-                        close_upload_interface();
-                    });
+                    button("Back", "button.close", 120f, close_upload_interface);
                 }else{                    
                     button("Close", "button.close", 120f, this.hide);
                 }
 
             });
-            GUILayout.Space(20);
         }
 
 
@@ -1237,7 +1255,7 @@ namespace CraftManager
 
         //called when clicking on the craft 'type' (VAB,SPH etc) buttons. unselects the other buttons unless ctrl is being held (enabling multiple select)
         //and ensures that at least one button is selected.
-        private void type_select(string key, bool val){
+        internal void type_select(string key, bool val){
             GUIUtility.keyboardControl = 0; //take focus away from text fields so that ctrl hold can be detected
             if(!ctrl_key_down){
                 selected_types["SPH"] = false;
@@ -1256,8 +1274,9 @@ namespace CraftManager
             filter_craft();
         }
 
-        private void type_select_all(){
-            if(selected_types["SPH"] && selected_types["VAB"] && selected_types["Subassemblies"]){               
+        internal void type_select_all(){type_select_all(false);}
+        internal void type_select_all(bool force = false){
+            if(!force && selected_types["SPH"] && selected_types["VAB"] && selected_types["Subassemblies"]){               
                 type_select(EditorDriver.editorFacility.ToString(), true);
             } else{
                 selected_types["SPH"] = true;

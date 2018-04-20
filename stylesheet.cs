@@ -211,6 +211,16 @@ namespace CraftManager
                 s.margin = new RectOffset(0,0,0,0);
             });
 
+            define_style("download_waiting", "hyperlink", s =>{
+                s.normal.textColor = Color.green;
+                s.hover.textColor = new Color(0.4f, 0.5f, 0.9f, 1); //roughly KerbalX Blue - #6E91EB
+                s.fontStyle = FontStyle.Bold;
+                s.padding = new RectOffset(0,0,0,0);
+                s.margin = new RectOffset(0,20,0,0);
+                s.alignment = TextAnchor.LowerCenter;
+                s.fixedHeight = 20;
+            });
+
             define_style("transfer_progres.text", base_skin.label, s =>{
                 s.normal.textColor = new Color(0.4f, 0.5f, 0.9f, 1);
                 s.fontSize = 20;
@@ -531,6 +541,16 @@ namespace CraftManager
                 s.margin = new RectOffset(0,0,0,8);
             });
 
+            define_style("bottom.section", base_skin.label, s =>{
+                s.margin.top = 0;
+                s.margin.bottom = 30;
+                s.padding.top = 0;
+            });
+            define_style("thin.section", base_skin.label, s =>{
+                s.margin.top = 0;
+                s.padding.top = 0;
+                s.fixedHeight = 5;
+            });
 
             define_style("progbox", base_skin.label, s =>{
                 s.fixedWidth = 20f;
