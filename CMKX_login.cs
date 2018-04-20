@@ -132,6 +132,9 @@ namespace CraftManager
                                 KerbalX.login(username, password);
                             }
                         });
+                        if(!enable_login){
+                            label("Logging in....", "h2");
+                        }
                     }else if (KerbalXAPI.logged_in()) {
                         label("CraftManager has logged you into KerbalX.com");
                         label("Welcome back " + KerbalXAPI.logged_in_as());
@@ -442,16 +445,19 @@ namespace CraftManager
             login(CraftManager.login_ui.username, CraftManager.login_ui.password);
         }
         internal static void login(string username, string password){
+            CraftManager.log("logging in....");
             CraftManager.login_ui.enable_login = false; //disable interface while logging in to prevent multiple login clicks
             CraftManager.login_ui.login_failed = false;
             CraftManager.login_ui.login_indicator = null;
             KerbalXAPI.login(username, password, (resp, code) =>{
                 if(code == 200){
                     var resp_data = JSON.Parse(resp);
+                    CraftManager.log("Logged in");
                     CraftManager.login_ui.login_successful = true;
                     CraftManager.login_ui.after_login_action();
                     CraftManager.login_ui.show_upgrade_available_message(resp_data["update_available"]); //triggers display of update available message if the passed string is not empty
                 } else{
+                    CraftManager.log("NOT Logged in");
                     CraftManager.login_ui.login_failed = true;
                     CraftManager.login_ui.enable_login = true;
                 }
@@ -476,7 +482,6 @@ namespace CraftManager
                 }else{
                     CraftManager.log("NOT Logged in");
                 }
-                CraftManager.log(resp);
                 CraftManager.login_ui.enable_login = true;
                 CraftManager.login_ui.initial_token_check_complete = true;
                 CraftManager.login_ui.autoheight();
@@ -489,6 +494,7 @@ namespace CraftManager
                 CraftManager.login_ui.login_successful = false;
                 CraftManager.login_ui.username = "";
                 CraftManager.login_ui.password = "";
+                CraftManager.log("Logged out of KerbalX");
             });
         }
 
@@ -588,6 +594,18 @@ namespace CraftManager
             });
         }
 
+        public static void fetch_existing_craft_info(){
+            if(KerbalXAPI.logged_in()){
+                CraftManager.status_info = "fetching craft info from KerbalX";
+                for(int i = 0; i < CraftData.all_craft.Count; i++){
+                    CraftData.all_craft[i].matching_remote_ids = null;
+                }
+                KerbalXAPI.fetch_existing_craft(() =>{
+                    CraftManager.status_info = "";
+                });
+            }
+        }
+
         public static void load_remote_craft(){     
             if_logged_in_do(() =>{
                 CraftManager.main_ui.select_sort_option("date_updated", false);
@@ -597,7 +615,7 @@ namespace CraftManager
 
         public static void load_users_craft(){
             if_logged_in_do(() =>{
-                CraftManager.status_info = "fetching craft info from KerbalX";
+                CraftManager.status_info = "fetching your craft from KerbalX";
                 loaded_craft_type = "users";
                 KerbalXAPI.fetch_existing_craft(() =>{                
                     after_load_action(KerbalXAPI.user_craft);
@@ -607,7 +625,7 @@ namespace CraftManager
 
         public static void load_past_dowloads(){
             if_logged_in_do(() =>{
-                CraftManager.status_info = "fetching craft info from KerbalX";
+                CraftManager.status_info = "fetching you past downloads from KerbalX";
                 loaded_craft_type = "past_downloads";
                 KerbalXAPI.fetch_past_downloads(craft_data =>{
                     after_load_action(craft_data);
@@ -617,7 +635,7 @@ namespace CraftManager
 
         public static void load_favourites(){
             if_logged_in_do(() =>{
-                CraftManager.status_info = "fetching craft info from KerbalX";
+                CraftManager.status_info = "fetching your favourites from KerbalX";
                 loaded_craft_type = "favourites";
                 KerbalXAPI.fetch_favoutite_craft(craft_data =>{
                     after_load_action(craft_data);
@@ -627,7 +645,7 @@ namespace CraftManager
 
         public static void load_download_queue(){
             if_logged_in_do(() =>{
-                CraftManager.status_info = "fetching craft info from KerbalX";
+                CraftManager.status_info = "fetching download queue from KerbalX";
                 loaded_craft_type = "download_queue";
                 KerbalXAPI.fetch_download_queue(craft_data =>{
                     after_load_action(craft_data);

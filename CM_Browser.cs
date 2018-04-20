@@ -227,8 +227,7 @@ namespace CraftManager
             if(!kerbalx_mode){
                 refresh();
             }
-
-            update_existing_craft_info();
+            update_remote_craft_info();
 
             grouped_images = null;
             image_data = null;
@@ -256,12 +255,9 @@ namespace CraftManager
             CraftManager.status_info = "";
         }
 
-        protected void update_existing_craft_info(){
-            if(KerbalX.enabled && KerbalXAPI.logged_in()){ //refresh info about which local craft are on KX
-                foreach(CraftData craft in CraftData.all_craft){
-                    craft.matching_remote_ids = null;
-                }
-                KerbalXAPI.fetch_existing_craft(() =>{});
+        protected void update_remote_craft_info(){
+            if(KerbalX.enabled){
+                KerbalX.fetch_existing_craft_info();
             }
         }
 
@@ -760,10 +756,7 @@ namespace CraftManager
                                             }
                                         }else{
                                             button("Login to KerbalX to share craft", "button.small", ()=>{
-                                                show_must_be_logged_in(()=>{
-                                                    update_existing_craft_info();
-                                                    KerbalX.close_login_dialog();
-                                                });
+                                                show_must_be_logged_in(KerbalX.close_login_dialog);
                                             });
                                         }                                   
                                     });
@@ -1392,7 +1385,6 @@ namespace CraftManager
 
         protected void show_update_kerbalx_craft_dialog(){
             string resp = "";
-            CraftManager.log("show_update_confirm_dialog called");
             CraftData craft = CraftData.selected_craft;
             if(craft.upload_data == null){ //create new instance of upload data if it's not already been set
                 craft.upload_data = KerbalXUploadData.prepare_for(craft);
