@@ -236,14 +236,11 @@ namespace CraftManager
                 refresh();
             }
 
-            //if a craft which matches the name,contruction_type,and save_dir of the currently loaded craft is in the filtered results then mark it to be focused on when the UI opens
+            //if a craft which matches the name and save_dir of the currently loaded craft is in the filtered results then mark it to be focused on when the UI opens
             if(cur_selected_craft_path != null){
-                auto_focus_craft = CraftData.filtered.Find(c => c.path == cur_selected_craft_path);
-                auto_focus_countdown = 10;
+                auto_focus_on(CraftData.filtered.Find(c => c.path == cur_selected_craft_path));
             } else if(cur_selected_name.ToLower() != "untitled space craft"){
-                auto_focus_craft = CraftData.filtered.Find(c => c.save_dir == current_save_dir && c.name == cur_selected_name);
-                auto_focus_countdown = 10;  //delay auto_focus by x passes, to give the list time to be drawn 
-                //(not happy with this but attempting to autofocus right away selects the craft, but doesn't scroll the list to it
+                auto_focus_on(CraftData.filtered.Find(c => c.save_dir == current_save_dir && c.name == cur_selected_name));
             }
 
 
@@ -1312,10 +1309,15 @@ namespace CraftManager
             }
         }
 
+        protected void auto_focus_on(CraftData craft){
+            auto_focus_craft = craft;
+            auto_focus_countdown = 10; //delay auto_focus by x passes, to give the list time to be drawn 
+            //(not happy with this but attempting to autofocus right away selects the craft, but doesn't scroll the list to it
+        }
+
         public void close_upload_interface(){
             show_upload_interface = false;
-            auto_focus_craft = CraftData.selected_craft;
-            auto_focus_countdown = 10;
+            auto_focus_on(CraftData.selected_craft);
         }
 
         //Transitions the interface between regular browsing mode and KerbalX upload mode. shrinks/expands the left and main columns
