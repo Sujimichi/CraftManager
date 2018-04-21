@@ -174,9 +174,8 @@ namespace CraftManager
 
             if(KerbalX.enabled){
                 enable_request_handler();
-                if(bool.Parse(CraftManager.settings.get("ask_to_populate_new_save"))){
+                if(KerbalXAPI.logged_in() && bool.Parse(CraftManager.settings.get("ask_to_populate_new_save"))){
                     if(Directory.GetFiles(Paths.joined(CraftManager.ksp_root, "saves", current_save_dir), "*.craft", SearchOption.AllDirectories).Length == 0){
-//                        CraftManager.log("no craft");
                         populate_new_save_dialog();
                     }
                 }

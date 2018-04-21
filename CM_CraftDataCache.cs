@@ -8,8 +8,6 @@ namespace CraftManager
 {
     public class CraftDataCache
     {
-
-
         public string cache_path = Paths.joined(CraftManager.ksp_root, "GameData", "CraftManager", "craft_data.cache");
         public string installed_part_sig; //checksum signature of the installed parts, used to determine if the installed parts have changed since last time
 

@@ -69,6 +69,8 @@
     <Compile Include="CMKX_login.cs" />
     <Compile Include="CM_ImageData.cs" />
     <Compile Include="CM_Help.cs" />
+    <Compile Include="KerbalXUploadData.cs" />
+    <Compile Include="KerbalX.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ProjectExtensions>

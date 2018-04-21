@@ -8,9 +8,6 @@ using System.Threading;
 using UnityEngine;
 using KatLib;
 
-
-
-
 namespace CraftManager
 {
 
