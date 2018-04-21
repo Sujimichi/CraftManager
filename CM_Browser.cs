@@ -225,8 +225,9 @@ namespace CraftManager
             CraftManager.status_info = "";
 
             string cur_selected_name = null;
+            string cur_selected_craft_path = null;
             if(CraftData.selected_craft != null){
-                cur_selected_name = CraftData.selected_craft.name;
+                cur_selected_craft_path = CraftData.selected_craft.path;
             }else{
                 cur_selected_name = EditorLogic.fetch.ship.shipName;
             }
@@ -234,6 +235,18 @@ namespace CraftManager
             if(!kerbalx_mode){
                 refresh();
             }
+
+            //if a craft which matches the name,contruction_type,and save_dir of the currently loaded craft is in the filtered results then mark it to be focused on when the UI opens
+            if(cur_selected_craft_path != null){
+                auto_focus_craft = CraftData.filtered.Find(c => c.path == cur_selected_craft_path);
+                auto_focus_countdown = 10;
+            } else if(cur_selected_name.ToLower() != "untitled space craft"){
+                auto_focus_craft = CraftData.filtered.Find(c => c.save_dir == current_save_dir && c.name == cur_selected_name);
+                auto_focus_countdown = 10;  //delay auto_focus by x passes, to give the list time to be drawn 
+                //(not happy with this but attempting to autofocus right away selects the craft, but doesn't scroll the list to it
+            }
+
+
             if(KerbalX.enabled){
                 update_remote_craft_info();
                 KerbalX.check_download_queue();
@@ -246,14 +259,7 @@ namespace CraftManager
             InputLockManager.SetControlLock(window_id.ToString());
             interface_locked = true; //will trigger unlock of interface (after slight delay) on window hide
 
-            //if a craft which matches the name,contruction_type,and save_dir of the currently loaded craft is in the filtered results then mark it to be focused on when the UI opens
-            if(cur_selected_name.ToLower() != "untitled space craft"){
-                auto_focus_craft = CraftData.filtered.Find(c => 
-                    c.construction_type == EditorDriver.editorFacility.ToString() && c.save_dir == current_save_dir && c.name == cur_selected_name
-                );
-                auto_focus_countdown = 10;  //delay auto_focus by x passes, to give the list time to be drawn 
-                //(not happy with this but attempting to autofocus right away selects the craft, but doesn't scroll the list to it
-            }
+
         }
 
         protected override void on_hide(){
