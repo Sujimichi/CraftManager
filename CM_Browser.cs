@@ -48,8 +48,8 @@ namespace CraftManager
         private Dictionary<string, MenuOptions> load_menu = new Dictionary<string, MenuOptions>{
             {"default", new MenuOptions{text = "Load", action = "load", width = 120f, menu = new DropdownMenuData(new Dictionary<string, string> { { "merge", "Merge" }, { "subload", "Load as Subassembly" } })}},
             {"submode", new MenuOptions{text = "Load Subassembly", action = "subload", width = 300f, menu = new DropdownMenuData(new Dictionary<string, string> { { "merge", "Merge" }, { "load", "Load as Craft" } })}},
-            {"download",new MenuOptions{text = "Download & Load", action = "dl_load", width = 300f, menu = new DropdownMenuData(new Dictionary<string, string> { { "dl_load_no_save", "Load without saving" } })}},
-            {"redownload",new MenuOptions{text = "Update & Load", action = "dl_load", width = 250f, menu = new DropdownMenuData(new Dictionary<string, string> { { "dl_load_no_save", "Load Remote version without saving" }, { "load", "Load local version" } })}},
+            {"download",new MenuOptions{text = "Download", action = "download", width = 200f, menu = new DropdownMenuData(new Dictionary<string, string> { {"dl_load", "Download & Load"}, { "dl_load_no_save", "Load without saving" } })}},
+            {"redownload",new MenuOptions{text = "Update", action = "update", width = 200f, menu = new DropdownMenuData(new Dictionary<string, string> { {"update_load", "Update & Load"}, { "dl_load_no_save", "Load Remote version without saving" }, { "load", "Load local version" } })}},
             {"upload",  new MenuOptions{text = "Upload", action = "upload", width = 150f, menu = null}}
         };
         string load_menu_mode = "default";
@@ -105,6 +105,7 @@ namespace CraftManager
         //KerbalX specific stuff
         public bool kerbalx_mode = false;  //displaying remote craft from kerbalx
         public bool show_upload_interface = false;   //when set to true starts the transition to the upload interface. 
+        public bool exit_kerbalx_mode_after_close = false;
         protected bool upload_interface_ready = false;  //The transition is compelte when upload interface ready is set to true
         protected bool show_headers = true;             //'headers' of the sections which are collapsed by the transition are hidden as they don't play well with being srunk
         public ImageData image_data;
@@ -173,6 +174,12 @@ namespace CraftManager
 
             if(KerbalX.enabled){
                 enable_request_handler();
+                if(bool.Parse(CraftManager.settings.get("ask_to_populate_new_save"))){
+                    if(Directory.GetFiles(Paths.joined(CraftManager.ksp_root, "saves", current_save_dir), "*.craft", SearchOption.AllDirectories).Length == 0){
+//                        CraftManager.log("no craft");
+                        populate_new_save_dialog();
+                    }
+                }
             }
 
 
@@ -255,11 +262,13 @@ namespace CraftManager
             auto_focus_field = "main_search_field";
             InputLockManager.SetControlLock(window_id.ToString());
             interface_locked = true; //will trigger unlock of interface (after slight delay) on window hide
-
-
         }
 
         protected override void on_hide(){
+            if(exit_kerbalx_mode_after_close){
+                kerbalx_mode = false;
+                exit_kerbalx_mode_after_close = false;
+            }
             close_dialog(); //incase any dialogs have been left open
         }
 
@@ -389,7 +398,6 @@ namespace CraftManager
             });
         }
 
-
         //The Main craft list
         protected void draw_main_section(float section_width){
             v_section(section_width, main_section_height, false, (inner_width)=>{
@@ -428,9 +436,11 @@ namespace CraftManager
 
                         //partially working approach to only drawing the craft which are in focus, it works, but mousewheel scrolling results in flicker and the You are pushing more GUIClips than you are popping error
 //                        if(calculate_heights || (craft.list_position + craft.list_height > scroll_pos["main"].y && craft.list_position < scroll_pos["main"].y + main_section_height)){
-////                            CraftManager.log(craft.name + " is visible");
+//                            CraftManager.log(craft.name + " is visible");
+//                            draw_craft_list_item(craft, craft_list_width); //render each craft
 //                        }else{
-//                            draw_craft_list_placeholder(craft_list_width, craft.list_height-5);
+//                            section(section_width-(30f), craft.list_height-5, "craft.list_item", (inner_width)=>{ //subtractions from width to account for margins and scrollbar
+//                            });
 //                        }
 
                         //this is used to get the top offset position of each item in the craft list and that is stored on the CraftData object
@@ -452,12 +462,7 @@ namespace CraftManager
             });            
         }
 
-
         //Individual Craft Content for main list.
-        protected void draw_craft_list_placeholder(float section_width, float section_height){
-            section(section_width-(30f), section_height, "craft.list_item", (inner_width)=>{ //subtractions from width to account for margins and scrollbar
-            });
-        }
         protected void draw_craft_list_item(CraftData craft, float section_width){
             section(section_width-(30f), "craft.list_item" + (craft.selected ? ".selected" : ""), (inner_width)=>{ //subtractions from width to account for margins and scrollbar
                 section(inner_width-80f,()=>{
@@ -1112,8 +1117,12 @@ namespace CraftManager
         //"load" performs a normal craft load (checks save state of existing & clears existing content before loading)
         //"merge" spawns a disconnected contruct of the craft along side an existing craft
         //"subload" loads like merge, but retains select on the loaded craft so it can be placed (same as stock subassembly load).
-        //"dl_load" download craft from KerbalX, save it to users craft (with query about replacing an existing one) and load it.
+        //"download" download craft from KerbalX, save it to users craft (with query about replacing an existing one)
+        //"dl_load"  download craft from KerbalX, save it to users craft (with query about replacing an existing one) and load it.
         //"dl_load_no_save" download craft from KerbalX and load it without saving it to users craft
+        //"update"   download craft from KerbalX, save it to users craft (without query about replacing existing one)
+        //"update_load" download craft from KerbalX, save it to users craft (without query about replacing existing one) and load it.
+        protected void load_craft(){ load_craft("load");}
         protected void load_craft(string load_type, bool force = false){            
             if(CraftData.selected_craft != null){
                 CraftData craft = CraftData.selected_craft;
@@ -1137,10 +1146,14 @@ namespace CraftManager
                     subassembly.LoadShip(ConfigNode.Load(craft.path));
                     EditorLogic.fetch.SpawnTemplate(subassembly);
                     CraftManager.main_ui.hide();
+                } else if(load_type == "download"){
+                    download(true, false);
+                } else if(load_type == "update"){
+                    download(true, true);
                 } else if(load_type == "dl_load"){
-                    download(true, false, () =>{
-                        load_craft("load");
-                    });
+                    download(true, false, load_craft);
+                }else if(load_type == "update_load"){
+                    download(true, true, load_craft);
                 } else if(load_type == "dl_load_no_save"){
                     if(CraftData.craft_saved || force){
                         download(false);
@@ -1867,6 +1880,62 @@ namespace CraftManager
             });
         }
 
+        protected void populate_new_save_dialog(){
+            KerbalX.get_craft_ids_by_version((craft_by_version, versions) =>{
+                
+                string v1 = versions[1].ToString();
+                string v2 = versions[2].ToString();
+                string resp = "";
+                Version ksp_version = new Version(Versioning.GetVersionString());
+                KerbalX.log_scroll = new Vector2();
+                KerbalX.bulk_download_log = "";
+                
+                show_dialog("Import Craft From KerbalX", "", d =>{
+                    label("You don't have any craft in this save yet.", "h2");
+                    label("Do you want to fetch your craft from KerbalX?", "h2");
+
+                    if(versions[0] == ksp_version){
+                        button("download " + craft_by_version[versions[0].ToString()].Count + " craft built in KSP " + ksp_version, ()=>{
+                            KerbalX.bulk_download(craft_by_version[versions[0].ToString()], current_save_dir, ()=>{});
+                        });
+                    }else{
+                        label("You don't have any craft made in this version of KSP");
+                    }
+
+                    if(v1 != null || v2 != null){
+                        label("get craft from previous versions:");
+                        section(()=>{
+                            if(v1 != null && craft_by_version[v1] != null ){
+                                button("download " + craft_by_version[v1].Count + " craft built in KSP " + v1, ()=>{
+                                    KerbalX.bulk_download(craft_by_version[v1], current_save_dir, ()=>{});
+                                });
+                            }
+                            if(v2 != null && craft_by_version[v2] != null ){
+                                button("download " + craft_by_version[v2].Count + " craft built in KSP " + v2, ()=>{
+                                    KerbalX.bulk_download(craft_by_version[v2], current_save_dir, ()=>{});
+                                });
+                            }
+                        });
+                    }
+
+                    if(!String.IsNullOrEmpty(KerbalX.bulk_download_log)){
+                        KerbalX.log_scroll = scroll(KerbalX.log_scroll, d.window_pos.width, 80f, (w)=>{
+                            label(KerbalX.bulk_download_log);
+                        });
+                    }
+
+                    button("OR cherry pick the ones you want", ()=>{
+                        close_dialog();
+                        exit_kerbalx_mode_after_close = true;
+                        CraftManager.main_ui.show();
+                        KerbalX.load_remote_craft();
+                    });
+                    button("Close", close_dialog);
+
+                    return resp;
+                });
+            });
+        }
 
 
         //Dialog Handler

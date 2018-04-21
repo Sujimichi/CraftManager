@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Collections.Generic;
 using UnityEngine;
 using KatLib;
@@ -436,9 +437,12 @@ namespace CraftManager
             "Ship", "Aircraft", "Spaceplane", "Lander", "Satellite", "Station", "Base", "Probe", "Rover", "Lifter" 
         };
 
+        private static Dictionary<string, bool> selected_types_prev_state = null;
+
         public delegate void DownloadCallback(ConfigNode craft_file);
         public delegate void ActionCallback();
         public delegate void RemoteCraftMatcher();
+        public delegate void CraftByVersionCallback(Dictionary<string, List<int>> cids_by_version, List<Version> versions);
 
 
         internal static void login(){
@@ -499,7 +503,6 @@ namespace CraftManager
         }
 
 
-
         public static void select_all_versions(){
             foreach(Version v in versions){
                 v_toggle[v] = true;
@@ -512,7 +515,6 @@ namespace CraftManager
             }
             CraftManager.main_ui.filter_craft();
         }
-
 
         private static void if_logged_in_do(ActionCallback callback){            
             if(KerbalXAPI.logged_in()){
@@ -533,7 +535,6 @@ namespace CraftManager
         }
 
 
-        private static Dictionary<string, bool> selected_types_prev_state = null;
         private static void after_load_action(Dictionary<int, Dictionary<string, string>> craft_data){            
             CraftData.all_craft.Clear();
             versions.Clear(); v_toggle.Clear();
@@ -560,7 +561,72 @@ namespace CraftManager
             CraftManager.main_ui.scroll_pos["main"] = new UnityEngine.Vector2(0,0);                        
         }
 
+        public static string bulk_download_log = "";
+        public static Vector2 log_scroll = new Vector2();
 
+        public static void bulk_download(List<int> ids, string save_dir, Callback callback){
+
+            string save_path = Paths.joined(CraftManager.ksp_root, "saves", save_dir);
+            if(Directory.Exists(save_path)){
+                if(!Directory.Exists(Paths.joined(save_path, "Subassemblies"))){
+                    Directory.CreateDirectory(Paths.joined(save_path, "Subassemblies"));
+                }
+                if(!Directory.Exists(Paths.joined(save_path, "Ships"))){
+                    Directory.CreateDirectory(Paths.joined(save_path, "Ships"));
+                }
+                if(!Directory.Exists(Paths.joined(save_path, "Ships", "VAB"))){
+                    Directory.CreateDirectory(Paths.joined(save_path, "Ships", "VAB"));
+                }
+                if(!Directory.Exists(Paths.joined(save_path, "Ships", "SPH"))){
+                    Directory.CreateDirectory(Paths.joined(save_path, "Ships", "SPH"));
+                }
+
+                if(ids.Count > 0){
+                    int id = ids[0];                
+                    ids.Remove(id);
+                    var craft_ref = KerbalXAPI.user_craft[id];
+                    string type = craft_ref["type"];
+                    string path = "";
+                    bulk_download_log += "\ndownloading [" + (type=="Subassembly" ? "Sub" : type) + "]" + craft_ref["name"] + "...";
+                    if(type == "Subassembly"){
+                        path = Paths.joined(save_path, "Subassemblies", craft_ref["name"] + ".craft");
+                    } else{
+                        path = Paths.joined(save_path, "Ships", type, craft_ref["name"] + ".craft");
+                    }
+
+                    KerbalXAPI.download_craft(id, (craft_file_string, code) =>{
+                        if(code == 200){
+                            ConfigNode craft = ConfigNode.Parse(craft_file_string);
+                            craft.Save(path);
+                            bulk_download_log += "Done";
+                            log_scroll.y = 10000;
+                            KerbalX.bulk_download(ids, save_dir, callback);
+                        }
+                    });
+                } else{
+                    callback();
+                }
+            }
+        }
+
+        public static void get_craft_ids_by_version(CraftByVersionCallback callback){
+            if(KerbalXAPI.logged_in()){
+                KerbalXAPI.fetch_existing_craft(() =>{                
+                    Dictionary<string, List<int>> craft_ids_by_version = new Dictionary<string, List<int>>();
+                    List<Version> version_list = new List<Version>();
+                    foreach(KeyValuePair<int, Dictionary<string, string>> data in KerbalXAPI.user_craft){
+                        string v = data.Value["version"];
+                        if(!craft_ids_by_version.ContainsKey(v)){
+                            craft_ids_by_version.Add(v, new List<int>());
+                        }
+                        version_list.AddUnique(new Version(v));
+                        craft_ids_by_version[v].Add(int.Parse(data.Value["id"]));
+                    }
+                    version_list.Sort((x, y) => y.CompareTo(x));
+                    callback(craft_ids_by_version, version_list);
+                });
+            }
+        }
 
         public static void find_matching_remote_craft(CraftData craft){
             RemoteCraftMatcher rcm = new RemoteCraftMatcher(() =>{

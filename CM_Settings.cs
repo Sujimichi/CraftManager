@@ -26,6 +26,8 @@ namespace CraftManager
             settings.Add("use_editor_key_shortcuts", "True");
             settings.Add("screenshot_dir", "<ksp_install>/Screenshots");
 
+            settings.Add("ask_to_populate_new_save", "True");
+
             settings.Add("exclude_stock_craft", "True");
             settings.Add("craft_sort", "name");
             settings.Add("craft_sort_reverse", "False");
