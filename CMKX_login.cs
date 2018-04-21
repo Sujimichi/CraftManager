@@ -14,26 +14,26 @@ namespace CraftManager
     public class CMKX_login : CMUI
     {
 
-        public string username = "";
-        public string password = "";
-        public bool enable_login     = true; //used to toggle enabled/disabled state on login fields and button
-        public bool login_failed     = false;//if true, displays login failed message and link to recover password on the site
-        public bool login_successful = false;//if true, hides login field and shows logged in as and a logout button
-        public bool modal_dialog = false;
-        public string login_required_message = "";
-        public bool show_cancel = false;
-        public bool dialog_open = false;
-        public bool window_retract = true;
-        public bool initial_token_check_complete = false;
-        public GUIStyle login_indicator = null;
+        internal string username = "";
+        internal string password = "";
+        internal bool enable_login     = true; //used to toggle enabled/disabled state on login fields and button
+        internal bool login_failed     = false;//if true, displays login failed message and link to recover password on the site
+        internal bool login_successful = false;//if true, hides login field and shows logged in as and a logout button
+        internal bool modal_dialog = false;
+        internal string login_required_message = "";
+        internal bool show_cancel = false;
+        internal bool initial_token_check_complete = false;
+        internal GUIStyle login_indicator = null;
+        private bool dialog_open = false;
+        private bool window_retract = true;
 
-        public float window_out_pos = -15f;
-        public float window_in_pos = -420f;
+        private float window_out_pos = -15f;
+        private float window_in_pos = -420f;
             
 
-        public AfterLoginAction after_login_action = () => {};
+        internal AfterLoginAction after_login_action = () => {};
 
-        public int count = 5;
+        private int count = 5;
 
 
         private void Start(){
@@ -195,7 +195,7 @@ namespace CraftManager
         }
 
         //Shows an upgrade available message after login if the server provides a upload available message string
-        public void show_upgrade_available_message(string message) {
+        internal void show_upgrade_available_message(string message) {
             if (!String.IsNullOrEmpty(message)) {
                 
                 DryDialog dialog = show_dialog((d) => {

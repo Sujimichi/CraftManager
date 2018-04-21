@@ -117,11 +117,11 @@ namespace CraftManager
         }
 
 
-        public void show_must_be_logged_in(AfterLoginAction callback){           
+        internal void show_must_be_logged_in(AfterLoginAction callback){           
             login_dialog("You need to login to KerbalX to use this feature", callback);
         }
 
-        public void login_dialog(string message = null, AfterLoginAction callback = null){
+        protected void login_dialog(string message = null, AfterLoginAction callback = null){
             if(CraftManager.login_ui != null){
                 GameObject.Destroy(CraftManager.login_ui);
             }

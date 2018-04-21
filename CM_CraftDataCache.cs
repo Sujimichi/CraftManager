@@ -8,17 +8,17 @@ namespace CraftManager
 {
     public class CraftDataCache
     {
-        public string cache_path = Paths.joined(CraftManager.ksp_root, "GameData", "CraftManager", "craft_data.cache");
-        public string installed_part_sig; //checksum signature of the installed parts, used to determine if the installed parts have changed since last time
+        private string cache_path = Paths.joined(CraftManager.ksp_root, "GameData", "CraftManager", "craft_data.cache");
+        internal string installed_part_sig; //checksum signature of the installed parts, used to determine if the installed parts have changed since last time
 
-        public Dictionary<string, ConfigNode> craft_data = new Dictionary<string, ConfigNode>();
-        public Dictionary<string, AvailablePart> part_data = new Dictionary<string, AvailablePart>();  //name->part lookup for available parts
-        public List<string> locked_parts = new List<string>();
-        public List<string> ignore_fields = new List<string>{"selected_craft", "craft_saved"};
+        private Dictionary<string, ConfigNode> craft_data = new Dictionary<string, ConfigNode>();
+        internal Dictionary<string, AvailablePart> part_data = new Dictionary<string, AvailablePart>();  //name->part lookup for available parts
+        internal List<string> locked_parts = new List<string>();
+        private List<string> ignore_fields = new List<string>{"selected_craft", "craft_saved"};
 
-        public Dictionary<string, int> tag_craft_count_store = new Dictionary<string, int>();
+        internal Dictionary<string, int> tag_craft_count_store = new Dictionary<string, int>();
 
-        public int tag_craft_count_for(string lookup, string modifiyer = ""){            
+        internal int tag_craft_count_for(string lookup, string modifiyer = ""){            
             if(!tag_craft_count_store.ContainsKey(lookup + "_" + modifiyer)){
                 tag_craft_count_store.Add(lookup + "_" + modifiyer, Tags.craft_count_for(lookup, modifiyer));
             }
@@ -26,7 +26,7 @@ namespace CraftManager
         }
 
 
-        public CraftDataCache(){
+        internal CraftDataCache(){
             CraftManager.log("Initializing Cache");
             if(File.Exists(cache_path)){
                 CraftManager.log("loading persistent cache from file");
@@ -68,20 +68,20 @@ namespace CraftManager
             CraftManager.log("Cache Ready");
         }
 
-        public AvailablePart fetch_part(string part_name){
+        internal AvailablePart fetch_part(string part_name){
             if(part_data.ContainsKey(part_name)){
                 return part_data[part_name];
             }
             return null;
         }
 
-        public string sanitize_path(string path){
+        private string sanitize_path(string path){
             return path.Replace(@"\","/");
         }
 
         //takes a CraftData craft and creates a ConfigNode that contains all of it's public properties, ConfigNodes is held in 
         //a <string, ConfigNode> dict with the full path as the key. 
-        public void write(CraftData craft){
+        internal void write(CraftData craft){
             ConfigNode node = new ConfigNode();
             foreach(var prop in craft.GetType().GetProperties()){
                 if(!ignore_fields.Contains(prop.Name)){
@@ -103,7 +103,7 @@ namespace CraftManager
         //Takes a CraftData craft object and if the cached data contains a matching path AND the checksum value matches
         //then the craft's properties are populated from the ConfigNode in the cache.  Returns true if matching data was
         //found, otherwise returns false, in which case the data will have to be interpreted from the .craft file.
-        public bool try_fetch(CraftData craft){
+        internal bool try_fetch(CraftData craft){
             string path = sanitize_path(craft.path);
             if(craft_data.ContainsKey(path) && craft_data[path].GetValue("checksum") == craft.checksum && craft_data[path].GetValue("part_sig") == installed_part_sig){
                 try{

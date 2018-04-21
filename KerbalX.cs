@@ -11,34 +11,34 @@ namespace CraftManager
     public class KerbalX
     {
 
-        public static bool enabled {
+        internal static bool enabled {
             get{ 
                 return CraftManager.kerbalx_integration_enabled;
             }
         }
-        public static string loaded_craft_type = "";
-        public static List<Version> versions = new List<Version>();
-        public static Dictionary<Version, bool> v_toggle = new Dictionary<Version, bool>();
-        public static List<Version> selected_versions{
+        internal static string loaded_craft_type = "";
+        internal static List<Version> versions = new List<Version>();
+        internal static Dictionary<Version, bool> v_toggle = new Dictionary<Version, bool>();
+        internal static List<Version> selected_versions{
             get{
                 return versions.FindAll(v => v_toggle[v]);
             }
         }
-        public static int download_queue_size = 0;
+        internal static int download_queue_size = 0;
 
-        public static List<string> craft_styles = new List<string>(){
+        internal static List<string> craft_styles = new List<string>(){
             "Ship", "Aircraft", "Spaceplane", "Lander", "Satellite", "Station", "Base", "Probe", "Rover", "Lifter" 
         };
 
         private static Dictionary<string, bool> selected_types_prev_state = null;
-        public static string bulk_download_log = "";
-        public static Vector2 log_scroll = new Vector2();
+        internal static string bulk_download_log = "";
+        internal static Vector2 log_scroll = new Vector2();
 
 
-        public delegate void DownloadCallback(ConfigNode craft_file);
-        public delegate void ActionCallback();
-        public delegate void RemoteCraftMatcher();
-        public delegate void CraftByVersionCallback(Dictionary<string, List<int>> cids_by_version, List<Version> versions);
+        internal delegate void DownloadCallback(ConfigNode craft_file);
+        internal delegate void ActionCallback();
+        internal delegate void RemoteCraftMatcher();
+        internal delegate void CraftByVersionCallback(Dictionary<string, List<int>> cids_by_version, List<Version> versions);
 
 
         internal static void login(){
@@ -99,13 +99,13 @@ namespace CraftManager
         }
 
 
-        public static void select_all_versions(){
+        internal static void select_all_versions(){
             foreach(Version v in versions){
                 v_toggle[v] = true;
             }
             CraftManager.main_ui.filter_craft();
         }
-        public static void select_default_versions(){
+        internal static void select_default_versions(){
             for(int i = 0; i < versions.Count; i++){
                 v_toggle[versions[i]] = i < 2;
             }
@@ -123,7 +123,7 @@ namespace CraftManager
             }         
         }
 
-        public static void close_login_dialog(){
+        internal static void close_login_dialog(){
             ModalDialog.close();
             if(CraftManager.login_ui != null){
                 GameObject.Destroy(CraftManager.login_ui);
@@ -160,7 +160,7 @@ namespace CraftManager
 
 
 
-        public static void bulk_download(List<int> ids, string save_dir, Callback callback){
+        internal static void bulk_download(List<int> ids, string save_dir, Callback callback){
 
             string save_path = Paths.joined(CraftManager.ksp_root, "saves", save_dir);
             if(Directory.Exists(save_path)){
@@ -205,7 +205,7 @@ namespace CraftManager
             }
         }
 
-        public static void get_craft_ids_by_version(CraftByVersionCallback callback){
+        internal static void get_craft_ids_by_version(CraftByVersionCallback callback){
             if(KerbalXAPI.logged_in()){
                 KerbalXAPI.fetch_existing_craft(() =>{                
                     Dictionary<string, List<int>> craft_ids_by_version = new Dictionary<string, List<int>>();
@@ -224,7 +224,7 @@ namespace CraftManager
             }
         }
 
-        public static void find_matching_remote_craft(CraftData craft){
+        internal static void find_matching_remote_craft(CraftData craft){
             RemoteCraftMatcher rcm = new RemoteCraftMatcher(() =>{
                 if(KerbalXAPI.user_craft != null){
                     List<int> list = new List<int>();
@@ -249,7 +249,7 @@ namespace CraftManager
 
         }
 
-        public static void download(int id, DownloadCallback callback){
+        internal static void download(int id, DownloadCallback callback){
             if_logged_in_do(() =>{
                 CraftManager.status_info = "Downloading craft from KerbalX...";
                 KerbalXAPI.download_craft(id, (craft_file_string, code) =>{
@@ -262,7 +262,7 @@ namespace CraftManager
             });
         }
 
-        public static void fetch_existing_craft_info(){
+        internal static void fetch_existing_craft_info(){
             if(KerbalXAPI.logged_in()){
                 CraftManager.status_info = "fetching craft info from KerbalX";
                 for(int i = 0; i < CraftData.all_craft.Count; i++){
@@ -274,7 +274,7 @@ namespace CraftManager
             }
         }
 
-        public static void check_download_queue(){
+        internal static void check_download_queue(){
             if(KerbalXAPI.logged_in()){
                 CraftManager.status_info = "checking KerbalX download queue";
                 KerbalXAPI.fetch_download_queue(craft_data =>{
@@ -284,14 +284,14 @@ namespace CraftManager
             }
         }
 
-        public static void load_remote_craft(){     
+        internal static void load_remote_craft(){     
             if_logged_in_do(() =>{
                 CraftManager.main_ui.select_sort_option("date_updated", false);
                 load_users_craft();
             });
         }
 
-        public static void load_users_craft(){
+        internal static void load_users_craft(){
             if_logged_in_do(() =>{
                 CraftManager.status_info = "fetching your craft from KerbalX";
                 loaded_craft_type = "users";
@@ -301,7 +301,7 @@ namespace CraftManager
             });
         }
 
-        public static void load_past_dowloads(){
+        internal static void load_past_dowloads(){
             if_logged_in_do(() =>{
                 CraftManager.status_info = "fetching you past downloads from KerbalX";
                 loaded_craft_type = "past_downloads";
@@ -311,7 +311,7 @@ namespace CraftManager
             });
         }
 
-        public static void load_favourites(){
+        internal static void load_favourites(){
             if_logged_in_do(() =>{
                 CraftManager.status_info = "fetching your favourites from KerbalX";
                 loaded_craft_type = "favourites";
@@ -321,7 +321,7 @@ namespace CraftManager
             });
         }
 
-        public static void load_download_queue(){
+        internal static void load_download_queue(){
             if_logged_in_do(() =>{
                 CraftManager.status_info = "fetching download queue from KerbalX";
                 loaded_craft_type = "download_queue";
@@ -333,7 +333,7 @@ namespace CraftManager
 
 
 
-        public static void load_local(){
+        internal static void load_local(){
             CraftManager.main_ui.kerbalx_mode = false;
             CraftManager.main_ui.select_sort_option(CraftManager.settings.get("craft_sort"), false);
             CraftManager.main_ui.selected_types = selected_types_prev_state;

@@ -211,7 +211,7 @@ namespace CraftManager
             GameEvents.OnAppFocus.Add(on_app_focus);
 
             if(DevTools.autostart){
-                show();                
+//                show();                
 //                HelpUI.open(gameObject);
             }
         }
