@@ -20,17 +20,18 @@ namespace CraftManager
 
             //default settings. These will populate settings.cfg if the file doesn't exist and also provides
             //a reference of which values to try and fetch from the confignode.
-            settings.Add("KerbalX_integration_enabled", "True");
+            settings.Add("show_initial_setup_dialog", "True");
+
+            settings.Add("KerbalX_integration_enabled", "False");
+            settings.Add("ask_to_populate_new_save", "True");
             settings.Add("replace_editor_load_button", "True");
             settings.Add("use_stock_toolbar", "True");
             settings.Add("use_editor_key_shortcuts", "True");
             settings.Add("screenshot_dir", "<ksp_install>/Screenshots");
 
-            settings.Add("ask_to_populate_new_save", "True");
-
-            settings.Add("exclude_stock_craft", "True");
-            settings.Add("craft_sort", "name");
+            settings.Add("exclude_stock_craft", "False");
             settings.Add("craft_sort_reverse", "False");
+            settings.Add("craft_sort", "name");
             settings.Add("sort_tags_by", "name");
             settings.Add("tag_filter_mode", "AND");
             settings.Add("tag_states", "");
@@ -70,6 +71,7 @@ namespace CraftManager
             }
             settings.Add(key, value);
             save();
+            CraftManager.settings = new CMSettings();
                 
         }
 
@@ -85,6 +87,54 @@ namespace CraftManager
             settings_data.Save(settings_path);
         }
 
+    }
+
+
+    [KSPAddon(KSPAddon.Startup.MainMenu, false)]
+    public class InitialSetup : CMUI
+    {
+        private void Start(){
+            if(bool.Parse(CraftManager.settings.get("show_initial_setup_dialog"))){
+                window_title = "Craft Manager Setup";
+                float inner_width = 700;
+                window_pos = new Rect(Screen.width -750, 50, inner_width, 5);                
+            } else{
+                GameObject.Destroy(this);
+            }
+        }
+
+        protected override void WindowContent(int win_id) {
+            label("Welcome to Craft Manager", "h1");
+            label("Do you want to enable KerbalX.com Integration?", "h2");
+            v_section("dialog.section", () =>{
+                label(
+                    "KerbalX Integration is disabled by default. You don't need it to use the core CraftManager features.\n" + 
+                    "Enabling KerbalX Integration will let you share your craft on KerbalX & download craft"
+                );
+                label("You will need to have a KerbalX account (it's free) and CraftManager will need to make requests to KerbalX.com");
+                label("you can always enable/disable KerbalX integration in the CraftManager settings", "small");
+                
+            });
+            section(() =>{
+                button("Yes, Enable KerbalX Integration", "button.large", () =>{
+                    CraftManager.settings.set("KerbalX_integration_enabled", "True");
+                    CraftManager.settings.set("show_initial_setup_dialog", "False");
+                    gameObject.AddOrGetComponent<CMKX_login>();
+                    GameObject.Destroy(this);
+                });
+                button("No, just use CraftManager core features", "button.large", () =>{
+                    CraftManager.settings.set("KerbalX_integration_enabled", "False");
+                    CraftManager.settings.set("show_initial_setup_dialog", "False");
+                    GameObject.Destroy(this);
+                });
+            });
+            section(() =>{
+                fspace();
+                label(StyleSheet.assets["logo_large"], 250f, 50f);
+            });
+
+        }
+        
     }
 
     public class SettingsUI : CMUI
@@ -160,7 +210,7 @@ namespace CraftManager
                         string path = new_screenshot_location.Replace("<ksp_install>", KSPUtil.ApplicationRootPath);
                         if(Directory.Exists(path)){
                             settings.set("screenshot_dir", new_screenshot_location);
-                            CraftManager.settings = new CMSettings(); //re-initialize settings so updated values are set on CraftManager static variables
+//                            CraftManager.settings = new CMSettings(); //re-initialize settings so updated values are set on CraftManager static variables
                         }else{
                             setting_error_screenshot_dir = "unable to find directory: "+ path;
                         }
@@ -204,7 +254,7 @@ namespace CraftManager
                             settings.set("replace_editor_load_button", true.ToString());
                             setting_error_open_opts = "You need to have at least 1 of the above three options selected";
                         }
-                        CraftManager.settings = new CMSettings(); //re-initialize settings so updated values are set on CraftManager static variables
+//                        CraftManager.settings = new CMSettings(); //re-initialize settings so updated values are set on CraftManager static variables
                     });
                 });
             });   
