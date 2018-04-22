@@ -5,19 +5,6 @@
 //2017-10-05_22-01-21
 //Branch: master
 
-/* 
-    TODO List
-    - KerbalX Integration
-        - KX Login interface
-        
-    - settings UI    
-    - Tagders - Tags as folders, different mode which limits each craft to one tag and only one tag can be selected at at time.
-
-    TODO BUGS
-    - description field does not save chars after new line. Newline used in game is some other char
-    - Change to description doesn't update the editor description field
-
-*/
 
 using System;
 using System.IO;
@@ -35,7 +22,7 @@ namespace CraftManager
     public class CraftManager : MonoBehaviour
     {
 
-        public static string version = "0.0.4";
+        public static string version = "0.0.5";
 
         //Settings
         internal static CMSettings settings;

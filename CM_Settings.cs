@@ -111,7 +111,7 @@ namespace CraftManager
                     "KerbalX Integration is disabled by default. You don't need it to use the core CraftManager features.\n" + 
                     "Enabling KerbalX Integration will let you share your craft on KerbalX & download craft"
                 );
-                label("You will need to have a KerbalX account (it's free) and CraftManager will need to make requests to KerbalX.com");
+                label("You will need to have a KerbalX account and CraftManager will need to make requests to KerbalX.com");
                 label("you can always enable/disable KerbalX integration in the CraftManager settings", "small");
                 
             });
