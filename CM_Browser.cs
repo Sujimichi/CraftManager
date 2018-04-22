@@ -1429,7 +1429,7 @@ namespace CraftManager
             if(craft.upload_data == null){ //create new instance of upload data if it's not already been set
                 craft.upload_data = KerbalXUploadData.prepare_for(craft);
             }
-            craft.update_to_id = craft.matching_remote_ids.Count == 0 ? 0 : craft.matching_remote_ids[0];
+            craft.upload_data.update_to_id = craft.matching_remote_ids.Count == 0 ? 0 : craft.matching_remote_ids[0];
 
             string menu_label = "";
             string kx_url = "";
@@ -1458,9 +1458,9 @@ namespace CraftManager
             show_dialog("Update KerbalX Craft", "", d =>{
                 d_offset.x = -d.window_pos.x; d_offset.y = -d.window_pos.y;
 
-                if(craft.update_to_id != 0){
-                    menu_label = KerbalXAPI.user_craft[craft.update_to_id]["url"].Replace(("/" + KerbalXAPI.logged_in_as() + "/"), "");
-                    kx_url = KerbalXAPI.url_to(KerbalXAPI.user_craft[craft.update_to_id]["url"]);
+                if(craft.upload_data.update_to_id != 0){
+                    menu_label = KerbalXAPI.user_craft[craft.upload_data.update_to_id]["url"].Replace(("/" + KerbalXAPI.logged_in_as() + "/"), "");
+                    kx_url = KerbalXAPI.url_to(KerbalXAPI.user_craft[craft.upload_data.update_to_id]["url"]);
                 }else{
                     menu_label = "Select a craft";
                 }
@@ -1471,7 +1471,7 @@ namespace CraftManager
                     }
                     label("Select which craft you want to update");
                     dropdown(menu_label, StyleSheet.assets["caret-down"], "upload_select_menu", upload_select_menu, d, d_offset, d.window_pos.width*0.8f, (sel)=>{
-                        craft.update_to_id = int.Parse(sel);
+                        craft.upload_data.update_to_id = int.Parse(sel);
                     });
                     if(upload_select_menu.items != upload_select_data_all){
                         section(()=>{
@@ -1490,7 +1490,7 @@ namespace CraftManager
                         button(kx_url, "hyperlink.update_url", 500f, 800f, ()=>{ Application.OpenURL(kx_url); });
                         if(!show_craft_select_menu){
                             dropdown("edit", StyleSheet.assets["caret-down"], "upload_select_menu_2", upload_select_menu_2, d, d_offset, d.window_pos.width*0.8f, (sel)=>{
-                                craft.update_to_id = int.Parse(sel);
+                                craft.upload_data.update_to_id = int.Parse(sel);
                             });
                         }                        
                     });
@@ -1501,8 +1501,9 @@ namespace CraftManager
                 }
 
                 GUILayout.Space(10f);
-                gui_state(craft.update_to_id > 0, ()=>{
+                gui_state(craft.upload_data.update_to_id > 0, ()=>{
                     button("Confirm Update", "button.large", ()=>{
+                        CraftManager.log("upload id is " + craft.upload_data.update_to_id.ToString());
                         craft.upload_data.put();
                         close_dialog();
                     });

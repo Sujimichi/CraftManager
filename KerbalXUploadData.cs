@@ -13,6 +13,7 @@ namespace CraftManager
 
         public CraftData craft = null;
 
+        public int update_to_id = 0;        //KerbalX craft ID, which this craft would send an update to. (0 is considered null/false as 0 can never be a KerbalX ID)
         internal string craft_name = "";
         internal string hash_tags = "";
         internal string craft_type = "Ship";
@@ -137,7 +138,7 @@ namespace CraftManager
         }
 
         public void put(){            
-            CraftManager.log("Updating remote craft ID: " + craft.update_to_id.ToString());
+            CraftManager.log("Updating remote craft ID: " + update_to_id.ToString());
             CraftManager.main_ui.show_transfer_indicator = true;
             CraftManager.main_ui.transfer_is_upload = false;
 
@@ -146,7 +147,7 @@ namespace CraftManager
             craft_data.AddField("craft_file", System.IO.File.ReadAllText(craft.path));
             craft_data.AddField("part_data", JSONX.toJSON(part_info()));
 
-            KerbalXAPI.update_craft(craft.update_to_id, craft_data, (resp, code) =>{
+            KerbalXAPI.update_craft(update_to_id, craft_data, (resp, code) =>{
                 if(code == 200){
                     CraftManager.log("craft updated OK");
                     KerbalXAPI.fetch_existing_craft(()=>{                        

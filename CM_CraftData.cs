@@ -263,7 +263,7 @@ namespace CraftManager
         public string new_name = "";
         public float list_position = 0;
         public float list_height = 0;
-        public int update_to_id = 0; //KerbalX craft ID, which this craft would send an update to. (0 is considered null/false as 0 can never be a KerbalX ID)
+
 
 
         //Attributes specific to KerbalX Craft
