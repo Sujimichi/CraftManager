@@ -138,7 +138,6 @@ namespace CraftManager
         }
 
         public void put(){            
-            CraftManager.log("Updating remote craft ID: " + update_to_id.ToString());
             CraftManager.main_ui.show_transfer_indicator = true;
             CraftManager.main_ui.transfer_is_upload = false;
 

@@ -1503,7 +1503,6 @@ namespace CraftManager
                 GUILayout.Space(10f);
                 gui_state(craft.upload_data.update_to_id > 0, ()=>{
                     button("Confirm Update", "button.large", ()=>{
-                        CraftManager.log("upload id is " + craft.upload_data.update_to_id.ToString());
                         craft.upload_data.put();
                         close_dialog();
                     });
