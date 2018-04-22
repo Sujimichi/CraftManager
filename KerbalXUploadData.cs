@@ -110,8 +110,8 @@ namespace CraftManager
 
                 int pic_count = 0;
                 foreach(Image image in images){
-                    //                    craft_data.AddField("images[image_" + pic_count++ + "]", Convert.ToBase64String(image.read_as_jpg()));
-                    craft_data.AddField("image_urls[url_" + pic_count++ + "]", "https://i.imgur.com/nSUkIe0.jpg"); //TODO switch this off again.
+                    craft_data.AddField("images[image_" + pic_count++ + "]", Convert.ToBase64String(image.read_as_jpg()));
+//                    craft_data.AddField("image_urls[url_" + pic_count++ + "]", "https://i.imgur.com/nSUkIe0.jpg");
                 }
 
                 KerbalXAPI.upload_craft(craft_data, (resp, code) =>{
