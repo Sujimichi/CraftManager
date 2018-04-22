@@ -92,13 +92,15 @@ namespace CraftManager
         bool opt = false;
         float lhs_width = 600;
         float rhs_width = 80;
+        float inner_width = 0;
         CMSettings settings = CraftManager.settings;
         string new_screenshot_location = "";
         string setting_error_open_opts = "";
         string setting_error_screenshot_dir = "";
+        Vector2 settings_scroll = new Vector2();
 
         private void Start(){
-            float inner_width = lhs_width + rhs_width;
+            inner_width = lhs_width + rhs_width+40;
             window_title = "Craft Manager Settings";
             if(CraftManager.main_ui != null){                
                 window_pos = new Rect(CraftManager.main_ui.window_pos.x + CraftManager.main_ui.window_pos.width / 2 - inner_width / 2, CraftManager.main_ui.window_pos.y + 100, inner_width, 5);
@@ -110,62 +112,68 @@ namespace CraftManager
         }
 
         protected override void WindowContent(int win_id) { 
-
-            v_section("dialog.section", () =>{
-                setting_section("KerbalX_integration_enabled", "KerbalX.com Integration", "Enabled", "Enable", 
-                    "Enables you to upload and download craft from KerbalX.com", 
-                    "(requires a KerbalX.com account & enables the mod to make requests to KerbalX.com)"
-                );
-            });
-            v_section("dialog.section", () =>{
-                setting_section("replace_editor_load_button", "Replace load button", 
-                    "The open button in the editors will open Craft Manager instead of the stock craft browser.", 
-                    "(you need to exit and re-enter the editors for this to take effect)"
-                );
-                setting_section("use_stock_toolbar", "Use the Stock Toolbar",
-                    "Have an icon in the stock toolbar to open Craft Manager",
-                    "(you need to restart KSP to see changes)"
-                );
-                setting_section("use_editor_key_shortcuts", "Enable Editor Keyboard shortcuts",
-                    "ctrl+o - Open Craft Manager, ctrl+n - new craft/clear editor, ctrl+s - save current craft"
-                );
-            });
-            if(!String.IsNullOrEmpty(setting_error_open_opts)){
-                label(setting_error_open_opts, "error");
-            }
-
-            v_section("dialog.section", () =>{
-                string prev_new_screenshot_location = new_screenshot_location;
-                section(()=>{
-                    label("Screenshot Folder:", "h2.tight");
-                    new_screenshot_location = GUILayout.TextField(new_screenshot_location);                    
-                });
-                section(()=>{
-                    label("enter the full path to your Screenshot folder,\nor use a relative path in this KSP install by starting with '<ksp_install>'");
-                    fspace();
-                    button("use default", ()=>{
-                        new_screenshot_location = "<ksp_install>/Screenshots";
-                    });
-                });
-                    
-                if(new_screenshot_location != prev_new_screenshot_location){
-                    setting_error_screenshot_dir = "";
-                    string path = new_screenshot_location.Replace("<ksp_install>", KSPUtil.ApplicationRootPath);
-                    if(Directory.Exists(path)){
-                        settings.set("screenshot_dir", new_screenshot_location);
-                        CraftManager.settings = new CMSettings(); //re-initialize settings so updated values are set on CraftManager static variables
-                    }else{
-                        setting_error_screenshot_dir = "unable to find directory: "+ path;
+            settings_scroll = scroll(settings_scroll, "settings.scroll", inner_width-8, 400, (w) =>{
+                v_section("dialog.section", () =>{
+                    setting_section("KerbalX_integration_enabled", "KerbalX Integration", "Enabled", "Enable",                     
+                        "Enables you to share your craft on KerbalX, download them and fetch other users craft.",
+                        "(requires a KerbalX account & enables the mod to make requests to https://KerbalX.com)"
+                    );
+                    if(bool.Parse(settings.get("KerbalX_integration_enabled"))){
+                        setting_section("ask_to_populate_new_save", "Auto populate new save", 
+                            "When you create a new save Craft Manager will ask you if you want to fetch craft from KerbalX"
+                        );
                     }
+                });
+                v_section("dialog.section", () =>{
+                    setting_section("replace_editor_load_button", "Replace load button", 
+                        "The open button in the editors will open Craft Manager instead of the stock craft browser.", 
+                        "(you need to exit and re-enter the editors for this to take effect)"
+                    );
+                    setting_section("use_stock_toolbar", "Use the Stock Toolbar",
+                        "Have an icon in the stock toolbar to open Craft Manager",
+                        "(you need to restart KSP to see changes)"
+                    );
+                    setting_section("use_editor_key_shortcuts", "Enable Editor Keyboard shortcuts",
+                        "ctrl+o - Open Craft Manager, ctrl+n - new craft/clear editor, ctrl+s - save current craft"
+                    );
+                });
+                if(!String.IsNullOrEmpty(setting_error_open_opts)){
+                    label(setting_error_open_opts, "error");
+                }
+                
+                v_section("dialog.section", () =>{
+                    string prev_new_screenshot_location = new_screenshot_location;
+                    section(()=>{
+                        label("Screenshot Folder:", "h2.tight");
+                        new_screenshot_location = GUILayout.TextField(new_screenshot_location);                    
+                    });
+                    section(()=>{
+                        label("enter the full path to your Screenshot folder,\nor use a relative path in this KSP install by starting with '<ksp_install>'");
+                        fspace();
+                        button("use default", ()=>{
+                            new_screenshot_location = "<ksp_install>/Screenshots";
+                        });
+                    });
+                    
+                    if(new_screenshot_location != prev_new_screenshot_location){
+                        setting_error_screenshot_dir = "";
+                        string path = new_screenshot_location.Replace("<ksp_install>", KSPUtil.ApplicationRootPath);
+                        if(Directory.Exists(path)){
+                            settings.set("screenshot_dir", new_screenshot_location);
+                            CraftManager.settings = new CMSettings(); //re-initialize settings so updated values are set on CraftManager static variables
+                        }else{
+                            setting_error_screenshot_dir = "unable to find directory: "+ path;
+                        }
+                    }
+                });
+                if(!String.IsNullOrEmpty(setting_error_screenshot_dir)){
+                    label(setting_error_screenshot_dir, "error");                
                 }
             });
-            if(!String.IsNullOrEmpty(setting_error_screenshot_dir)){
-                label(setting_error_screenshot_dir, "error");                
-            }
 
             section(() =>{
                 fspace();
-                button("close", close);
+                button("close", "button.large", close);
             });        
         }
 

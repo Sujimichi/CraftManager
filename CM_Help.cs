@@ -15,6 +15,7 @@ namespace CraftManager
         float lhs_width = 150;
         Vector2 scroll_pos = new Vector2();
         bool return_to_top = false;
+        string active_content = "intro";
 
         private void Start(){
             float inner_width = lhs_width + rhs_width + 10;
@@ -25,19 +26,14 @@ namespace CraftManager
                 window_pos = new Rect(Screen.width/2 - inner_width/2, Screen.height/3, inner_width, 5);
             }
             CraftManager.help_ui = this;
-            content = intro_content;
         }
-
-        protected delegate void HelpContent(float content_width);
-        HelpContent content;
-
 
         protected override void WindowContent(int win_id){ 
             section((w) =>{
                 v_section(lhs_width, 300f, "dialog.section", (w2) =>{
-                    button("Intro", ()=>{switch_content("intro");});
-                    button("Keyboard Shortcuts", ()=>{switch_content("keyboard_shortcuts");});
-                    button("Tags", ()=>{switch_content("tags");});
+                    content_button("Intro", "intro");
+                    content_button("Keyboard Shortcuts", "keyboard_shortcuts");
+                    content_button("Tags", "tags");
                 });
                 v_section(10, 300f, (w2)=>{
                     label("");
@@ -48,26 +44,40 @@ namespace CraftManager
                         return_to_top = false;
                     }
                     scroll_pos = scroll(scroll_pos, w2-8, 294f, (inner_width)=>{
-                        content(inner_width-80);
+                        show_content(active_content, inner_width-80);
                     });
                 });
             });
             section(() =>{
                 fspace();
-                button("close", close);
+                button("close", "button.large", close);
+            });
+        }
+
+        private void content_button(string title, string content_name){
+            button(title, "button" + (active_content==content_name ? ".down" : ""), ()=>{
+                switch_content(content_name);
             });
         }
 
         public void switch_content(string content_name){
-            switch(content_name){
-                case "intro" :              content = intro_content;break;
-                case "keyboard_shortcuts" : content = keyboard_shortcuts;break;
-                case "tags" :               content = tags_content;break;
-                default :                   content = intro_content;break;
-            }
+            active_content = content_name;
             return_to_top = true;
         }
 
+        private void show_content(string content_name, float inner_width){
+            switch(content_name){
+                case "intro":
+                    intro_content(inner_width);
+                    break;
+                case "keyboard_shortcuts":
+                    keyboard_shortcuts(inner_width);
+                    break;
+                case "tags":
+                    tags_content(inner_width);
+                    break;
+            }
+        }
 
         private void intro_content(float content_width){
             label("Craft Manager Basics", "h2");
@@ -76,16 +86,12 @@ namespace CraftManager
                 "The top left of the interface lets you switch between SPH/VAB and Subassembly craft.\n" +
                 "(You can hold CTRL while clicking to select them together or press 'All'.)"
             );
-
             label("In the top right, the 'Include Stock Craft' toggle lets you show/hide the stock craft that come with KSP");
-            label("and to the right of that is a menu to access your settings and this help section....so you probablly already found that if you're here!", "small.compact");
-
             label(
                 "On the left is the main search field which allows you to search for craft by name.\n" + 
-                "To the right of the search field is the 'KerbalX Craft' button (only shown if KerbalX integration is enabled) that will switch you to browsing your craft on KerbalX\n." + 
-                "And right of that is a dropdown menu which lets you switch between the different saves (in this KSP install) so you can view/load craft from other saves"
+                "To the right of the search field is the 'KerbalX Craft' button (only shown if KerbalX integration is enabled) that will switch you to browsing your craft on KerbalX.\n" + 
+                "And right of that is a dropdown menu which lets you switch between the different saves (in this KSP install) so you can view/load craft from other saves."
             );
-
             label(
                 "The main section of the interace is divided into 3 panels. On the left are the tags, in the middle is the craft list and when you click on a craft, its details will be shown in the right hand panel"
             );

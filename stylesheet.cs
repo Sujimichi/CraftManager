@@ -581,6 +581,10 @@ namespace CraftManager
                 s.padding.top += 4;
             });
 
+            define_style("settings.scroll", base_skin.scrollView, s =>{
+                s.padding = new RectOffset(0, 0, 0, 0);    
+            });
+
             //set the custom styles onto the base_skin;
             skin = Instantiate(base_skin);
             GUIStyle[] temp = new GUIStyle[custom_styles.Count];
