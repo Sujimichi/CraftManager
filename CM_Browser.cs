@@ -743,7 +743,7 @@ namespace CraftManager
                         });
                         section(()=>{
                             DateTime date = DateTime.FromBinary(long.Parse(craft.last_updated_time));
-                            label("Last Updated", "bold.compact");
+                            label("Last Edited", "bold.compact");
                             label(date.time_ago(), "compact");
                         });
 

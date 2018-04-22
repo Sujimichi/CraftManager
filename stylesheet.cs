@@ -543,7 +543,7 @@ namespace CraftManager
 
             define_style("bottom.section", base_skin.label, s =>{
                 s.margin.top = 0;
-                s.margin.bottom = 30;
+                s.margin.bottom = 20;
                 s.padding.top = 0;
             });
             define_style("thin.section", base_skin.label, s =>{

@@ -149,9 +149,17 @@ namespace CraftManager
                 "Tags can be given a 'rule' and will then automatically tag any craft which match that rule.\n" + 
                 "Rules are made up of an attribute, a comparitor and a value, for example;\n" + 
                 "'mass', >, 42 - would match any craft with a mass greater than 42 tons.\n" + 
-                "'name', includes, \"test\" - would match any craft with the word \"test\" in its name.\n" + 
+                "'crew capacity', =, 3 - would match craft that take exactly 3 crew.\n" + 
+                "'name', includes, \"falcon\" - would match any craft with the word \"falcon\" in its name.\n" + 
                 "'name', starts_with, \"sat\" - would match craft with names that start with \"sat\".\n" + 
-                "When creating/editing a tag, click 'Use Auto Tag rule', and then select the attribute, comparitor and value.\n"
+                "'stock', =, True - matches the preset craft which come with KSP\n" + 
+                "When creating/editing a tag, click 'Use Auto Tag rule', and then select the attribute, comparitor and value. The available comparitors change according to the datatype of the attribute you select.\n"
+            );
+
+            label("Excluding Tags", "h3");
+            label(
+                "If you right click on tag and select 'Exclude' then any craft with that tag will be filtered out.\n" +
+                "You can use this in conjuction with rule based tags, ie: create a tag with the rule 'name'-includes-'test' and then set it to be excluded and now all your rough test craft (assuming you called them 'test-something' or 'something-test') will be filtered out.\n"
             );
 
             label("Tag Filtering Modes", "h3");
