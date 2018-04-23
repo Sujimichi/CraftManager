@@ -250,9 +250,7 @@ namespace CraftManager
                 cur_selected_name = EditorLogic.fetch.ship.shipName;
             }
 
-            if(!kerbalx_mode){
-                refresh();
-            }
+            if(!kerbalx_mode){refresh();}
 
             //if a craft which matches the name and save_dir of the currently loaded craft is in the filtered results then mark it to be focused on when the UI opens
             if(cur_selected_craft_path != null){
@@ -260,7 +258,6 @@ namespace CraftManager
             } else if(cur_selected_name.ToLower() != "untitled space craft"){
                 auto_focus_on(CraftData.filtered.Find(c => c.save_dir == current_save_dir && c.name == cur_selected_name));
             }
-
 
             if(KerbalX.enabled){
                 update_remote_craft_info();
