@@ -273,10 +273,15 @@ namespace CraftManager
                 s.margin = new RectOffset(0,0,15,15);
             });
             define_style("button.close", base_skin.button, s =>{
-                s.fontSize = 30;
                 s.normal.textColor = new Color(0.4f,0.2f,0.1f,1);
                 s.hover.textColor = new Color(0.8f,0.4f,0.2f,1);
                 s.margin = new RectOffset(0,8,15,15);
+                s.fontSize = 30;
+            });
+            define_style("button.close.top", "button.close", s =>{
+                s.margin = base_skin.button.margin;
+                s.fontSize = base_skin.button.fontSize;
+                s.fixedHeight = 30;
             });
 
 

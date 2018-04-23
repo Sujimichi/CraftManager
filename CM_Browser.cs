@@ -367,6 +367,7 @@ namespace CraftManager
                         case "help" : HelpUI.open(gameObject); break;
                     }
                 });
+                button("X", "button.close.top", 30f, hide);
 
             });
             section(() =>{
