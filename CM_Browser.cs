@@ -31,6 +31,7 @@ namespace CraftManager
 
         private DropdownMenuData save_menu_options= new DropdownMenuData();
         private DropdownMenuData tags_menu_content= new DropdownMenuData();
+        private DropdownMenuData inline_tag_menu;
         private DropdownMenuData tag_sort_options = new DropdownMenuData(new Dictionary<string, string> { {"name", "Name"}, {"craft_count", "Craft Count"} });
         private DropdownMenuData tag_filter_modes = new DropdownMenuData(new List<string> { "AND", "OR" });
         private DropdownMenuData upload_image_mode= new DropdownMenuData(new List<string> { "thumb", "list" });
@@ -38,7 +39,8 @@ namespace CraftManager
         private DropdownMenuData sort_options = new DropdownMenuData(new Dictionary<string, string>{
             {"name", "Name"}, {"cost", "Cost"}, {"crew_capacity", "Crew Capacity"}, {"mass", "Mass"}, {"part_count", "Part Count"}, {"stage_count", "Stages"}, {"date_created", "Created"}, {"date_updated", "Updated"}
         });
-        
+
+
         private struct MenuOptions{
             public string text;
             public string action;
@@ -83,6 +85,7 @@ namespace CraftManager
         private bool tag_state = false;
         private bool ctrl_key_down = false;
         private bool archived_tag = false;
+        private bool open_tag_menu = false;
         private float tag_content_height = 0;
         private float last_tag_content_height = 0;
         private float tag_margin_offset = 0;
@@ -219,7 +222,7 @@ namespace CraftManager
             }
 
             if(DevTools.autostart){
-//                show();                
+                show();                
 //                HelpUI.open(gameObject);
             }
             CraftManager.log("CMUI-Ready");
@@ -536,7 +539,7 @@ namespace CraftManager
                     }
                 } else if(evt.right_click){
                     if(!craft.remote){
-                        DropdownMenuData menu = new DropdownMenuData(new Dictionary<string, string>{{"rename", "Rename"}, {"transfer", "Transfer"}});
+                        DropdownMenuData menu = new DropdownMenuData(new Dictionary<string, string>{{"add_tag", "Add Tag"}, {"rename", "Rename"}, {"transfer", "Transfer"}});
                         if(save_menu_options.items.Count > 2){menu.items.Add("move_copy", "Move/Copy");}
                         menu.special_items.Add("delete", "Delete");
                         menu.special_items_first = false;
@@ -546,6 +549,7 @@ namespace CraftManager
 
                         menu.set_attributes(container, offset, this, 0f, "menu.background", "menu.item.craft", (resp) => {
                             switch(resp){
+                                case "add_tag"  : prepare_tag_menu(craft, container); break;
                                 case "rename"   : rename_craft_dialog(craft);break;
                                 case "transfer" : transfer_craft_dialog(craft);break;
                                 case "move_copy": move_copy_craft_dialog(craft);break;
@@ -556,6 +560,10 @@ namespace CraftManager
                     }
                 }
             });
+            if(open_tag_menu){
+                open_tag_menu  = false;
+                gameObject.AddOrGetComponent<Dropdown>().open(inline_tag_menu);
+            }
         }
 
         //Left Hand Section: Tags
@@ -812,15 +820,7 @@ namespace CraftManager
                                 tags_menu_content.selected_items = craft.tag_names();
                                 gui_state(!upload_interface_ready, ()=>{
                                     dropdown("Add Tag", StyleSheet.assets["caret-down"], "add_tag_menu", tags_menu_content, this, scroll_relative_pos, 70f, "Button", "menu.background", "menu.item.small", resp => {
-                                        if(resp == "new_tag"){
-                                            create_tag_dialog(false, craft);
-                                        }else{
-                                            if(craft.tag_names().Contains(resp)){
-                                                Tags.untag_craft(craft, resp);
-                                            }else{                                    
-                                                Tags.tag_craft(craft, resp);
-                                            }
-                                        }
+                                        respond_to_tag_menu(craft, resp);
                                     });
                                 });
                             });
@@ -858,7 +858,7 @@ namespace CraftManager
                 });
             });
         }
-            
+
         //KerbalX upload section (replaces main and rhs sections)
         protected void draw_kerbalx_upload_section(float section_width){
             adjusted_section_width = section_width - 26; //account for close_section 'button' 
@@ -1238,6 +1238,35 @@ namespace CraftManager
                     craft_list_drag_force.y += 0.2f;
                 }
             }            
+        }
+
+        //prepare to open a tag menu, triggered from another dropdown menu, which is why this is a bit odd. It has to be opened after the first menu has been closed (and destroyed)
+        //so this method is called from the frist menu which sets up the tag menu and sets a flag (open_tag_menu).  After this call the first menu closes, but then on the next pass
+        //the open_tag_menu flag triggers the opening of this second menu.
+        protected void prepare_tag_menu(CraftData craft, Rect container){
+            inline_tag_menu= new DropdownMenuData();
+            inline_tag_menu.remote_data = new DataSource(() => { 
+                return Tags.names.FindAll(t => !Tags.instance.autotags_list.Contains(t));
+            }); 
+            inline_tag_menu.special_items.Add("new_tag", "New Tag");
+            inline_tag_menu.selected_items = craft.tag_names();
+            inline_tag_menu.offset_menu = false;
+            inline_tag_menu.set_attributes(container, new Rect(0,0,0,0), this, 0f, "menu.background", "menu.item.small", (resp) =>{
+                respond_to_tag_menu(craft, resp);
+            });
+            open_tag_menu = true;
+        }
+
+        protected void respond_to_tag_menu(CraftData craft, string resp){
+            if(resp == "new_tag"){
+                create_tag_dialog(false, craft);
+            }else{
+                if(craft.tag_names().Contains(resp)){
+                    Tags.untag_craft(craft, resp);
+                }else{                                    
+                    Tags.tag_craft(craft, resp);
+                }
+            }
         }
 
         //load/reload craft from the active_save_dir and apply any active filters
