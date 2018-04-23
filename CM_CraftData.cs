@@ -32,7 +32,6 @@ namespace CraftManager
             if(cache == null){
                 cache = new CraftDataCache();                
             }
-            CraftManager.log("Loading Craft Files");
             file_load_count = 0;
             cache_load_count = 0;
 
@@ -60,7 +59,6 @@ namespace CraftManager
         }
 
         public static void load_stock_craft_from_files(){            
-            CraftManager.log("Loading Stock Craft");
             foreach(string path in Directory.GetFiles(Paths.joined(CraftManager.ksp_root, "Ships"), "*.craft", SearchOption.AllDirectories)){
                 new CraftData(path, true);
             }
