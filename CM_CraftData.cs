@@ -496,8 +496,11 @@ namespace CraftManager
                 }
                 if(invalid.Count == 0){
                     string new_path = path.Replace(name + ".craft", new_name + ".craft");
+                    if(File.Exists(new_path)){
+                        return "Another craft already has this name";
+                    }
                     FileInfo file = new FileInfo(path);
-                    if(file.Exists){                    
+                    if(file.Exists){                                            
                         try{
                             file.MoveTo(new_path);
                         }
