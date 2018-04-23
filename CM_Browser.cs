@@ -411,7 +411,7 @@ namespace CraftManager
                 //sort menu
                 if(show_headers){
                     section(inner_width, section_header_height, ()=>{
-                        label("Showing " + CraftData.filtered.Count + " out of " + CraftData.all_craft.Count + " Craft", "h2");
+                        label("Showing " + CraftData.filtered.Count + " Craft", "h2");
                         fspace();
                         if(sort_menu_width == 0){ //calculate the initial sort menu button width. should only happen on the first pass
                             sort_menu_width = GUI.skin.button.CalcSize(new GUIContent("Sort: " + sort_options.items[sort_opt])).x;
