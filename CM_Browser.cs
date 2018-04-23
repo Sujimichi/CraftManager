@@ -1297,6 +1297,7 @@ namespace CraftManager
             active_save_dir = save_name;
             save_menu_width = GUI.skin.button.CalcSize(new GUIContent("Save: " + active_save_dir)).x;
             Tags.load(active_save_dir);
+            stock_craft_loaded = false;
             refresh();
         }
 
