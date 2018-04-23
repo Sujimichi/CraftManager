@@ -262,6 +262,20 @@ namespace CraftManager
             });
         }
 
+        internal static void remove_from_download_queue(CraftData craft){
+            if_logged_in_do(() =>{
+                KerbalXAPI.remove_from_queue(craft.remote_id, (resp, code)=>{                    
+                    if(code==200){
+                        CraftData.all_craft.Remove(craft);
+                        CraftData.filtered.Remove(craft);
+                        KerbalXAPI.fetch_download_queue(craft_data =>{
+                            download_queue_size = craft_data.Count;
+                        });
+                    }
+                });
+            });
+        }
+
         internal static void fetch_existing_craft_info(){
             if(KerbalXAPI.logged_in()){
                 CraftManager.status_info = "fetching craft info from KerbalX";

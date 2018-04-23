@@ -773,6 +773,11 @@ namespace CraftManager
                             }else{                                
                                 button("Download", "button.load", download);
                             }
+                            if(KerbalX.loaded_craft_type == "download_queue"){
+                                button("remove from download", ()=>{
+                                    KerbalX.remove_from_download_queue(craft);
+                                });
+                            }
                         }else{
                             GUILayout.Space(15);
                             gui_state(!upload_interface_ready, ()=>{
