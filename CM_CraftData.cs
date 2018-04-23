@@ -551,7 +551,7 @@ namespace CraftManager
         public string save_description(){
             try{
                 ConfigNode nodes = ConfigNode.Load(path);
-                nodes.SetValue("description", description);
+                nodes.SetValue("description", description.Replace("\n","¨"));
                 nodes.Save(path);
                 initialize(path, stock_craft);  //reprocess the craft file
                 return "200";

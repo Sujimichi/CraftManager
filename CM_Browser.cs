@@ -834,8 +834,7 @@ namespace CraftManager
                             }
                         });
                         section(() => {
-                            
-                            label(craft.description);
+                            label(craft.description.Replace("¨","\n"));
                         });
                     };
                 });
@@ -1552,7 +1551,7 @@ namespace CraftManager
                 GUI.SetNextControlName("dialog_focus_field");
                 area_height = skin.textArea.CalcHeight(new GUIContent(CraftData.selected_craft.description), d.window_pos.width)+10;
                 if(area_height < 150f){area_height=150f;}
-                CraftData.selected_craft.description = GUILayout.TextArea(CraftData.selected_craft.description, height(area_height));
+                CraftData.selected_craft.description = GUILayout.TextArea(CraftData.selected_craft.description.Replace("¨", "\n"), height(area_height));
                 section(()=>{
                     fspace();
                     button("Cancel", ()=>{
