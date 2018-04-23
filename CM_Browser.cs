@@ -210,10 +210,16 @@ namespace CraftManager
 
             GameEvents.OnAppFocus.Add(on_app_focus);
 
+            if(!File.Exists(CraftDataCache.cache_path)){
+                CraftManager.log("persistent cache file not found");
+                CraftData.load_craft_from_files(active_save_dir==all_saves_ref ? null : active_save_dir);
+            }
+
             if(DevTools.autostart){
-                show();                
+//                show();                
 //                HelpUI.open(gameObject);
             }
+            CraftManager.log("CMUI-Ready");
         }
                 
 
@@ -1093,7 +1099,7 @@ namespace CraftManager
         //Collect currently active filters into a Dictionary<string, object> which is then be passed to 
         //filter_craft on CraftData (which does the actual filtering work).
         public void filter_craft(){
-            if(!exclude_stock_craft && !stock_craft_loaded){ //load stock craft if they've not yet been loaded and option to exclude stock is switched off.
+            if(CraftData.cache != null && !exclude_stock_craft && !stock_craft_loaded){ //load stock craft if they've not yet been loaded and option to exclude stock is switched off.
                 CraftData.load_stock_craft_from_files();
             }
             Dictionary<string, object> search_criteria = new Dictionary<string, object>();
@@ -1287,7 +1293,6 @@ namespace CraftManager
                 selected_types["Subassemblies"] = false;
             }
             selected_types[key] = val;
-
             //ensure that at least one of the options is selected (if none are selected, select the one just clicked).
             selected_type_count = 0;
             foreach(bool v in selected_types.Values){if(v){selected_type_count++;}}

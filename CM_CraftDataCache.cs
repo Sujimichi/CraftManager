@@ -8,7 +8,7 @@ namespace CraftManager
 {
     public class CraftDataCache
     {
-        private string cache_path = Paths.joined(CraftManager.ksp_root, "GameData", "CraftManager", "craft_data.cache");
+        internal static string cache_path = Paths.joined(CraftManager.ksp_root, "GameData", "CraftManager", "craft_data.cache");
         internal string installed_part_sig; //checksum signature of the installed parts, used to determine if the installed parts have changed since last time
 
         private Dictionary<string, ConfigNode> craft_data = new Dictionary<string, ConfigNode>();
