@@ -774,7 +774,7 @@ namespace CraftManager
                                 button("Download", "button.load", download);
                             }
                             if(KerbalX.loaded_craft_type == "download_queue"){
-                                button("remove from download", ()=>{
+                                button("remove from downloads", ()=>{
                                     KerbalX.remove_from_download_queue(craft);
                                 });
                             }
