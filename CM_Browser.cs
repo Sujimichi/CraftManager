@@ -922,7 +922,7 @@ namespace CraftManager
                                     section(() =>{
                                         foreach(Image image in grp){
                                             v_section(() =>{
-                                                label(image.texture, 100, 72);
+                                                label(image.texture, 90, 72);
                                                 button("remove", "image_selector.remove_item", () =>{
                                                     craft.upload_data.toggle_image(image);
                                                 });
