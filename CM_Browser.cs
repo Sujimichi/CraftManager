@@ -164,7 +164,10 @@ namespace CraftManager
         private void Start(){     
             CraftManager.log("Starting Main UI");
             CraftManager.main_ui = this;
-            window_title = "Craft Manager";
+            window_title = "";
+            alt_window_style = new GUIStyle(CraftManager.skin.window);
+            alt_window_style.padding.top = 8; //remove excess padding to hide titlebar
+
             window_pos = new Rect((Screen.width/2) - (window_width/2) + 100, 80, window_width, main_section_height);
             visible = false;
             draggable = false;
