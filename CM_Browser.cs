@@ -749,9 +749,15 @@ namespace CraftManager
                         });
 
                         if(craft.remote){
-                            button("Download", download);
+                            GUILayout.Space(5);
                             if(craft.exists_locally){
-                                label("Already Downloaded");
+                                label("Already Downloaded", "h2");
+                                section(()=>{                                    
+                                    button("Load", "button.inline_load", load_craft);
+                                    button("update", "button.inline_update", download);
+                                });
+                            }else{                                
+                                button("Download", "button.load", download);
                             }
                         }else{
                             GUILayout.Space(15);
@@ -834,6 +840,9 @@ namespace CraftManager
                             }
                         });
                         section(() => {
+                            if(craft.description == null){
+                                craft.description = "";
+                            }
                             label(craft.description.Replace("¨","\n"));
                         });
                     };

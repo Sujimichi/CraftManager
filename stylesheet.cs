@@ -238,6 +238,9 @@ namespace CraftManager
             define_style("button.large", base_skin.button, s =>{
                 s.fontSize = 20;
             });
+            define_style("button.vlarge", base_skin.button, s =>{
+                s.fontSize = 30;
+            });
             define_style("button.small", base_skin.button, s =>{
                 s.fontSize = 12;
             });
@@ -266,22 +269,28 @@ namespace CraftManager
                 s.normal.textColor = new Color(0.4f,0.2f,0.1f,1);
             });
 
-            define_style("button.load", base_skin.button, s =>{
-                s.fontSize = 30;
+            define_style("button.load", "button.vlarge", s =>{                
                 s.normal.textColor = new Color(0.2f,0.3f,0.3f,1);
                 s.hover.textColor = new Color(0.6f,0.9f,0.3f,1);
                 s.margin = new RectOffset(0,0,15,15);
             });
-            define_style("button.close", base_skin.button, s =>{
+            define_style("button.close", "button.vlarge", s =>{                
                 s.normal.textColor = new Color(0.4f,0.2f,0.1f,1);
                 s.hover.textColor = new Color(0.8f,0.4f,0.2f,1);
                 s.margin = new RectOffset(0,8,15,15);
-                s.fontSize = 30;
             });
             define_style("button.close.top", "button.close", s =>{
                 s.margin = base_skin.button.margin;
                 s.fontSize = base_skin.button.fontSize;
                 s.fixedHeight = 30;
+            });
+
+            define_style("button.inline_load", "button.load", s =>{
+                s.margin = base_skin.button.margin;
+                s.margin.right = 0;
+            });
+            define_style("button.inline_update", "button.vlarge", s =>{
+                s.margin.left = 0;
             });
 
 
