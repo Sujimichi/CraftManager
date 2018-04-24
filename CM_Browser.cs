@@ -14,9 +14,7 @@ namespace CraftManager
     [KSPAddon(KSPAddon.Startup.EditorAny, false)]
     public class CMBrowser : CMUI
     {
-        public static string ops_count = ""; //just a test variable
-
-        public const string all_saves_ref = "<all_saves>";
+        internal const string all_saves_ref = "<all_saves>";
 
         private float main_section_height = Screen.height - 420f;
         private float window_width  = 1000f;
@@ -24,10 +22,10 @@ namespace CraftManager
         private float[] col_widths_current = new float[]{0.2f,0.55f,0.25f};
 
 
-        public string current_save_dir = HighLogic.SaveFolder; //The dir of save which is currently being played
-        public string active_save_dir = HighLogic.SaveFolder;   //The dir of save which has been selected in UI
+        internal string current_save_dir = HighLogic.SaveFolder; //The dir of save which is currently being played
+        internal string active_save_dir = HighLogic.SaveFolder;   //The dir of save which has been selected in UI
 
-        public delegate void DialogAction();
+        protected delegate void DialogAction();
         private DropdownMenuData save_menu_options  = new DropdownMenuData();
         private DropdownMenuData tags_menu_content  = new DropdownMenuData();
         private DropdownMenuData inline_tag_menu;
@@ -58,20 +56,19 @@ namespace CraftManager
             {"redownload",new MenuOptions{text = "Update", action = "update", width = 200f, menu = new DropdownMenuData(new Dictionary<string, string> { {"update_load", "Update & Load"}, { "dl_load_no_save", "Load Remote version without saving" }, { "load", "Load local version" } })}},
             {"upload",  new MenuOptions{text = "Upload", action = "upload", width = 150f, menu = null}}
         };
-        string load_menu_mode = "default";
+        private string load_menu_mode = "default";
 
 
         internal Dictionary<string, bool> selected_types = new Dictionary<string, bool>() { { "SPH", false }, { "VAB", false }, { "Subassemblies", false } };
         internal int selected_type_count = 1;
-        protected List<string> selected_type_keys = new List<string>(){"SPH", "VAB", "Subassemblies"};
+        internal List<string> selected_type_keys = new List<string>(){"SPH", "VAB", "Subassemblies"};
 
 
-        public string sort_opt = CraftManager.settings.get("craft_sort");
+        private string sort_opt = CraftManager.settings.get("craft_sort");
         private bool reverse_sort = bool.Parse(CraftManager.settings.get("craft_sort_reverse"));
-        public bool exclude_stock_craft = bool.Parse(CraftManager.settings.get("exclude_stock_craft"));
-        public string tag_sort_by = CraftManager.settings.get("sort_tags_by");
-        public string tag_filter_mode = CraftManager.settings.get("tag_filter_mode"); //"AND"; // OR
-
+        private string tag_filter_mode = CraftManager.settings.get("tag_filter_mode"); //"AND"; // OR
+        internal string tag_sort_by = CraftManager.settings.get("sort_tags_by");
+        internal bool exclude_stock_craft = bool.Parse(CraftManager.settings.get("exclude_stock_craft"));
 
         private string search_string = "";
         private string last_search = "";
@@ -82,7 +79,7 @@ namespace CraftManager
         private string auto_focus_field = null;
         private CraftData auto_focus_craft = null;
         private int auto_focus_countdown = 0;
-        public bool stock_craft_loaded = false;
+        internal bool stock_craft_loaded = false;
         private bool edit_tags = false;
         private bool expand_details = false;
         private bool tag_prev_state = false;
@@ -98,8 +95,8 @@ namespace CraftManager
         private float section_header_height = 38f;
         private float item_last_height = 0;
 
-        public bool show_transfer_indicator = false;
-        public bool transfer_is_upload = true;
+        internal bool show_transfer_indicator = false;
+        internal bool transfer_is_upload = true;
 
         protected int prog_pos = 0;
         protected long prog_timer = 0;
