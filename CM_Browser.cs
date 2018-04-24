@@ -794,7 +794,7 @@ namespace CraftManager
                         }else{
                             GUILayout.Space(15);
                             gui_state(!upload_interface_ready, ()=>{
-                                section(() => {
+                                section(() => {                                    
                                     button("transfer", transfer_craft_dialog);
                                     if(save_menu_options.items.Count > 2){
                                         button("move/copy", move_copy_craft_dialog);
@@ -811,9 +811,7 @@ namespace CraftManager
                                                 if(craft.on_kerbalx()){
                                                     button("Update craft on KerbalX", show_update_kerbalx_craft_dialog);
                                                 }else{
-                                                    button("Share on KerbalX", ()=>{
-                                                        show_upload_interface = true;
-                                                    });
+                                                    button("Share on KerbalX", open_upload_interface);
                                                 }
                                             }
                                         }else{
@@ -900,7 +898,7 @@ namespace CraftManager
                                 label("Step 1: Set basic Craft details", "h2");
                                 section(() =>{
                                     label("Name:", "h3", 50f);
-                                    craft.upload_data.craft_name = GUILayout.TextField(craft.upload_data.craft_name);
+                                    craft.upload_data.craft_name = GUILayout.TextField(craft.upload_data.craft_name, width(inner_width-50f));
                                 });
                                 section(() =>{
                                     label("Type:", "h3", 50f);
@@ -914,7 +912,7 @@ namespace CraftManager
                                 });
                                 section(() =>{
                                     label("#tags:", "h3", 50f);
-                                    craft.upload_data.hash_tags = GUILayout.TextField(craft.upload_data.hash_tags);
+                                    craft.upload_data.hash_tags = GUILayout.TextField(craft.upload_data.hash_tags, width(inner_width-50f));
                                 });
                                 section(() =>{
                                     fspace();
@@ -1416,6 +1414,11 @@ namespace CraftManager
             //(not happy with this but attempting to autofocus right away selects the craft, but doesn't scroll the list to it
         }
 
+        private void open_upload_interface(){
+            show_upload_interface = true;
+            close_dialog();
+        }
+
         public void close_upload_interface(){
             show_upload_interface = false;
             auto_focus_on(CraftData.selected_craft);
@@ -1617,10 +1620,7 @@ namespace CraftManager
                 });
                 GUILayout.Space(4f);
                 section(()=>{
-                    button("Upload as a new Craft", "button.large", ()=> {
-                        show_upload_interface = true;
-                        close_dialog();
-                    });
+                    button("Upload as a new Craft", "button.large", open_upload_interface);
                     button("Cancel", "button.large", close_dialog);                    
                 });
                 return resp;
@@ -1690,7 +1690,7 @@ namespace CraftManager
                                     string key = keys[i];
                                     if(key.Length <= 1){
                                         label(key, width(label_width));
-                                        action_groups[key] = GUILayout.TextField(action_groups[key]);
+                                        action_groups[key] = GUILayout.TextField(action_groups[key], width(w-label_width));
                                     }
                                 });
                             }
@@ -1701,7 +1701,7 @@ namespace CraftManager
                                     string key = keys[i];
                                     if(key.Length > 1){
                                         label(key, width(label_width));
-                                        action_groups[key] = GUILayout.TextField(action_groups[key]);
+                                        action_groups[key] = GUILayout.TextField(action_groups[key], width(w-label_width));
                                     }
                                 });
                             }
@@ -1726,7 +1726,7 @@ namespace CraftManager
             string resp = "";
             show_dialog("Rename Craft", "rename: " + craft.name, d =>{
                 GUI.SetNextControlName("dialog_focus_field");
-                craft.new_name = GUILayout.TextField(craft.new_name);
+                craft.new_name = GUILayout.TextField(craft.new_name, width(d.window_pos.width-22));
                 section(()=>{
                     fspace();
                     button("Cancel", close_dialog);
@@ -1847,7 +1847,7 @@ namespace CraftManager
             float top = this.window_pos.y + (this.window_pos.height*0.4f);
             float left = this.window_pos.x + (this.window_pos.width/2) - (200f);
             if(autopos){
-                top = this.window_pos.y + scroll_relative_pos.y + main_section_height - 135f;
+                top = this.window_pos.y + scroll_relative_pos.y + main_section_height - 130f;
                 left = this.window_pos.x + scroll_relative_pos.x + (col_widths_current[0] * window_width) - 400f;
             }
 
@@ -1889,7 +1889,7 @@ namespace CraftManager
                     label("You are viewing craft from all saves, this will edit " + tags.Count + " tags called " + initial_name + " in each of your saves.", "alert.h3");
                 }
                 GUI.SetNextControlName("dialog_focus_field");
-                tag_name = GUILayout.TextField(tag_name);
+                tag_name = GUILayout.TextField(tag_name, width(400f-22f));
 
                 if(show_rule_opts){
                     rule_based = GUILayout.Toggle(rule_based, "Use Auto Tag rule", "Button");
