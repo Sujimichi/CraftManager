@@ -222,7 +222,7 @@ namespace CraftManager
             }
 
             if(DevTools.autostart){
-                show();                
+//                show();                
 //                HelpUI.open(gameObject);
             }
             CraftManager.log("CMUI-Ready");
