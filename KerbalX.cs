@@ -34,6 +34,24 @@ namespace CraftManager
         internal static string bulk_download_log = "";
         internal static Vector2 log_scroll = new Vector2();
 
+        internal static List<string> versions_list{
+            get{ 
+                List<string> version_list = new List<string>();
+                for(int i = 0; i < versions.Count; i++){
+                    version_list.Add(versions[i].ToString());
+                }
+                return version_list;
+            }
+        }
+        internal static List<string> selected_versions_list{
+            get{ 
+                List<string> selected_version_list = new List<string>();
+                for(int i = 0; i < selected_versions.Count; i++){
+                    selected_version_list.Add(selected_versions[i].ToString());
+                }
+                return selected_version_list;
+            }
+        }
 
         internal delegate void DownloadCallback(ConfigNode craft_file);
         internal delegate void ActionCallback();
