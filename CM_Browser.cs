@@ -430,7 +430,7 @@ namespace CraftManager
                                 toggle_tags_menu.selected_items = Tags.selected_tags();
                                 dropdown("Tags", StyleSheet.assets["caret-down"], "tags_select_menu", toggle_tags_menu, this, 40f, (resp) => {
                                     if(resp == "new_tag"){
-                                        create_tag_dialog(false);
+                                        create_tag_dialog(true);
                                     }else{
                                         Tags.toggle_active(resp);                                    
                                     }
@@ -1094,10 +1094,10 @@ namespace CraftManager
         private void stock_craft_toggle(){
             if(!kerbalx_mode){
                 section("stock_craft_toggle", ()=>{                        
-                    bool prev_exstcr = exclude_stock_craft;
+                    bool prev_state = exclude_stock_craft;
                     exclude_stock_craft = !GUILayout.Toggle(!exclude_stock_craft, "");
                     button("include Stock Craft", "stock_craft_toggle_button", ()=>{exclude_stock_craft = !exclude_stock_craft;});
-                    if(exclude_stock_craft != prev_exstcr){
+                    if(exclude_stock_craft != prev_state){
                         filter_craft();
                         CraftManager.settings.set("exclude_stock_craft", exclude_stock_craft.ToString());
                     }
@@ -1248,12 +1248,9 @@ namespace CraftManager
             }else if(craft_scroll_section.Contains(Event.current.mousePosition) && Event.current.button == 0 && Event.current.type == EventType.MouseDrag){
                 craft_list_drag_active = true;
             }
-
             if(craft_list_drag_active){
                 craft_list_drag_force = Event.current.delta;
                 scroll_pos["main"] -= craft_list_drag_force;
-
-                //                    Event.current.Use();
             }else if(craft_list_drag_force.y >= 1 || craft_list_drag_force.y <= -1){
                 scroll_pos["main"] -= craft_list_drag_force;
                 if(craft_list_drag_force.y > 0){
