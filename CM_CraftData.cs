@@ -19,8 +19,8 @@ namespace CraftManager
         public static int file_load_count = 0;
         public static int cache_load_count= 0;
 
-        public static int save_state = 0;
         public static bool loading_craft = false;
+        public static int save_state = 0;
         public static bool craft_saved {
             get{
                 return save_state <= 0;

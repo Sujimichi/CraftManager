@@ -90,6 +90,7 @@ namespace CraftManager
         private bool ctrl_key_down = false;
         private bool archived_tag = false;
         private bool open_tag_menu = false;
+        private bool compact_mode = false;
         private float tag_content_height = 0;
         private float last_tag_content_height = 0;
         private float tag_margin_offset = 0;
@@ -124,8 +125,6 @@ namespace CraftManager
         float adjusted_section_width = 0;
 
 
-
-
         //collection of Vector2 objects to track scroll positions
         public Dictionary<string, Vector2> scroll_pos = new Dictionary<string, Vector2>(){
             {"lhs", new Vector2()}, {"rhs", new Vector2()}, {"main", new Vector2()}, {"images", new Vector2()}
@@ -139,36 +138,9 @@ namespace CraftManager
             GameEvents.onEditorRestart.Add(on_editor_restart);
         }
 
-        //editor restart is triggered when loading a craft and creating a new one.  
-        //reset the save_state count to 0 (after new) or -1 (after load).  Reason is that onEditorShipModified is called 
-        //directly after loading so it ends up as 0.  The distinction between load and new is detected by loading_craft being true.
-        public void on_editor_restart(){
-            if(CraftData.loading_craft){
-                CraftData.save_state = -1;
-                CraftData.loading_craft = false;
-            } else{
-                CraftData.save_state = 0;
-            }
-        }
-        //called by onEditorShipModified, increments count of save_state
-        public void on_ship_modified(ShipConstruct ship){
-            CraftData.save_state++;
-        }
 
-        //Actions which are hooked into click events on the main editor buttons (not done with GameEvents)
-        //clicking save resets the save_state to 0. Although this isn't quite right; in the case of the dialog 
-        //to overright existing craft being shown it could result in the wrong save_state being set.
-        private UnityEngine.Events.UnityAction on_save_click = new UnityEngine.Events.UnityAction(()=>{            
-            CraftData.save_state = 0;
-        });
+        //**MonoBehaviour Calls**//
 
-        //Replace the default load action
-        private UnityEngine.Events.UnityAction on_load_click = new UnityEngine.Events.UnityAction(()=>{            
-            CraftManager.main_ui.toggle();
-        });
-
-
-        //Called when the editor is loaded
         private void Start(){     
             CraftManager.log("Starting Main UI");
             CraftManager.main_ui = this;
@@ -182,7 +154,6 @@ namespace CraftManager
             footer = false;
             prevent_click_through = false; //disable the standard click through prevention. show and hide will add control locks which are not based on mouse pos.
 
-
             if(KerbalX.enabled){
                 enable_request_handler();
                 if(KerbalXAPI.logged_in() && bool.Parse(CraftManager.settings.get("ask_to_populate_new_save"))){
@@ -191,7 +162,6 @@ namespace CraftManager
                     }
                 }
             }
-
 
             EditorLogic.fetch.saveBtn.onClick.AddListener(on_save_click); //settup click event on the stock save button.
             //override existing ations on stock load button and replace with call to toggle CM's UI.
@@ -234,17 +204,16 @@ namespace CraftManager
 //                show();                
 //                HelpUI.open(gameObject);
             }
-            CraftManager.log("CMUI-Ready");
+            CraftManager.log("CraftManagerUI-Ready");
         }
-                
 
         protected override void OnDestroy(){
             GameEvents.OnAppFocus.Remove(on_app_focus);
         }
 
-        protected override void before_show(){
-            
-        }
+
+
+        //**Event Hooks**//
 
         protected override void on_show(){            
             stock_craft_loaded = false;
@@ -300,11 +269,35 @@ namespace CraftManager
             }
         }
 
-        protected void update_remote_craft_info(){
-            if(KerbalX.enabled){
-                KerbalX.fetch_existing_craft_info();
+        //editor restart is triggered when loading a craft and creating a new one.  
+        //reset the save_state count to 0 (after new) or -1 (after load).  Reason is that onEditorShipModified is called 
+        //directly after loading so it ends up as 0.  The distinction between load and new is detected by loading_craft being true.
+        public void on_editor_restart(){
+            if(CraftData.loading_craft){
+                CraftData.save_state = -1;
+                CraftData.loading_craft = false;
+            } else{
+                CraftData.save_state = 0;
             }
         }
+
+        //called by onEditorShipModified, increments count of save_state
+        public void on_ship_modified(ShipConstruct ship){
+            CraftData.save_state++;
+        }
+
+        //Actions which are hooked into click events on the main editor buttons (not done with GameEvents)
+        //clicking save resets the save_state to 0. Although this isn't quite right; in the case of the dialog 
+        //to overright existing craft being shown it could result in the wrong save_state being set.
+        private UnityEngine.Events.UnityAction on_save_click = new UnityEngine.Events.UnityAction(()=>{            
+            CraftData.save_state = 0;
+        });
+
+        //Replace the default load action
+        private UnityEngine.Events.UnityAction on_load_click = new UnityEngine.Events.UnityAction(()=>{            
+            CraftManager.main_ui.toggle();
+        });
+
 
 
         //**Main GUI**//
@@ -1138,6 +1131,8 @@ namespace CraftManager
 
 
 
+        //**GUI sub components**//
+
         private void stock_craft_toggle(){
             if(!kerbalx_mode){
                 section("stock_craft_toggle", ()=>{                        
@@ -1165,22 +1160,6 @@ namespace CraftManager
                 save_menu_options.selected_item = active_save_dir;
                 dropdown("Save: " + (active_save_dir==all_saves_ref ? "All Saves" : active_save_dir), StyleSheet.assets["caret-down"], "save_menu", save_menu_options, this, save_menu_width, change_save);
             }
-        }
-
-        private bool compact_mode = false;
-        private void toggle_compact_mode(){
-            compact_mode = !compact_mode;
-            if(compact_mode){
-                window_width = 500f;
-            } else{
-                window_width = 1000f;
-            }
-            window_pos = get_window_position();
-            more_menu.items["compact_mode"] = compact_mode ? "Full View" : "Compact Mode";
-        }
-
-        private Rect get_window_position(){
-            return new Rect((Screen.width/2) - (window_width/2) + 100, 80, window_width, main_section_height);
         }
 
 
@@ -1356,12 +1335,33 @@ namespace CraftManager
             }
         }
 
+        private void toggle_compact_mode(){
+            compact_mode = !compact_mode;
+            if(compact_mode){
+                window_width = 500f;
+            } else{
+                window_width = 1000f;
+            }
+            window_pos = get_window_position();
+            more_menu.items["compact_mode"] = compact_mode ? "Full View" : "Compact Mode";
+        }
+
+        private Rect get_window_position(){
+            return new Rect((Screen.width/2) - (window_width/2) + 100, 80, window_width, main_section_height);
+        }
+
         //load/reload craft from the active_save_dir and apply any active filters
         public void refresh(){            
             CraftData.load_craft_from_files(active_save_dir==all_saves_ref ? null : active_save_dir);
             filter_craft();
         }
 
+        protected void update_remote_craft_info(){
+            if(KerbalX.enabled){
+                KerbalX.fetch_existing_craft_info();
+            }
+        }
+        
         protected void clear_search(){
             search_string = "";
             filter_craft();
@@ -1492,6 +1492,25 @@ namespace CraftManager
                     show_headers = true;
                     col_widths_current[0] = col_widths_default[0];
                     col_widths_current[1] = col_widths_default[1];
+                }
+            }
+        }
+
+        //select craft in crafts list by it's ID and adjust the scroll to focus on the selected craft
+        protected void jump_to_craft(int index){   
+            GUIUtility.keyboardControl = 0;
+            if(index < 0){
+                index = 0;
+            } else if(index > CraftData.filtered.Count-1){
+                index = CraftData.filtered.Count - 1;
+            }
+            CraftData craft = CraftData.filtered[index];
+            if(craft != null){
+                CraftData.select_craft(craft);
+                if(craft.list_position < scroll_pos["main"].y){
+                    scroll_pos["main"] = new Vector2(scroll_pos["main"].x, craft.list_position);
+                } else if(craft.list_position + craft.list_height > scroll_pos["main"].y + main_section_height){
+                    scroll_pos["main"] = new Vector2(scroll_pos["main"].x, craft.list_position - main_section_height + craft.list_height+5);
                 }
             }
         }
@@ -2215,25 +2234,6 @@ namespace CraftManager
                 } else if(GUI.GetNameOfFocusedControl() == "main_search_field" && e.keyCode == KeyCode.Tab){
                     jump_to_craft(0);
                     e.Use();            
-                }
-            }
-        }
-
-        //select craft in crafts list by it's ID and adjust the scroll to focus on the selected craft
-        protected void jump_to_craft(int index){   
-            GUIUtility.keyboardControl = 0;
-            if(index < 0){
-                index = 0;
-            } else if(index > CraftData.filtered.Count-1){
-                index = CraftData.filtered.Count - 1;
-            }
-            CraftData craft = CraftData.filtered[index];
-            if(craft != null){
-                CraftData.select_craft(craft);
-                if(craft.list_position < scroll_pos["main"].y){
-                    scroll_pos["main"] = new Vector2(scroll_pos["main"].x, craft.list_position);
-                } else if(craft.list_position + craft.list_height > scroll_pos["main"].y + main_section_height){
-                    scroll_pos["main"] = new Vector2(scroll_pos["main"].x, craft.list_position - main_section_height + craft.list_height+5);
                 }
             }
         }
