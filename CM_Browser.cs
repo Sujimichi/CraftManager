@@ -196,7 +196,6 @@ namespace CraftManager
                 }else{
                     draw_top_section(window_width);
                 }
-
                 GUILayout.Space(10);
                 scroll_relative_pos = GUILayoutUtility.GetLastRect();
                 section(window_width, inner_width =>{
@@ -226,6 +225,7 @@ namespace CraftManager
         protected override void FooterContent(int window_id){
             GUILayout.Label("hello, this is footer");
         }
+
 
 
         //**GUI Sections**//
@@ -968,7 +968,6 @@ namespace CraftManager
                 }else{                    
                     button("Close", "button.close", 120f, this.hide);
                 }
-
             });
         }
 
@@ -1004,8 +1003,5 @@ namespace CraftManager
                 dropdown("Save: " + (active_save_dir==all_saves_ref ? "All Saves" : active_save_dir), StyleSheet.assets["caret-down"], "save_menu", save_menu_options, this, save_menu_width, change_save);
             }
         }
-
-
-
     }
 }
