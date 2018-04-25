@@ -93,6 +93,9 @@ namespace CraftManager
                 if(!KerbalX.craft_styles.Contains(craft_type)){
                     errors.Add("The craft's 'type' is not valid");
                 }
+                if(CraftManager.main_ui.show_transfer_indicator){
+                    errors.Add("Another craft is still uploading, slow your roll!");
+                }
                 return errors.Count == 0;                
             }
         }
@@ -137,30 +140,35 @@ namespace CraftManager
             }
         }
 
-        public void put(){            
-            CraftManager.main_ui.show_transfer_indicator = true;
-            CraftManager.main_ui.transfer_is_upload = false;
+        public void put(){     
+            errors.Clear();
+            if(CraftManager.main_ui.show_transfer_indicator){
+                errors.Add("unable to update, another craft is still uploading");
+            }
+            if(errors.Count == 0){
+                CraftManager.main_ui.close_update_kerbalx_craft_dialog();
+                CraftManager.main_ui.show_transfer_indicator = true;
+                CraftManager.main_ui.transfer_is_upload = false;
 
-            WWWForm craft_data = new WWWForm();
-            craft_data.AddField("craft_name", craft_name);
-            craft_data.AddField("craft_file", System.IO.File.ReadAllText(craft.path));
-            craft_data.AddField("part_data", JSONX.toJSON(part_info()));
+                WWWForm craft_data = new WWWForm();
+                craft_data.AddField("craft_name", craft_name);
+                craft_data.AddField("craft_file", System.IO.File.ReadAllText(craft.path));
+                craft_data.AddField("part_data", JSONX.toJSON(part_info()));
 
-            KerbalXAPI.update_craft(update_to_id, craft_data, (resp, code) =>{
-                if(code == 200){
-                    CraftManager.log("craft updated OK");
-                    KerbalXAPI.fetch_existing_craft(()=>{                        
-                        //                        craft.matching_remote_ids = null;
-                        CraftManager.main_ui.close_upload_interface();
-                    });
-                }else{
-                    CraftManager.log("craft update failed");
-                }
-                CraftManager.main_ui.show_transfer_indicator = false;
-                //TODO show update complete dialog, maybe? or just close and move on.
-
-            });
+                KerbalXAPI.update_craft(update_to_id, craft_data, (resp, code) =>{
+                    if(code == 200){
+                        CraftManager.log("craft updated OK");
+                        KerbalXAPI.fetch_existing_craft(() =>{                        
+                            CraftManager.main_ui.close_upload_interface();
+                        });
+                    } else{
+                        CraftManager.log("craft update failed");
+                    }
+                    CraftManager.main_ui.show_transfer_indicator = false;
+                });
+            }
         }
+
 
 
         private Dictionary<string, object> part_info(){

@@ -472,7 +472,7 @@ namespace CraftManager
                                 case "transfer" : transfer_craft_dialog(craft);break;
                                 case "move_copy": move_copy_craft_dialog(craft);break;
                                 case "share"    : CraftData.select_craft(craft); open_upload_interface();break;
-                                case "update"   : show_update_kerbalx_craft_dialog();break;
+                                case "update"   : CraftData.select_craft(craft); show_update_kerbalx_craft_dialog();break;
                                 case "delete"   : delete_craft_dialog(craft);break;
                             }                            
                         });

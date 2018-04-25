@@ -486,7 +486,9 @@ namespace CraftManager
             });
         }
 
-
+        internal void close_update_kerbalx_craft_dialog(){
+            close_dialog();
+        }
         protected void show_update_kerbalx_craft_dialog(){
             string resp = "";
             CraftData craft = CraftData.selected_craft;
@@ -564,11 +566,14 @@ namespace CraftManager
                     });
                 }
 
+                foreach(string error in craft.upload_data.errors){
+                    label(error, "error.bold");
+                }
+
                 GUILayout.Space(10f);
                 gui_state(craft.upload_data.update_to_id > 0, ()=>{
                     button("Confirm Update", "button.large", ()=>{
                         craft.upload_data.put();
-                        close_dialog();
                     });
                 });
                 GUILayout.Space(4f);
