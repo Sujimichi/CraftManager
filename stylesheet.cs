@@ -578,9 +578,9 @@ namespace CraftManager
             });
 
             define_style("progbox.compact", "progbox", s =>{
-                s.fixedWidth = 8f;
-                s.fixedHeight = 8f;
-                s.margin = new RectOffset(5,2,0,0);
+                s.fixedWidth = 10f;
+                s.fixedHeight = 10f;
+                s.margin = new RectOffset(5,2,8,0);
             });
 
             define_style("progbox.active.compact", "progbox.compact", s =>{
@@ -603,6 +603,11 @@ namespace CraftManager
             });
             define_style("stock_craft_toggle_button", "bold", s =>{
                 s.padding.top += 4;
+            });
+
+            define_style("craft_select_label", base_skin.label, s =>{
+                s.fontStyle = FontStyle.Bold;
+                s.fontSize = 20;
             });
 
             define_style("settings.scroll", base_skin.scrollView, s =>{

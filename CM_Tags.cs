@@ -462,7 +462,7 @@ namespace CraftManager
 
             Tags.instance.data.Clear();
             if(save_name == CMBrowser.all_saves_ref){
-                save_dirs = CraftData.save_names();
+                save_dirs = CraftData.save_names;
             }
 
             foreach(string save_dir in save_dirs){

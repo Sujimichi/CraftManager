@@ -76,6 +76,7 @@ namespace CraftManager
         protected string auto_focus_field = null;
         protected CraftData auto_focus_craft = null;
         protected int auto_focus_countdown = 0;
+        protected int saves_count = 0;
         internal bool stock_craft_loaded = false;
         protected bool edit_tags = false;
         protected bool expand_details = false;
@@ -344,12 +345,30 @@ namespace CraftManager
             CraftManager.settings.set("craft_sort_reverse", reverse_sort.ToString());
         }
 
-        protected void change_save(string save_name){
-            active_save_dir = save_name;
-            save_menu_width = GUI.skin.button.CalcSize(new GUIContent("Save: " + active_save_dir)).x;
-            Tags.load(active_save_dir);
-            stock_craft_loaded = false;
-            refresh();
+        protected void change_craft_source(string save_name){
+            if(save_name == "kerbalx_remote"){
+                KerbalX.load_remote_craft();
+                adjust_save_menu_width();
+            } else{
+                if(kerbalx_mode){
+                    KerbalX.load_local();
+                }
+                if(active_save_dir != save_name){
+                    active_save_dir = save_name;
+                    adjust_save_menu_width();
+                    Tags.load(active_save_dir);
+                    stock_craft_loaded = false;
+                    refresh();
+                }
+            }
+        }
+
+        protected void adjust_save_menu_width(){
+            if(kerbalx_mode){
+                save_menu_width = GUI.skin.button.CalcSize(new GUIContent("KerbalX")).x;
+            } else{
+                save_menu_width = GUI.skin.button.CalcSize(new GUIContent(active_save_dir)).x;
+            }
         }
 
         protected void change_tag_sort(string sort_by){

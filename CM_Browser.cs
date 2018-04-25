@@ -57,12 +57,17 @@ namespace CraftManager
 
             //Initialize list of Save directories, used in save select menus.
             save_menu_options.items.Add(active_save_dir, "Current Save (" + active_save_dir + ")");
-            foreach(string dir_name in CraftData.save_names()){
+            if(KerbalX.enabled){
+                save_menu_options.items.Add("kerbalx_remote", "KerbalX");
+            }
+            List<string> save_names = CraftData.save_names;
+            foreach(string dir_name in save_names){
                 if(dir_name != active_save_dir){
                     save_menu_options.items.Add(dir_name, dir_name);
                 }
             }
-            save_menu_options.items.Add(all_saves_ref, "All");
+            save_menu_options.items.Add(all_saves_ref, "All Saves");
+            saves_count = save_names.Count;
 
             //Initialize Tags
             Tags.load(active_save_dir);
@@ -284,6 +289,7 @@ namespace CraftManager
             if(compact_mode){
                 section(() =>{
                     stock_craft_toggle_checkbox();
+                    fspace();
                     craft_display_buttons();
                 });
             }
@@ -442,7 +448,7 @@ namespace CraftManager
                 } else if(evt.right_click){
                     if(!craft.remote){
                         DropdownMenuData menu = new DropdownMenuData(new Dictionary<string, string>{{"add_tag", "Add Tag"}, {"rename", "Rename"}, {"transfer", "Transfer"}});
-                        if(save_menu_options.items.Count > 2){menu.items.Add("move_copy", "Move/Copy");}
+                        if(saves_count > 2){menu.items.Add("move_copy", "Move/Copy");}
                         if(!craft.stock_craft && KerbalXAPI.logged_in()){
                             if(craft.on_kerbalx()){
                                 menu.items.Add("update", "Update on KerbalX");
@@ -692,7 +698,7 @@ namespace CraftManager
                             gui_state(!upload_interface_ready, ()=>{
                                 section(() => {                                    
                                     button("transfer", transfer_craft_dialog);
-                                    if(save_menu_options.items.Count > 2){
+                                    if(saves_count > 2){
                                         button("move/copy", move_copy_craft_dialog);
                                     }
                                 });
@@ -916,11 +922,17 @@ namespace CraftManager
                         fspace();                   
                         action_buttons();
                     });
-                    kerbalx_status_indicator();
+                    if(CraftManager.status_info != "" || show_transfer_indicator){
+                        section(()=>{
+                            kerbalx_status_indicator();
+                        });
+                    }
                 });
             } else{
                 section("bottom.section", () =>{
-                    kerbalx_status_indicator();
+                    v_section(()=>{
+                        kerbalx_status_indicator();
+                    });
                     fspace();                   
                     action_buttons();
                 });
@@ -970,42 +982,31 @@ namespace CraftManager
 
         //draws a progress indicator which is shown during all interaction with KerbalX
         private void kerbalx_status_indicator(){
-            v_section(()=>{
-                section(()=>{
-                    if(!compact_mode){
-                        label(CraftManager.status_info);
+            label(CraftManager.status_info, (compact_mode ? "small" : "Label"));
+            if(show_transfer_indicator){
+                label((transfer_is_upload ? "Uploading Craft...." : "Updating Craft...."), "transfer_progres.text");
+            }
+//            section(()=>{
+//            });
+            section(()=>{
+                if(CraftManager.status_info != "" || show_transfer_indicator){
+                    if((DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond) - prog_timer > prog_interval){
+                        prog_timer = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
+                        prog_pos += 1;
+                        if(prog_pos > 4){
+                            prog_pos = 0;
+                        }
                     }
-                    if(show_transfer_indicator){
-                        if(transfer_is_upload){
-                            label("Uploading Craft....", "transfer_progres.text");
+                    for(int i = 0; i < 5; i++){
+                        if(prog_pos == i){
+                            label("", "progbox.active" + (compact_mode ? ".compact" : ""));
                         }else{
-                            label("Updating Craft....", "transfer_progres.text");
+                            label("", "progbox" + (compact_mode ? ".compact" : ""));
                         }
                     }
-                });
-
-                section(()=>{
-                    if(CraftManager.status_info != "" || show_transfer_indicator){
-                        if((DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond) - prog_timer > prog_interval){
-                            prog_timer = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
-                            prog_pos += 1;
-                            if(prog_pos > 4){
-                                prog_pos = 0;
-                            }
-                        }
-                        for(int i = 0; i < 5; i++){
-                            if(prog_pos == i){
-                                label("", "progbox.active" + (compact_mode ? ".compact" : ""));
-                            }else{
-                                label("", "progbox" + (compact_mode ? ".compact" : ""));
-                            }
-                        }
-                    }
-                });
+                }
             });
         }
-
-
 
         private void stock_craft_toggle_checkbox(){
             if(!kerbalx_mode){
@@ -1022,18 +1023,19 @@ namespace CraftManager
         }
 
         private void craft_display_buttons(){
-            if(KerbalX.enabled){
-                button("KerbalX Craft", "button" + (kerbalx_mode ? ".down" : ""), KerbalX.load_remote_craft);
+            if(save_menu_width == 0){               
+                adjust_save_menu_width();
             }
+            label("view craft from:", "craft_select_label");
+            string dropdown_label = "";
             if(kerbalx_mode){
-                button("Local Craft", KerbalX.load_local);
-            }else{
-                if(save_menu_width == 0){               
-                    save_menu_width = GUI.skin.button.CalcSize(new GUIContent("Save: " + active_save_dir)).x;
-                }
+                dropdown_label = "KerbalX";
+                save_menu_options.selected_item = "kerbalx_remote";
+            } else{
+                dropdown_label = (active_save_dir == all_saves_ref ? "All Saves" : active_save_dir);
                 save_menu_options.selected_item = active_save_dir;
-                dropdown("Save: " + (active_save_dir==all_saves_ref ? "All Saves" : active_save_dir), StyleSheet.assets["caret-down"], "save_menu", save_menu_options, this, save_menu_width, change_save);
             }
+            dropdown(dropdown_label, StyleSheet.assets["caret-down"], "save_menu", save_menu_options, this, save_menu_width, change_craft_source);
         }
     }
 }

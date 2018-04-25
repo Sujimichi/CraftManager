@@ -184,15 +184,18 @@ namespace CraftManager
             } 
         }
 
-        public static List<string> save_names(){
-            List<string> dirs = new List<string>();
-            foreach(string dir in Directory.GetDirectories(Paths.joined(CraftManager.ksp_root, "saves"))){
-                string dir_name = dir.Replace(Paths.joined(CraftManager.ksp_root, "saves"), "").Replace("/", "").Replace("\\","");
-                if(dir_name != "training" && dir_name != "scenarios"){
-                    dirs.Add(dir_name);
+        public static List<string> save_names{
+            get{
+                List<string> dirs = new List<string>();
+                foreach(string dir in Directory.GetDirectories(Paths.joined(CraftManager.ksp_root, "saves"))){
+                    string dir_name = dir.Replace(Paths.joined(CraftManager.ksp_root, "saves"), "").Replace("/", "").Replace("\\", "");
+                    if(dir_name != "training" && dir_name != "scenarios"){
+                        dirs.Add(dir_name);
+                    }
                 }
+                return dirs;
             }
-            return dirs;
+
         }
 
 
@@ -606,7 +609,7 @@ namespace CraftManager
         //move or copy craft to another save in the same install.
         public string move_copy_to(string new_save_dir, bool move = false){
             string new_path = "";
-            List<string> existing_saves = save_names();
+            List<string> existing_saves = save_names;
 
             if(String.IsNullOrEmpty(new_save_dir)){
                 return "You must select a save";
