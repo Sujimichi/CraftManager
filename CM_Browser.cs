@@ -92,8 +92,8 @@ namespace CraftManager
             }
 
             if(DevTools.autostart){
-//                show();                
-                SettingsUI.open(gameObject);
+                show();                
+//                SettingsUI.open(gameObject);
             }
             CraftManager.log("CraftManagerUI-Ready");
         }
@@ -985,12 +985,12 @@ namespace CraftManager
 
         //draws a progress indicator which is shown during all interaction with KerbalX
         private void kerbalx_status_indicator(){
-            label(CraftManager.status_info, (compact_mode ? "small" : "Label"));
+            if(CraftManager.status_info != ""){
+                label(CraftManager.status_info, (compact_mode ? "small" : "Label"));
+            }
             if(show_transfer_indicator){
                 label((transfer_is_upload ? "Uploading Craft...." : "Updating Craft...."), "transfer_progres.text");
             }
-//            section(()=>{
-//            });
             section(()=>{
                 if(CraftManager.status_info != "" || show_transfer_indicator){
                     if((DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond) - prog_timer > prog_interval){
