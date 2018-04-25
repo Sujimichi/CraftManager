@@ -1,11 +1,8 @@
 ﻿using System;
 using System.IO;
 using System.Collections.Generic;
-using KSP.UI.Screens;
 using UnityEngine;
 using ExtensionMethods;
-using SimpleJSON;
-
 using KatLib;
 
 namespace CraftManager

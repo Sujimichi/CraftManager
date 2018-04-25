@@ -1,11 +1,7 @@
 ﻿using System;
-using System.IO;
 using System.Collections.Generic;
-using KSP.UI.Screens;
 using UnityEngine;
-using ExtensionMethods;
 using SimpleJSON;
-
 using KatLib;
 
 namespace CraftManager
@@ -23,148 +19,6 @@ namespace CraftManager
         //the delegate to be triggered by enter key press. the delagate must return a response string based on the success 
         //of the action which is then returned by submit.
 
-        internal void download_confirm_dialog(DialogAction action = null){
-            string resp = "";
-            show_dialog("Overwrite", "A Craft with this name already exists", d =>{
-                section(()=>{                    
-                    button("Replace Existing Craft", "button.continue_with_save", ()=>{
-                        download(true, true, action);
-                        resp = "200";
-                    });                    
-                    button("Load Craft (without saving)", "button.continue_no_save", ()=>{
-                        load_craft("dl_load_no_save");
-                        resp = "200";
-                    });
-                });
-                GUILayout.Space(10);
-                button("Cancel", "button.cancel_load", close_dialog);
-                return resp;
-            });
-        }
-
-        public void upload_complete_dialog(int remote_status_code, string response){
-            var resp_data = JSON.Parse(response);
-            show_dialog(remote_status_code == 200 ? "Upload Complete" : "Upload Error", "", d =>{
-                if(remote_status_code == 200){
-                    string craft_url = resp_data["url"];
-                    string craft_full_url = KerbalXAPI.url_to(craft_url);
-                    label("Your Craft has been uploaded!", "h2");
-                    button("It is now available here:\n" + craft_full_url, "hyperlink.bold", ()=>{
-                        Application.OpenURL(craft_full_url);
-                        close_dialog();
-                    });
-                    button(StyleSheet.assets["logo_large"], "centered", 664, 120, ()=> {                       
-                        Application.OpenURL(craft_full_url);
-                        close_dialog();
-                    });
-                    section(()=>{
-                        fspace();
-                        label("click the url or the logo to see your craft on KerbalX", "compact");                        
-                    });
-                }else{
-                    label("There was a problem uploading your craft. Error code " + remote_status_code, "h3");
-                    label(response); //TODO: make this nicer.
-                }
-                section(()=>{
-                    fspace();
-                    button("close", close_dialog);
-                });
-                return "";
-            });
-        }
-
-        //Show user option to save current craft or carry on loading
-        internal void load_craft_confirm_dialog(DialogAction action){
-            string resp = "";
-            show_dialog("Confirm Load", "The Current Craft has unsaved changes", d =>{
-                section((w)=>{                    
-                    button("Save Current Craft first", "button.continue_with_save", ()=>{
-                        string path = ShipConstruction.GetSavePath(EditorLogic.fetch.ship.shipName);
-                        EditorLogic.fetch.ship.SaveShip().Save(path);
-                        action(); resp = "200";
-                    });                    
-                    button("Continue Without Saving", "button.continue_no_save", ()=>{
-                        action(); resp = "200";
-                    });
-                });
-                GUILayout.Space(10);
-                button("Cancel", "button.cancel_load", close_dialog);
-                return resp;
-            });
-        }
-
-        protected void edit_description_dialog(){
-            if(CraftData.selected_craft.description == null){
-                CraftData.selected_craft.description = "";
-            }
-            string resp = "";
-            float area_height = 0;
-            string original_desc = new string(CraftData.selected_craft.description.ToCharArray());
-
-            show_dialog("Edit Description", "Edit Description", d =>{
-                GUI.SetNextControlName("dialog_focus_field");
-                area_height = skin.textArea.CalcHeight(new GUIContent(CraftData.selected_craft.description), d.window_pos.width)+10;
-                if(area_height < 150f){area_height=150f;}
-                CraftData.selected_craft.description = GUILayout.TextArea(CraftData.selected_craft.description.Replace("¨", "\n"), height(area_height));
-                section(()=>{
-                    fspace();
-                    button("Cancel", ()=>{
-                        CraftData.selected_craft.description = original_desc;
-                        close_dialog();
-                    });
-                    resp = submit("Save", CraftData.selected_craft.save_description);
-                });
-                return resp;
-            });
-        }
-
-        protected void edit_action_group_dialog(){
-            string resp = "";
-            //            float area_height = 0;
-            show_dialog("Edit Action Group info", "Edit Action Group info", 700f, d =>{
-
-                CraftData craft = CraftData.selected_craft;
-                if(craft !=null){                    
-                    Dictionary<string, string> action_groups = craft.upload_data.action_groups;
-                    List<string> keys = new List<string>(action_groups.Keys);
-                    float label_width = 45f;
-                    GUI.SetNextControlName("dialog_focus_field");
-                    section(()=>{                        
-                        v_section(350f, (w)=>{
-                            for(int i=0; i< keys.Count; i++){
-                                section(()=>{
-                                    string key = keys[i];
-                                    if(key.Length <= 1){
-                                        label(key, width(label_width));
-                                        action_groups[key] = GUILayout.TextField(action_groups[key], width(w-label_width));
-                                    }
-                                });
-                            }
-                        });
-                        v_section(350f, (w)=>{
-                            for(int i=0; i< craft.upload_data.action_groups.Count; i++){
-                                section(()=>{
-                                    string key = keys[i];
-                                    if(key.Length > 1){
-                                        label(key, width(label_width));
-                                        action_groups[key] = GUILayout.TextField(action_groups[key], width(w-label_width));
-                                    }
-                                });
-                            }
-                        });
-                    });
-                }else{
-                    fspace();
-                    label("No craft is selected", "alert.h2");
-                    fspace();
-                }
-                section((w)=>{
-                    fspace();
-                    resp = submit("OK", "button.large", ()=>{ return "200";});
-                });
-                return resp;
-            });
-        }
 
         protected void rename_craft_dialog(){ rename_craft_dialog(CraftData.selected_craft); }
         protected void rename_craft_dialog(CraftData craft){            
@@ -286,6 +140,94 @@ namespace CraftManager
                 return resp;
             });            
         }
+
+
+        protected void edit_description_dialog(){
+            if(CraftData.selected_craft.description == null){
+                CraftData.selected_craft.description = "";
+            }
+            string resp = "";
+            float area_height = 0;
+            string original_desc = new string(CraftData.selected_craft.description.ToCharArray());
+
+            show_dialog("Edit Description", "Edit Description", d =>{
+                GUI.SetNextControlName("dialog_focus_field");
+                area_height = skin.textArea.CalcHeight(new GUIContent(CraftData.selected_craft.description), d.window_pos.width)+10;
+                if(area_height < 150f){area_height=150f;}
+                CraftData.selected_craft.description = GUILayout.TextArea(CraftData.selected_craft.description.Replace("¨", "\n"), height(area_height));
+                section(()=>{
+                    fspace();
+                    button("Cancel", ()=>{
+                        CraftData.selected_craft.description = original_desc;
+                        close_dialog();
+                    });
+                    resp = submit("Save", CraftData.selected_craft.save_description);
+                });
+                return resp;
+            });
+        }
+
+        protected void edit_action_group_dialog(){
+            string resp = "";
+            //            float area_height = 0;
+            show_dialog("Edit Action Group info", "Edit Action Group info", 700f, d =>{
+
+                CraftData craft = CraftData.selected_craft;
+                if(craft !=null){                    
+                    Dictionary<string, string> action_groups = craft.upload_data.action_groups;
+                    List<string> keys = new List<string>(action_groups.Keys);
+                    List<int> counts = new List<int>{ keys.Count, craft.upload_data.action_groups.Count };
+                    float label_width = 45f;
+                    GUI.SetNextControlName("dialog_focus_field");
+                    section(()=>{
+                        for(int j=0; j < counts.Count; j++){
+                            v_section(350f, (w)=>{
+                                for(int i=0; i < counts[j]; i++){
+                                    section(()=>{
+                                        string key = keys[i];
+                                        if(j==0 && key.Length <= 1 || j==1 && key.Length > 1){
+                                            label(key, width(label_width));
+                                            action_groups[key] = GUILayout.TextField(action_groups[key], width(w-label_width));
+                                        }
+                                    });
+                                }
+                            }); 
+                        }
+                    });
+                }else{
+                    fspace();
+                    label("No craft is selected", "alert.h2");
+                    fspace();
+                }
+                section((w)=>{
+                    fspace();
+                    resp = submit("OK", "button.large", ()=>{ return "200";});
+                });
+                return resp;
+            });
+        }
+
+        //Show user option to save current craft or carry on loading
+        internal void load_craft_confirm_dialog(DialogAction action){
+            string resp = "";
+            show_dialog("Confirm Load", "The Current Craft has unsaved changes", d =>{
+                section((w)=>{                    
+                    button("Save Current Craft first", "button.continue_with_save", ()=>{
+                        string path = ShipConstruction.GetSavePath(EditorLogic.fetch.ship.shipName);
+                        EditorLogic.fetch.ship.SaveShip().Save(path);
+                        action(); resp = "200";
+                    });                    
+                    button("Continue Without Saving", "button.continue_no_save", ()=>{
+                        action(); resp = "200";
+                    });
+                });
+                GUILayout.Space(10);
+                button("Cancel", "button.cancel_load", close_dialog);
+                return resp;
+            });
+        }
+
+        //**Tag Dialogs**//
 
         //Call Create Tag Dialog (using tag_dialog_form)
         internal void create_tag_dialog(){create_tag_dialog(true, null, true);}
@@ -437,6 +379,56 @@ namespace CraftManager
 
         //**KerbalX Specific Dialogs**//
 
+
+        internal void download_confirm_dialog(DialogAction action = null){
+            string resp = "";
+            show_dialog("Overwrite", "A Craft with this name already exists", d =>{
+                section(()=>{                    
+                    button("Replace Existing Craft", "button.continue_with_save", ()=>{
+                        download(true, true, action);
+                        resp = "200";
+                    });                    
+                    button("Load Craft (without saving)", "button.continue_no_save", ()=>{
+                        load_craft("dl_load_no_save");
+                        resp = "200";
+                    });
+                });
+                GUILayout.Space(10);
+                button("Cancel", "button.cancel_load", close_dialog);
+                return resp;
+            });
+        }
+
+        public void upload_complete_dialog(int remote_status_code, string response){
+            var resp_data = JSON.Parse(response);
+            show_dialog(remote_status_code == 200 ? "Upload Complete" : "Upload Error", "", d =>{
+                if(remote_status_code == 200){
+                    string craft_url = resp_data["url"];
+                    string craft_full_url = KerbalXAPI.url_to(craft_url);
+                    label("Your Craft has been uploaded!", "h2");
+                    button("It is now available here:\n" + craft_full_url, "hyperlink.bold", ()=>{
+                        Application.OpenURL(craft_full_url);
+                        close_dialog();
+                    });
+                    button(StyleSheet.assets["logo_large"], "centered", 664, 120, ()=> {                       
+                        Application.OpenURL(craft_full_url);
+                        close_dialog();
+                    });
+                    section(()=>{
+                        fspace();
+                        label("click the url or the logo to see your craft on KerbalX", "compact");                        
+                    });
+                }else{
+                    label("There was a problem uploading your craft. Error code " + remote_status_code, "h3");
+                    label(response); //TODO: make this nicer.
+                }
+                section(()=>{
+                    fspace();
+                    button("close", close_dialog);
+                });
+                return "";
+            });
+        }
 
         protected void populate_new_save_dialog(){
             KerbalX.get_craft_ids_by_version((craft_by_version, versions) =>{
