@@ -11,6 +11,8 @@ using KatLib;
 
 namespace CraftManager
 {
+    //CMBrowserBase contains all the variables for the main CMBrowser class and the CMBrowserDialogs class (which is also inherited by CMBrowser
+    //It also contains all the 'worker' methods which are called by the view elements of CMBrowser and CMBrowserDialogs.
     public class CMBrowserBase : CMUI
     {
         
@@ -26,9 +28,9 @@ namespace CraftManager
         internal string active_save_dir = HighLogic.SaveFolder;   //The dir of save which has been selected in UI
 
         internal delegate void DialogAction();
+        protected DropdownMenuData inline_tag_menu;
         protected DropdownMenuData save_menu_options  = new DropdownMenuData();
         protected DropdownMenuData tags_menu_content  = new DropdownMenuData();
-        protected DropdownMenuData inline_tag_menu;
         protected DropdownMenuData toggle_tags_menu   = new DropdownMenuData();
         protected DropdownMenuData tag_sort_options   = new DropdownMenuData(new Dictionary<string, string> { {"name", "Name"}, {"craft_count", "Craft Count"} });
         protected DropdownMenuData tag_filter_modes   = new DropdownMenuData(new List<string> { "AND", "OR" });
@@ -41,7 +43,6 @@ namespace CraftManager
         protected DropdownMenuData sort_options       = new DropdownMenuData(new Dictionary<string, string>{
             {"name", "Name"}, {"cost", "Cost"}, {"crew_capacity", "Crew Capacity"}, {"mass", "Mass"}, {"part_count", "Part Count"}, {"stage_count", "Stages"}, {"date_created", "Created"}, {"date_updated", "Updated"}
         });
-
 
         protected struct MenuOptions{
             public string text;
@@ -128,7 +129,8 @@ namespace CraftManager
         };
         protected Rect scroll_relative_pos = new Rect(0, 0, 0, 0); //used to track the position of scroll sections. needed to render dropdown menus inside scroll section.
 
-        //**Helpers**//
+
+
 
         //Collect currently active filters into a Dictionary<string, object> which is then be passed to 
         //filter_craft on CraftData (which does the actual filtering work).
@@ -478,6 +480,50 @@ namespace CraftManager
                     scroll_pos["main"] = new Vector2(scroll_pos["main"].x, craft.list_position);
                 } else if(craft.list_position + craft.list_height > scroll_pos["main"].y + main_section_height){
                     scroll_pos["main"] = new Vector2(scroll_pos["main"].x, craft.list_position - main_section_height + craft.list_height+5);
+                }
+            }
+        }
+
+
+        //listen to key press actions
+        protected void key_event_handler(){
+            if(Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl)){
+                ctrl_key_down = true;
+            } else{
+                ctrl_key_down = false;
+            }
+            Event e = Event.current;
+
+            if(e.type == EventType.keyDown){
+                //'esc' - close interface
+                if(e.type == EventType.keyDown && e.keyCode == KeyCode.Escape) {
+                    e.Use();
+                    this.hide();
+                    //'ctrl+f' - focus on main search field
+                }else if(GUI.GetNameOfFocusedControl() != "main_search_field" && ctrl_key_down && e.keyCode == KeyCode.F){
+                    GUI.FocusControl("main_search_field");
+                    e.Use();
+                    //'ctrl+t' - create new tag
+                }else if(GUI.GetNameOfFocusedControl() != "main_search_field" && ctrl_key_down && e.keyCode == KeyCode.T){
+                    CraftManager.main_ui.create_tag_dialog();
+                    e.Use();
+                    //'up arrow' move up in craft list
+                } else if(e.keyCode == KeyCode.UpArrow && !upload_interface_ready){
+                    jump_to_craft(CraftData.filtered.IndexOf(CraftData.selected_craft) - 1);
+                    e.Use();
+                    //'down arrow' move down in craft list  
+                } else if(e.keyCode == KeyCode.DownArrow && !upload_interface_ready){
+                    jump_to_craft(CraftData.filtered.IndexOf(CraftData.selected_craft) + 1);
+                    e.Use();
+                    //'enter key' - load selected craft (if focus is not on search field)
+                }else if(GUI.GetNameOfFocusedControl() != "main_search_field" && CraftData.selected_craft != null){
+                    if(e.keyCode == KeyCode.Return || e.keyCode == KeyCode.KeypadEnter){                       
+                        load_craft(CraftData.selected_craft.construction_type == "Subassembly" ? "subload" : "load");
+                    }                
+                    //'tab' - move focus from search field to craft list.
+                } else if(GUI.GetNameOfFocusedControl() == "main_search_field" && e.keyCode == KeyCode.Tab){
+                    jump_to_craft(0);
+                    e.Use();            
                 }
             }
         }
