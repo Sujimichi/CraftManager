@@ -297,7 +297,7 @@ namespace CraftManager
         }
 
         protected void toggle_compact_mode(){toggle_compact_mode(!compact_mode);}
-        protected void toggle_compact_mode(bool change_to){
+        internal void toggle_compact_mode(bool change_to, bool save_setting = true){
             compact_mode = change_to;
             if(compact_mode){
                 window_width = 500f;
@@ -306,6 +306,9 @@ namespace CraftManager
             }
             window_pos = get_window_position();
             more_menu.items["compact_mode"] = compact_mode ? "Full View" : "Compact Mode";
+            if(save_setting){
+                CraftManager.settings.set("compact_mode", change_to.ToString());
+            }
         }
 
         protected Rect get_window_position(){
@@ -443,7 +446,7 @@ namespace CraftManager
 
         protected void open_upload_interface(){
             if(compact_mode){
-                toggle_compact_mode(false);
+                toggle_compact_mode(false, false);
             }
             show_upload_interface = true;
             close_dialog();
@@ -480,6 +483,9 @@ namespace CraftManager
                     show_headers = true;
                     col_widths_current[0] = col_widths_default[0];
                     col_widths_current[1] = col_widths_default[1];
+                    if(compact_mode != bool.Parse(CraftManager.settings.get("compact_mode"))){
+                        toggle_compact_mode(bool.Parse(CraftManager.settings.get("compact_mode")), false);
+                    }
                 }
             }
         }

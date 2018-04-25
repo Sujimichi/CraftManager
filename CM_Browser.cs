@@ -38,6 +38,8 @@ namespace CraftManager
             footer = false;
             prevent_click_through = false; //disable the standard click through prevention. show and hide will add control locks which are not based on mouse pos.
 
+            toggle_compact_mode(bool.Parse(CraftManager.settings.get("compact_mode")), false);
+
             if(KerbalX.enabled){
                 enable_request_handler();
                 if(KerbalXAPI.logged_in() && bool.Parse(CraftManager.settings.get("ask_to_populate_new_save"))){
@@ -91,7 +93,7 @@ namespace CraftManager
 
             if(DevTools.autostart){
 //                show();                
-//                HelpUI.open(gameObject);
+                SettingsUI.open(gameObject);
             }
             CraftManager.log("CraftManagerUI-Ready");
         }

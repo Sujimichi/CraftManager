@@ -29,6 +29,7 @@ namespace CraftManager
             settings.Add("use_editor_key_shortcuts", "True");
             settings.Add("screenshot_dir", "<ksp_install>/Screenshots");
 
+            settings.Add("compact_mode", "False");
             settings.Add("exclude_stock_craft", "False");
             settings.Add("craft_sort_reverse", "False");
             settings.Add("craft_sort", "name");
@@ -190,7 +191,12 @@ namespace CraftManager
                 if(!String.IsNullOrEmpty(setting_error_open_opts)){
                     label(setting_error_open_opts, "error");
                 }
-                
+                v_section("dialog.section", ()=>{
+                    setting_section("compact_mode", "Use Compact Mode", 
+                        "The interface hides the tags and craft details sections, making it more like the stock interface.",
+                        "Some functionality is reduced, and uploading craft will switch you back to full size view."
+                    );
+                });
                 v_section("dialog.section", () =>{
                     string prev_new_screenshot_location = new_screenshot_location;
                     section(()=>{
@@ -246,6 +252,9 @@ namespace CraftManager
                 });
                 v_section(rhs_width, (w) =>{
                     opt = bool.Parse(settings.get(setting_name));
+                    if(!String.IsNullOrEmpty(note)){
+                        GUILayout.Space(20f);
+                    }
                     button(opt ? active_text : inactive_text, "button" + (opt ? ".down" : ""), () =>{
                         setting_error_open_opts = "";
                         settings.set(setting_name, (!opt).ToString());
@@ -254,7 +263,12 @@ namespace CraftManager
                             settings.set("replace_editor_load_button", true.ToString());
                             setting_error_open_opts = "You need to have at least 1 of the above three options selected";
                         }
+
+                        if(setting_name == "compact_mode"){
+                            CraftManager.main_ui.toggle_compact_mode(!opt, false);
+                        }
 //                        CraftManager.settings = new CMSettings(); //re-initialize settings so updated values are set on CraftManager static variables
+
                     });
                 });
             });   
