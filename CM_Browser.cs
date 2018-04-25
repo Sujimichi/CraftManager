@@ -254,7 +254,7 @@ namespace CraftManager
                 });
                 fspace();
                 if(!compact_mode){
-                    stock_craft_toggle();
+                    stock_craft_toggle_checkbox();
                 }
                 dropdown(StyleSheet.assets["menu"], "more_menu", more_menu, this, 30f, "button", "menu.background", "menu.item", (resp) => {
                     switch(resp){
@@ -283,7 +283,7 @@ namespace CraftManager
             });
             if(compact_mode){
                 section(() =>{
-                    stock_craft_toggle();
+                    stock_craft_toggle_checkbox();
                     craft_display_buttons();
                 });
             }
@@ -906,85 +906,108 @@ namespace CraftManager
         //Botton Section: Load buttons
         protected void draw_bottom_section(float section_width){
             section("thin.section", () =>{
-//                GUILayout.Space(10);
                 if(KerbalX.download_queue_size > 0){
                     button(KerbalX.download_queue_size + " craft waiting to download", "download_waiting", KerbalX.load_download_queue);
                 }
             });
-            section("bottom.section", () =>{
-                v_section(()=>{
+            if(compact_mode){
+                v_section("bottom.section", () =>{
                     section(()=>{
-                        label(CraftManager.status_info);
-                        if(show_transfer_indicator){
-                            if(transfer_is_upload){
-                                label("Uploading Craft....", "transfer_progres.text");
-                            }else{
-                                label("Updating Craft....", "transfer_progres.text");
-                            }
-                        }
+                        fspace();                   
+                        action_buttons();
                     });
-
-                    section(()=>{
-                        if(CraftManager.status_info != "" || show_transfer_indicator){
-                            if((DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond) - prog_timer > prog_interval){
-                                prog_timer = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
-                                prog_pos += 1;
-                                if(prog_pos > 4){
-                                    prog_pos = 0;
-                                }
-                            }
-                            for(int i = 0; i < 5; i++){
-                                if(prog_pos == i){
-                                    label("", "progbox.active");
-                                }else{
-                                    label("", "progbox");
-                                }
-                            }
-                        }
-                    });
+                    kerbalx_status_indicator();
                 });
-                fspace();                   
-                gui_state(CraftData.selected_craft != null && show_transfer_indicator == false, ()=>{
-                    load_menu_mode = "default";
-
-                    if(CraftData.selected_craft != null){                        
-                        if(upload_interface_ready){
-                            load_menu_mode = "upload";
-                        }else if(CraftData.selected_craft.remote && CraftData.selected_craft.exists_locally){
-                            load_menu_mode = "redownload";
-                        }else if(CraftData.selected_craft.remote && !CraftData.selected_craft.exists_locally){
-                            load_menu_mode = "download";
-                        }else if(CraftData.selected_craft.construction_type == "Subassembly"){                        
-                            load_menu_mode = "submode";
-                        }
-                    }
-
-                    button(load_menu[load_menu_mode].text, "button.load", load_menu[load_menu_mode].width, ()=>{ load_craft(load_menu[load_menu_mode].action);});
-
-                    Texture dl_menu_option_texture = StyleSheet.assets["caret-down-green"];
-                    if(anchors.ContainsKey("load_menu") && anchors["load_menu"].Contains(Event.current.mousePosition)){
-                        dl_menu_option_texture = StyleSheet.assets["caret-down-green-hover"];
-                    }
-                    if(load_menu[load_menu_mode].menu !=null){
-                        dropdown(dl_menu_option_texture, "load_menu", load_menu[load_menu_mode].menu, this, 42f, "button.load", "menu.background", "menu.item", resp => {                    
-                            load_craft(resp);
-                        });
-                    }
+            } else{
+                section("bottom.section", () =>{
+                    kerbalx_status_indicator();
+                    fspace();                   
+                    action_buttons();
                 });
-                GUILayout.Space(8);
-                if(upload_interface_ready){
-                    button("Back", "button.close", 120f, close_upload_interface);
-                }else{                    
-                    button("Close", "button.close", 120f, this.hide);
-                }
-            });
+            }
         }
 
 
 
         //**GUI sub components**//
 
-        private void stock_craft_toggle(){
+        //draws the primary 'action' button for Load/download/upload with dropdown modifier menu and the main close UI button
+        private void action_buttons(){
+            gui_state(CraftData.selected_craft != null && show_transfer_indicator == false, ()=>{
+                load_menu_mode = "default";
+
+                if(CraftData.selected_craft != null){                        
+                    if(upload_interface_ready){
+                        load_menu_mode = "upload";
+                    }else if(CraftData.selected_craft.remote && CraftData.selected_craft.exists_locally){
+                        load_menu_mode = "redownload";
+                    }else if(CraftData.selected_craft.remote && !CraftData.selected_craft.exists_locally){
+                        load_menu_mode = "download";
+                    }else if(CraftData.selected_craft.construction_type == "Subassembly"){                        
+                        load_menu_mode = "submode";
+                    }
+                }
+
+                button(load_menu[load_menu_mode].text, "button.load", load_menu[load_menu_mode].width, ()=>{ load_craft(load_menu[load_menu_mode].action);});
+
+                Texture dl_menu_option_texture = StyleSheet.assets["caret-down-green"];
+                if(anchors.ContainsKey("load_menu") && anchors["load_menu"].Contains(Event.current.mousePosition)){
+                    dl_menu_option_texture = StyleSheet.assets["caret-down-green-hover"];
+                }
+                if(load_menu[load_menu_mode].menu !=null){
+                    dropdown(dl_menu_option_texture, "load_menu", load_menu[load_menu_mode].menu, this, 42f, "button.load", "menu.background", "menu.item", resp => {                    
+                        load_craft(resp);
+                    });
+                }
+            });
+            GUILayout.Space(8);
+            if(upload_interface_ready){
+                button("Back", "button.close", 120f, close_upload_interface);
+            }else{                    
+                button("Close", "button.close", 120f, this.hide);
+            }
+        }
+
+        //draws a progress indicator which is shown during all interaction with KerbalX
+        private void kerbalx_status_indicator(){
+            v_section(()=>{
+                section(()=>{
+                    if(!compact_mode){
+                        label(CraftManager.status_info);
+                    }
+                    if(show_transfer_indicator){
+                        if(transfer_is_upload){
+                            label("Uploading Craft....", "transfer_progres.text");
+                        }else{
+                            label("Updating Craft....", "transfer_progres.text");
+                        }
+                    }
+                });
+
+                section(()=>{
+                    if(CraftManager.status_info != "" || show_transfer_indicator){
+                        if((DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond) - prog_timer > prog_interval){
+                            prog_timer = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
+                            prog_pos += 1;
+                            if(prog_pos > 4){
+                                prog_pos = 0;
+                            }
+                        }
+                        for(int i = 0; i < 5; i++){
+                            if(prog_pos == i){
+                                label("", "progbox.active" + (compact_mode ? ".compact" : ""));
+                            }else{
+                                label("", "progbox" + (compact_mode ? ".compact" : ""));
+                            }
+                        }
+                    }
+                });
+            });
+        }
+
+
+
+        private void stock_craft_toggle_checkbox(){
             if(!kerbalx_mode){
                 section("stock_craft_toggle", ()=>{                        
                     bool prev_state = exclude_stock_craft;

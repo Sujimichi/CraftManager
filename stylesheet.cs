@@ -272,12 +272,12 @@ namespace CraftManager
             define_style("button.load", "button.vlarge", s =>{                
                 s.normal.textColor = new Color(0.2f,0.3f,0.3f,1);
                 s.hover.textColor = new Color(0.6f,0.9f,0.3f,1);
-                s.margin = new RectOffset(0,0,15,15);
+                s.margin = new RectOffset(0,0,15,0);
             });
             define_style("button.close", "button.vlarge", s =>{                
                 s.normal.textColor = new Color(0.4f,0.2f,0.1f,1);
                 s.hover.textColor = new Color(0.8f,0.4f,0.2f,1);
-                s.margin = new RectOffset(0,8,15,15);
+                s.margin = new RectOffset(0,8,15,0);
             });
             define_style("button.close.top", "button.close", s =>{
                 s.margin = base_skin.button.margin;
@@ -574,6 +574,16 @@ namespace CraftManager
             });
 
             define_style("progbox.active", "progbox", s =>{
+                s.normal.background = textures["blue_background"];
+            });
+
+            define_style("progbox.compact", "progbox", s =>{
+                s.fixedWidth = 8f;
+                s.fixedHeight = 8f;
+                s.margin = new RectOffset(5,2,0,0);
+            });
+
+            define_style("progbox.active.compact", "progbox.compact", s =>{
                 s.normal.background = textures["blue_background"];
             });
 
