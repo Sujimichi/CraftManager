@@ -295,8 +295,9 @@ namespace CraftManager
             }
         }
 
-        protected void toggle_compact_mode(){
-            compact_mode = !compact_mode;
+        protected void toggle_compact_mode(){toggle_compact_mode(!compact_mode);}
+        protected void toggle_compact_mode(bool change_to){
+            compact_mode = change_to;
             if(compact_mode){
                 window_width = 500f;
             } else{
@@ -422,6 +423,9 @@ namespace CraftManager
         }
 
         protected void open_upload_interface(){
+            if(compact_mode){
+                toggle_compact_mode(false);
+            }
             show_upload_interface = true;
             close_dialog();
         }

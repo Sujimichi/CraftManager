@@ -443,6 +443,13 @@ namespace CraftManager
                     if(!craft.remote){
                         DropdownMenuData menu = new DropdownMenuData(new Dictionary<string, string>{{"add_tag", "Add Tag"}, {"rename", "Rename"}, {"transfer", "Transfer"}});
                         if(save_menu_options.items.Count > 2){menu.items.Add("move_copy", "Move/Copy");}
+                        if(!craft.stock_craft && KerbalXAPI.logged_in()){
+                            if(craft.on_kerbalx()){
+                                menu.items.Add("update", "Update on KerbalX");
+                            }else{
+                                menu.items.Add("share", "Share on KerbalX");                                
+                            }
+                        }
                         menu.special_items.Add("delete", "Delete");
                         menu.special_items_first = false;
                         menu.offset_menu = false;
@@ -455,6 +462,8 @@ namespace CraftManager
                                 case "rename"   : rename_craft_dialog(craft);break;
                                 case "transfer" : transfer_craft_dialog(craft);break;
                                 case "move_copy": move_copy_craft_dialog(craft);break;
+                                case "share"    : CraftData.select_craft(craft); open_upload_interface();break;
+                                case "update"   : show_update_kerbalx_craft_dialog();break;
                                 case "delete"   : delete_craft_dialog(craft);break;
                             }                            
                         });
@@ -785,7 +794,7 @@ namespace CraftManager
                                 label("Step 1: Set basic Craft details", "h2");
                                 section(() =>{
                                     label("Name:", "h3", 50f);
-                                    craft.upload_data.craft_name = GUILayout.TextField(craft.upload_data.craft_name, width(inner_width-50f));
+                                    craft.upload_data.craft_name = GUILayout.TextField(craft.upload_data.craft_name, width(inner_width-70f));
                                 });
                                 section(() =>{
                                     label("Type:", "h3", 50f);
@@ -799,7 +808,7 @@ namespace CraftManager
                                 });
                                 section(() =>{
                                     label("#tags:", "h3", 50f);
-                                    craft.upload_data.hash_tags = GUILayout.TextField(craft.upload_data.hash_tags, width(inner_width-50f));
+                                    craft.upload_data.hash_tags = GUILayout.TextField(craft.upload_data.hash_tags, width(inner_width-70f));
                                 });
                                 section(() =>{
                                     fspace();
