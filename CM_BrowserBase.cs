@@ -483,25 +483,25 @@ namespace CraftManager
 
         //listen to key press actions
         protected void key_event_handler(){
-            if(Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl)){
+            if(Event.current.control){
                 ctrl_key_down = true;
             } else{
                 ctrl_key_down = false;
             }
             Event e = Event.current;
-
+                
             if(e.type == EventType.keyDown){
                 //'esc' - close interface
                 if(e.type == EventType.keyDown && e.keyCode == KeyCode.Escape) {
                     e.Use();
                     this.hide();
                     //'ctrl+f' - focus on main search field
-                }else if(GUI.GetNameOfFocusedControl() != "main_search_field" && ctrl_key_down && e.keyCode == KeyCode.F){
+                }else if(ctrl_key_down && e.keyCode == KeyCode.F){
                     GUI.FocusControl("main_search_field");
                     e.Use();
                     //'ctrl+t' - create new tag
-                }else if(GUI.GetNameOfFocusedControl() != "main_search_field" && ctrl_key_down && e.keyCode == KeyCode.T){
-                    CraftManager.main_ui.create_tag_dialog();
+                }else if(ctrl_key_down && e.keyCode == KeyCode.T){
+                    CraftManager.main_ui.create_tag_dialog(true);
                     e.Use();
                     //'up arrow' move up in craft list
                 } else if(e.keyCode == KeyCode.UpArrow && !upload_interface_ready){
