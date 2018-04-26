@@ -1035,7 +1035,8 @@ namespace CraftManager
                 dropdown_label = "KerbalX";
                 save_menu_options.selected_item = "kerbalx_remote";
             } else{
-                dropdown_label = (active_save_dir == all_saves_ref ? "All Saves" : active_save_dir);
+                dropdown_label = (active_save_dir == all_saves_ref ? "All Saves" : (active_save_dir == current_save_dir ? "Current Save" : active_save_dir));
+
                 save_menu_options.selected_item = active_save_dir;
             }
             dropdown(dropdown_label, StyleSheet.assets["caret-down"], "save_menu", save_menu_options, this, save_menu_width, change_craft_source);

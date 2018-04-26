@@ -370,7 +370,11 @@ namespace CraftManager
             if(kerbalx_mode){
                 save_menu_width = GUI.skin.button.CalcSize(new GUIContent("KerbalX")).x;
             } else{
-                save_menu_width = GUI.skin.button.CalcSize(new GUIContent(active_save_dir)).x;
+                if(active_save_dir == current_save_dir){
+                    save_menu_width = GUI.skin.button.CalcSize(new GUIContent("Current Save")).x;
+                } else{
+                    save_menu_width = GUI.skin.button.CalcSize(new GUIContent(active_save_dir)).x;
+                }
             }
         }
 
