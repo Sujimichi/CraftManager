@@ -14,7 +14,7 @@ namespace CraftManager
         private Dictionary<string, ConfigNode> craft_data = new Dictionary<string, ConfigNode>();
         internal Dictionary<string, AvailablePart> part_data = new Dictionary<string, AvailablePart>();  //name->part lookup for available parts
         internal List<string> locked_parts = new List<string>();
-        private List<string> ignore_fields = new List<string>{"selected_craft", "craft_saved"};
+        private List<string> ignore_fields = new List<string>{"selected_craft", "craft_saved", "save_names"};
 
         internal Dictionary<string, int> tag_craft_count_store = new Dictionary<string, int>();
 
