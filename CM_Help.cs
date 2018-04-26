@@ -37,6 +37,9 @@ namespace CraftManager
                     content_button("Craft List", "craft_list");
                     content_button("Craft Details", "craft_details");
                     content_button("Share on KerbalX", "upload_mode");
+                    content_button("Download from KerbalX", "kerbalx_craft");
+                    content_button("Compact Mode", "compact_mode");
+
 
                 });
                 v_section(10, 300f, (w2)=>{
@@ -77,6 +80,8 @@ namespace CraftManager
                 case "craft_list" :         craft_list_content(inner_width); break;
                 case "craft_details" :      craft_details_content(inner_width); break;
                 case "upload_mode" :        upload_interface_content(inner_width); break;
+                case "kerbalx_craft":       kerbalx_craft_content(inner_width);break;
+                case "compact_mode" :       compact_mode_content(inner_width);break;
             }
         }
 
@@ -90,13 +95,13 @@ namespace CraftManager
             label("In the top right, the 'Include Stock Craft' toggle lets you show/hide the stock craft that come with KSP");
             label(
                 "On the left is the main search field, which allows you to search for craft by name.\n" + 
-                "To the right of the search field is the 'KerbalX Craft' button (only shown if KerbalX integration is enabled) that will switch to browsing your craft on KerbalX.\n" + 
-                "Right of that is a menu which lets you switch between different saves so you can view/load craft from other saves."
+                "To the right of the search is the 'view craft from' dropdown menu. This lets you view craft from different saves or switch to viewing your craft on KerbalX.\n"
             );
             label(
-                "The main section of the interace is divided into 3 panels. On the left are the tags, in the middle is the craft list and the right will show details about the selected craft."
+                "The main section of the inteface is divided into 3 panels. On the left are your tags, in the middle is the craft list and the right will show details about the selected craft.\n" + 
+                "(You can turn on 'compact mode' to hide the left and right panels)."
             );
-            label("Right click on Craft and Tags for more actions.", "bold");
+            label("Tip: You can right click on Craft and Tags for more actions.", "bold");
 
             section(() =>{
                 label("see more about ");
@@ -226,8 +231,51 @@ namespace CraftManager
 
         private void upload_interface_content(float content_width){
             label("Uploading to KerbalX", "h2");
+            label("To upload one of your craft to KerbalX, click on the craft in the main list and click 'Share on KerbalX' in the right hand panel, or right click on the craft and click share.");
+            label(
+                "This will slide the interface into upload mode.  Most things should be already setup; check the craft's details, make sure you're happy with the tags, craft type and description.\n" +
+                "You can also set info about the action groups."
+            );
+            label("Then you need to select at least one picture.  Choose a picture from the list on the right, or click 'take new picture' and the interface will temporarily hide amd give you a grab screenshot button (after tkaing a screenshot it will return you to the upload interface");
+            label(
+                "Finally, click the Upload button at the bottom.  A progress indicator will appear in the bottom left and when the upload is complete a popup will appear to let you know.\n" +
+                "(while a craft is uploading you can close Craft Manager or carry on using it to view/load craft as normal)"
+            );
+
+            label("Updating an existing craft", "h2");
+            label(
+                "If you've already uploaded a craft to KerbalX the 'Share' button will be replaced with an 'update' button.\n" +
+                "(This assumes that the craft on KerbalX has the same name as your local craft.)"
+            );
+            label(
+                "Clicking update will open a dialog that lets you make sure it's the correct craft on KerbalX that will be updated.\n" +
+                "If you have multiple craft with the same name, you can select the correct one from a dropdown menu."
+            );
+
+            label("Updating a craft with a different name", "h3");
+            label(
+                "If you local craft's name doesn't match the name of one of you craft on KerbalX, Craft Manager will assume that you want to upload it as a separate craft.\n" +
+                "But if you want to replace one of your existing craft, click share and then at the bottom click update existing craft and you'll be able to select which craft to update"
+            );
 
         }
+
+        private void kerbalx_craft_content(float content_width){
+            label("Your KerbalX Craft", "h2");
+            label("To view your craft on KerbalX, use the 'view craft from' dropdown menu and select KerbalX");
+            label(
+                "The tags section will be replaced with a list of the different groups of craft you can view (Your Craft, Your Favourites, Your Past Downloads and Your Download Queue)." +
+                "It will also list the KSP versions of the craft in those groups (and by default just the two most recent will be selected)."
+            );
+
+                
+        }
+
+        private void compact_mode_content(float content_width){
+            label("Compact Mode", "h2");
+
+        }
+
 
         public static void open(GameObject go){           
             go.AddOrGetComponent<HelpUI>();

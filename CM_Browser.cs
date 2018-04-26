@@ -92,7 +92,7 @@ namespace CraftManager
             }
 
             if(DevTools.autostart){
-                show();                
+//                show();                
 //                SettingsUI.open(gameObject);
             }
             CraftManager.log("CraftManagerUI-Ready");
