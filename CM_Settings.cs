@@ -168,7 +168,7 @@ namespace CraftManager
         }
 
         protected override void WindowContent(int win_id) { 
-            settings_scroll = scroll(settings_scroll, "settings.scroll", inner_width-8, 400, (w) =>{
+            settings_scroll = scroll(settings_scroll, "settings.scroll", inner_width-8, 500, (w) =>{
                 v_section("dialog.section", () =>{
                     setting_section("KerbalX_integration_enabled", "KerbalX Integration", "Enabled", "Enable",                     
                         "Enables you to share your craft on KerbalX, download them and fetch other users craft.",
@@ -208,29 +208,31 @@ namespace CraftManager
                         label("Screenshot Folder:", "h2.tight");
                         new_screenshot_location = GUILayout.TextField(new_screenshot_location);                    
                     });
+                    if(new_screenshot_location != prev_new_screenshot_location){
+                        setting_error_screenshot_dir = "";
+                        string path = new_screenshot_location.Replace("<ksp_install>", KSPUtil.ApplicationRootPath);
+                        if(Directory.Exists(path)){
+                            settings.set("screenshot_dir", new_screenshot_location);
+                            //                            CraftManager.settings = new CMSettings(); //re-initialize settings so updated values are set on CraftManager static variables
+                        }else{
+                            setting_error_screenshot_dir = "unable to find directory: "+ path;
+                        }
+                    }
+                    if(!String.IsNullOrEmpty(setting_error_screenshot_dir)){
+                        label(setting_error_screenshot_dir, "error");                
+                    }
                     section(()=>{
-                        label("enter the full path to your Screenshot folder,\nor use a relative path in this KSP install by starting with '<ksp_install>'");
-                        label("Craft Manager will show pictures from this folder when uploading craft to KerbalX & will save pictues taken here when using the UI to grab a new screenshot", "small");
+                        v_section(()=>{
+                            label("enter the full path to your Screenshot folder,\nor use a relative path in this KSP install by starting with '<ksp_install>'");
+                            label("Craft Manager will show pictures from this folder when uploading craft to KerbalX & will save pictues taken here when using the UI to grab a new screenshot", "small");                            
+                        });
                         fspace();
                         button("use default", ()=>{
                             new_screenshot_location = "<ksp_install>/Screenshots";
                         });
                     });
                     
-                    if(new_screenshot_location != prev_new_screenshot_location){
-                        setting_error_screenshot_dir = "";
-                        string path = new_screenshot_location.Replace("<ksp_install>", KSPUtil.ApplicationRootPath);
-                        if(Directory.Exists(path)){
-                            settings.set("screenshot_dir", new_screenshot_location);
-//                            CraftManager.settings = new CMSettings(); //re-initialize settings so updated values are set on CraftManager static variables
-                        }else{
-                            setting_error_screenshot_dir = "unable to find directory: "+ path;
-                        }
-                    }
                 });
-                if(!String.IsNullOrEmpty(setting_error_screenshot_dir)){
-                    label(setting_error_screenshot_dir, "error");                
-                }
             });
 
             section(() =>{
