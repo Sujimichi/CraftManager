@@ -376,6 +376,7 @@ namespace CraftManager
                     CraftManager.main_ui.selected_type_count += 1;
                 }
             }
+            loaded_craft_type = "";
             CraftManager.main_ui.refresh();
         }
     }

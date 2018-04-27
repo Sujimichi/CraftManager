@@ -384,6 +384,9 @@ namespace CraftManager
                             item_last_height += craft.list_height;
                         }
                     }
+                    if(CraftData.filtered.Count == 0){
+                        show_no_matching_craft_message();
+                    }
                 });
                 if(calculate_heights && Event.current.type == EventType.Repaint){
                     craft_list_overflow = item_last_height+10 >= main_section_height;
@@ -1028,17 +1031,76 @@ namespace CraftManager
             if(save_menu_width == 0){               
                 adjust_save_menu_width();
             }
-            label("view craft from:", "craft_select_label");
-            string dropdown_label = "";
-            if(kerbalx_mode){
-                dropdown_label = "KerbalX";
-                save_select_menu.selected_item = "kerbalx_remote";
-            } else{
-                dropdown_label = (active_save_dir == all_saves_ref ? "All Saves" : (active_save_dir == current_save_dir ? "Current Save" : active_save_dir));
-
-                save_select_menu.selected_item = active_save_dir;
+            if(KerbalX.enabled || saves_count > 1){
+                label("view craft from:", "craft_select_label");
+                string dropdown_label = "";
+                if(kerbalx_mode){
+                    dropdown_label = "KerbalX";
+                    save_select_menu.selected_item = "kerbalx_remote";
+                } else{
+                    dropdown_label = (active_save_dir == all_saves_ref ? "All Saves" : (active_save_dir == current_save_dir ? "Current Save" : active_save_dir));
+                    save_select_menu.selected_item = active_save_dir;
+                }
+                dropdown(dropdown_label, StyleSheet.assets["caret-down"], "save_menu", save_select_menu, this, save_menu_width, change_craft_source);
             }
-            dropdown(dropdown_label, StyleSheet.assets["caret-down"], "save_menu", save_select_menu, this, save_menu_width, change_craft_source);
+        }
+
+        protected void show_no_matching_craft_message(){
+            GUILayout.Space(main_section_height*0.4f);
+            string message = "";
+            if(search_criteria.ContainsKey("search") && !String.IsNullOrEmpty((string)search_criteria["search"])){
+                message += "matching \"" + search_criteria["search"] + "\" ";
+            }
+            if(KerbalX.loaded_craft_type == "" && Tags.selected_tags().Count > 0){
+                message += "with tags: " + Tags.selected_tags().n_join(((string)search_criteria["tag_filter_mode"]).ToLower()) + " ";
+            }
+
+            if(!String.IsNullOrEmpty(message.Trim()) && search_criteria.ContainsKey("type")){
+                Dictionary<string, bool> types = (Dictionary<string, bool>) search_criteria["type"];
+                List<string> selected_types = new List<string>();
+                foreach(KeyValuePair<string, bool> t in types){
+                    if(t.Value){                        
+                        selected_types.Add(t.Key);
+                    }
+                }
+                message += "in " + selected_types.n_join("or");
+            }
+
+
+            if(!String.IsNullOrEmpty(message.Trim())){
+                label("No Craft found " + message, "h2");                            
+            }else{
+                if(KerbalX.loaded_craft_type == ""){
+                    label("You don't have any craft here!", "h2");                                
+                }else{
+                    switch(KerbalX.loaded_craft_type){
+                        case "users" : 
+                            label("You don't seem to have any craft on KerbalX", "h2");
+                            label("quick, upload something!");
+                            break;
+                        case "past_downloads" : 
+                            label("You don't have any past downloads", "h2");
+                            label("craft that you've previously downloaded from KerbalX will be shown here");
+                            break;
+                        case "favourites" :
+                            label("You don't have any craft favourited on KerbalX", "h2");
+                            label("Go to KerbalX.com, find somthing awesome and click the star icon, then it will appear here");
+                            break;
+                        case "download_queue": 
+                            label("There is nothing in your Download Queue", "h2");
+                            label(
+                                "The download queue will list craft which you have tagged for download on KerbalX\n" +
+                                "you need to enable 'Deferred Downloads' in your KerbalX settings to use this feature"
+                            );
+                            label(
+                                "With Deferred Downloads enabled when you click download on a craft on KerbalX it won't download in your browser, instead it will appear here.\n" +
+                                "So you can use your mobile or another computer to browse the site, mark craft for download and have them delivered here."
+                            );
+                            break;
+                    }
+                }
+            }
+
         }
     }
 }

@@ -18,7 +18,7 @@ namespace CraftManager
     public class DevTools : MonoBehaviour
     {
         public static bool autostart = true;
-        public string save_name = "kx_dev";
+        public string save_name = "foobar";
 //        public string mode = "spacecenter";
         public string mode = "editor";
         public string craft_name = "testy";

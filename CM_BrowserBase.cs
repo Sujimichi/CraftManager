@@ -160,6 +160,7 @@ namespace CraftManager
 
 
 
+        protected Dictionary<string, object> search_criteria = new Dictionary<string, object>();
 
         //Collect currently active filters into a Dictionary<string, object> which is then be passed to 
         //filter_craft on CraftData (which does the actual filtering work).
@@ -167,7 +168,7 @@ namespace CraftManager
             if(CraftData.cache != null && !exclude_stock_craft && !stock_craft_loaded){ //load stock craft if they've not yet been loaded and option to exclude stock is switched off.
                 CraftData.load_stock_craft_from_files();
             }
-            Dictionary<string, object> search_criteria = new Dictionary<string, object>();
+            search_criteria.Clear();
             search_criteria.Add("search", search_string);
             search_criteria.Add("type", selected_types);
             if(kerbalx_mode){
