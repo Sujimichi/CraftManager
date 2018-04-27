@@ -227,6 +227,10 @@ namespace CraftManager
             });
             handle_auto_focus_actions();
             handle_upload_interface_transition();
+            if(open_tag_menu){
+                open_tag_menu  = false;
+                gameObject.AddOrGetComponent<Dropdown>().open(inline_tag_menu);
+            }
         }
 
         protected override void FooterContent(int window_id){
@@ -361,17 +365,22 @@ namespace CraftManager
                     if(!craft_list_overflow){
                         craft_list_width += 20;
                     }
-                    foreach(CraftData craft in CraftData.filtered){
-                        draw_craft_list_item(craft, craft_list_width); //render each craft
+                    for(int i=0; i < CraftData.filtered.Count; i++){
+                        CraftData craft = CraftData.filtered[i];
 
-                        //partially working approach to only drawing the craft which are in focus, it works, but mousewheel scrolling results in flicker and the You are pushing more GUIClips than you are popping error
-//                        if(calculate_heights || (craft.list_position + craft.list_height > scroll_pos["main"].y && craft.list_position < scroll_pos["main"].y + main_section_height)){
-//                            CraftManager.log(craft.name + " is visible");
-//                            draw_craft_list_item(craft, craft_list_width); //render each craft
-//                        }else{
-//                            section(section_width-(30f), craft.list_height-5, "craft.list_item", (inner_width)=>{ //subtractions from width to account for margins and scrollbar
-//                            });
-//                        }
+                        //determine if this craft is visible in the scroll view and set craft.draw to true if it is (or false if not) BUT only perform this check during a 
+                        //Layout event, otherwise the switch between drawing the full detail and the placeholder causes GUI errors (of the pushing more than poping sort).
+                        if(Event.current.type == EventType.Layout){
+                            craft.draw = (calculate_heights || (craft.list_position + craft.list_height > scroll_pos["main"].y-100 && craft.list_position < scroll_pos["main"].y + main_section_height+100));                            
+                        }
+                        //either draw the full detail craft item or a placeholder depending on if it is in the scroll view.
+                        if(craft.draw){
+                            draw_craft_list_item(craft, craft_list_width); //render each craft
+                        }else{
+                            section(section_width-(30f), craft.list_height-5, "craft.list_item", (w)=>{ //subtractions from width to account for margins and scrollbar
+                                label(craft.name);
+                            });
+                        }
 
                         //this is used to get the top offset position of each item in the craft list and that is stored on the CraftData object
                         //facilitates maintaining focus on list items when using the up/down arrow keys to scroll.
@@ -404,7 +413,7 @@ namespace CraftManager
                                 label("in save: " + craft.save_dir);
                             }
                         });
-                        section((w) => {
+                        section(() => {
                             label(craft.part_count + " parts in " + craft.stage_count + " stage" + (craft.stage_count==1 ? "" : "s"), "craft.info", width(200f));
                             label("cost: " + humanize(craft.cost_total), "craft.cost", width(140f));
                             if(selected_type_count > 1){
@@ -480,10 +489,6 @@ namespace CraftManager
                     }
                 }
             });
-            if(open_tag_menu){
-                open_tag_menu  = false;
-                gameObject.AddOrGetComponent<Dropdown>().open(inline_tag_menu);
-            }
         }
 
         //Left Hand Section: Tags
