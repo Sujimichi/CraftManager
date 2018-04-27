@@ -68,7 +68,9 @@ namespace CraftManager
                             menu.items.Add(dir_name, dir_name);
                         }
                     }
-                    menu.items.Add(all_saves_ref, "All Saves");   
+                    if(CraftData.save_names.Count > 1){
+                        menu.items.Add(all_saves_ref, "All Saves");                           
+                    }
 
                 });
             }
