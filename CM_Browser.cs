@@ -542,7 +542,7 @@ namespace CraftManager
                         section(tag_list_width, 38f, ()=>{
                             fspace();
                             button("All", KerbalX.select_all_versions);
-                            button("Default", KerbalX.select_default_versions);
+                            button("Recent 2", KerbalX.select_recent_versions);
 
                         });
                     }else{                        

@@ -123,7 +123,7 @@ namespace CraftManager
             }
             CraftManager.main_ui.filter_craft();
         }
-        internal static void select_default_versions(){
+        internal static void select_recent_versions(){
             for(int i = 0; i < versions.Count; i++){
                 v_toggle[versions[i]] = i < 2;
             }
@@ -163,7 +163,7 @@ namespace CraftManager
             foreach(Version v in versions){
                 v_toggle.Add(v, false);
             }
-            select_default_versions();
+            select_all_versions();
 
             CraftManager.status_info = "";
             CraftManager.main_ui.kerbalx_mode = true;
