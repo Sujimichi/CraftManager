@@ -233,6 +233,37 @@ namespace CraftManager
                     });
                     
                 });
+                section("dialog.section", () =>{
+                    v_section(lhs_width-20, (w1) =>{
+                        label("Reset Cache", "h2");
+                        label("Wait!! Don't press this button!...ok you can, but you should know what it does", "h3");
+                        label(
+                            "Craft Manager uses a cache of info about your craft. Craft info is cached the first time a craft is shown in the UI & then after that it doesn't have " +
+                            "to read the craft file unless it gets changed. This lets the Craft Manager UI open much faster than if it had to read and analyse each craft every time it opens " +
+                            "(which the stock craft list does)."
+                        );
+                        label(
+                            "The cache automatically gets reset if you change your installed parts or when parts are unlocked (in career mode)."
+                        );
+                        label(
+                            "You shouldn't need to manually reset the cache, but if you think the info about your craft is incorrect then try resetting it.\n" +
+                            "You can also reset the cache by deleting the 'craft_data.cache' file in the CraftManager mod folder."
+                        );
+                    });
+                    v_section(rhs_width+20, (w1) =>{
+                        GUILayout.Space(20f);
+                        button("Delete Cache", "button.delete", ()=>{
+                            if(File.Exists(CraftDataCache.cache_path)){
+                                File.Delete(CraftDataCache.cache_path);
+                            }
+                            CraftData.cache = null;
+                            if(CraftManager.main_ui != null){
+                                CraftManager.main_ui.hide();
+                            }
+                            this.close();
+                        });
+                    });
+                });
             });
 
             section(() =>{
