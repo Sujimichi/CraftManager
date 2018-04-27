@@ -25,7 +25,7 @@ namespace CraftManager
 
         internal delegate void DialogAction();
         protected DropdownMenuData inline_tag_menu;
-        protected DropdownMenuData save_menu_options  = new DropdownMenuData();
+        protected DropdownMenuData save_select_menu  = new DropdownMenuData();
         protected DropdownMenuData tags_menu_content  = new DropdownMenuData();
         protected DropdownMenuData toggle_tags_menu   = new DropdownMenuData();
         protected DropdownMenuData tag_sort_options   = new DropdownMenuData(new Dictionary<string, string> { {"name", "Name"}, {"craft_count", "Craft Count"} });
@@ -55,6 +55,36 @@ namespace CraftManager
         };
         protected string load_menu_mode = "default";
 
+        protected DataSource save_menu_data {
+            get {
+                return new DataSource(menu =>{
+                    menu.items.Clear();
+                    menu.items.Add(current_save_dir, "Current Save (" + current_save_dir + ")");
+                    if(KerbalX.enabled){
+                        menu.items.Add("kerbalx_remote", "KerbalX");
+                    }
+                    foreach(string dir_name in CraftData.save_names){
+                        if(dir_name != current_save_dir){
+                            menu.items.Add(dir_name, dir_name);
+                        }
+                    }
+                    menu.items.Add(all_saves_ref, "All Saves");   
+
+                });
+            }
+        }
+
+        protected DataSource tags_menu_data = new DataSource(menu => {            
+            menu.set_data(Tags.names.FindAll(t => !Tags.instance.autotags_list.Contains(t)));
+        });
+
+        protected DataSource toggle_tags_menu_data = new DataSource(menu =>{
+            menu.set_data(Tags.names);
+        });
+
+        protected DataSource versions_menu_data = new DataSource(menu => {
+            menu.set_data(KerbalX.versions_list);
+        });
 
         internal Dictionary<string, bool> selected_types = new Dictionary<string, bool>() { { "SPH", false }, { "VAB", false }, { "Subassemblies", false } };
         internal int selected_type_count = 1;
@@ -267,13 +297,14 @@ namespace CraftManager
             }            
         }
 
+
         //prepare to open a tag menu, triggered from another dropdown menu, which is why this is a bit odd. It has to be opened after the first menu has been closed (and destroyed)
         //so this method is called from the frist menu which sets up the tag menu and sets a flag (open_tag_menu).  After this call the first menu closes, but then on the next pass
         //the open_tag_menu flag triggers the opening of this second menu.
         protected void prepare_tag_menu(CraftData craft, Rect container){
             inline_tag_menu= new DropdownMenuData();
-            inline_tag_menu.remote_data = new DataSource(() => { 
-                return Tags.names.FindAll(t => !Tags.instance.autotags_list.Contains(t));
+            inline_tag_menu.remote_data = new DataSource(menu => { 
+                menu.set_data(Tags.names.FindAll(t => !Tags.instance.autotags_list.Contains(t)));
             }); 
             inline_tag_menu.special_items.Add("new_tag", "New Tag");
             inline_tag_menu.selected_items = craft.tag_names();

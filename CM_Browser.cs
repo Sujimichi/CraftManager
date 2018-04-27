@@ -49,7 +49,9 @@ namespace CraftManager
                 }
             }
 
-            EditorLogic.fetch.saveBtn.onClick.AddListener(on_save_click); //settup click event on the stock save button.
+            //Settup click event on the stock save button.
+            EditorLogic.fetch.saveBtn.onClick.AddListener(on_save_click); 
+
             //override existing ations on stock load button and replace with call to toggle CM's UI.
             if(CraftManager.replace_editor_load_button){
                 UnityEngine.UI.Button.ButtonClickedEvent c = new UnityEngine.UI.Button.ButtonClickedEvent(); 
@@ -57,39 +59,32 @@ namespace CraftManager
                 EditorLogic.fetch.loadBtn.onClick = c;
             }
 
-            //Initialize list of Save directories, used in save select menus.
-            save_menu_options.items.Add(active_save_dir, "Current Save (" + active_save_dir + ")");
-            if(KerbalX.enabled){
-                save_menu_options.items.Add("kerbalx_remote", "KerbalX");
-            }
-            List<string> save_names = CraftData.save_names;
-            foreach(string dir_name in save_names){
-                if(dir_name != active_save_dir){
-                    save_menu_options.items.Add(dir_name, dir_name);
-                }
-            }
-            save_menu_options.items.Add(all_saves_ref, "All Saves");
-            saves_count = save_names.Count;
+            //Add on focus event to trigger checking download queue 
+            GameEvents.OnAppFocus.Add(on_app_focus);
+
 
             //Initialize Tags
             Tags.load(active_save_dir);
-            tags_menu_content.remote_data = new DataSource(() => { //tag menu on craft details fetches data as it opens, rather than constantly setting the data each pass.
-                return Tags.names.FindAll(t => !Tags.instance.autotags_list.Contains(t));
-            }); 
+
+            //Initialize menus which use dynamically loaded content
+            save_select_menu.remote_data = save_menu_data;
+            tags_menu_content.remote_data = tags_menu_data;
             tags_menu_content.special_items.Add("new_tag", "New Tag");
-            toggle_tags_menu.remote_data = new DataSource(() =>{return Tags.names;}); //used in compact mode to select which tags are active
+            toggle_tags_menu.remote_data = toggle_tags_menu_data; //used in compact mode to select which tags are active
             toggle_tags_menu.special_items.Add("new_tag", "New Tag");
+            version_menu.remote_data = versions_menu_data; //drop down used in compact mode to select which remote craft versions are shown
 
-            version_menu.remote_data = new DataSource(()=>{return KerbalX.versions_list;}); //drop down used in compact mode to select which remote craft versions are shown
+            //Set selected type (SPH or VAB) based on which editor we're in.
+            type_select(EditorDriver.editorFacility.ToString(), true);  
 
-            type_select(EditorDriver.editorFacility.ToString(), true);  //set selected type (SPH or VAB) based on which editor we're in.
 
-            GameEvents.OnAppFocus.Add(on_app_focus);
-
+            //pre-heat the cache (if cache has not been created, ie after initial install, then generate cache before the UI is first opened)
             if(!File.Exists(CraftDataCache.cache_path)){
-                CraftManager.log("persistent cache file not found");
-                CraftData.load_craft_from_files(active_save_dir==all_saves_ref ? null : active_save_dir);
+                CraftManager.log("pre-generating craft data cache");
+                CraftData.load_craft_from_files(active_save_dir);
             }
+
+            saves_count = CraftData.save_names.Count;
 
             if(DevTools.autostart){
 //                show();                
@@ -121,7 +116,7 @@ namespace CraftManager
 
             if(!kerbalx_mode){refresh();}
 
-            //if a craft which matches the name and save_dir of the currently loaded craft is in the filtered results then mark it to be focused on when the UI opens
+            //autoselect loaded craft in list, or re-select previously selected craft
             if(cur_selected_craft_path != null){
                 auto_focus_on(CraftData.filtered.Find(c => c.path == cur_selected_craft_path));
             } else if(cur_selected_name.ToLower() != "untitled space craft"){
@@ -238,8 +233,7 @@ namespace CraftManager
         }
 
 
-
-        //**GUI Sections**//
+        //**GUI Sections**// - complicated and poorly commented, approach with caution!
 
         //GUI Top section when in upload mode
         protected void draw_kerbalx_header(float section_width){
@@ -1038,13 +1032,13 @@ namespace CraftManager
             string dropdown_label = "";
             if(kerbalx_mode){
                 dropdown_label = "KerbalX";
-                save_menu_options.selected_item = "kerbalx_remote";
+                save_select_menu.selected_item = "kerbalx_remote";
             } else{
                 dropdown_label = (active_save_dir == all_saves_ref ? "All Saves" : (active_save_dir == current_save_dir ? "Current Save" : active_save_dir));
 
-                save_menu_options.selected_item = active_save_dir;
+                save_select_menu.selected_item = active_save_dir;
             }
-            dropdown(dropdown_label, StyleSheet.assets["caret-down"], "save_menu", save_menu_options, this, save_menu_width, change_craft_source);
+            dropdown(dropdown_label, StyleSheet.assets["caret-down"], "save_menu", save_select_menu, this, save_menu_width, change_craft_source);
         }
     }
 }

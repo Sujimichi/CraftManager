@@ -106,16 +106,12 @@ namespace CraftManager
         protected void move_copy_craft_dialog(CraftData craft){            
             string resp = "";
             string selected_save = "";
-
-            DropdownMenuData move_copy_save_menu = new DropdownMenuData(new Dictionary<string, string>(save_menu_options.items));
-            List<string> keys = new List<string>(move_copy_save_menu.items.Keys);
-            List<string> rem_keys = keys.FindAll(k => k.Contains(craft.save_dir) );
-            foreach(string key in rem_keys){                
-                move_copy_save_menu.items.Remove(key);
-            }
+            DropdownMenuData move_copy_save_menu = new DropdownMenuData();
+            save_menu_data(move_copy_save_menu);
+            move_copy_save_menu.items.Remove(craft.save_dir);
             move_copy_save_menu.items.Remove(all_saves_ref);
+            move_copy_save_menu.items.Remove("kerbalx_remote");
             Rect d_offset = new Rect();
-
             show_dialog("Move/Copy Craft", "", d =>{
                 section(500f, (inner_width)=>{
                     label("Move or Copy this craft to another save:", "h2");
