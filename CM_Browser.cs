@@ -1047,6 +1047,10 @@ namespace CraftManager
                     dropdown_label = (active_save_dir == all_saves_ref ? "All Saves" : (active_save_dir == current_save_dir ? "Current Save" : active_save_dir));
                     save_select_menu.selected_item = active_save_dir;
                 }
+                if(dropdown_label.Length > 20){                    
+                    System.Text.StringBuilder s = new System.Text.StringBuilder();
+                    dropdown_label = s.Insert(0, dropdown_label.ToCharArray(0, 20)).ToString() + "...";
+                }
                 dropdown(dropdown_label, StyleSheet.assets["caret-down"], "save_menu", save_select_menu, this, save_menu_width, change_craft_source);
             }
         }
