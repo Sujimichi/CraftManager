@@ -6,6 +6,7 @@ using KatLib;
 
 namespace CraftManager
 {
+
     public class CMUI : DryUI
     {
         //This is needed (although kinda hacky) so set the stylesheet for the base window class.  All windows will be created as CMUI instances

@@ -29,7 +29,8 @@ namespace CraftManager
             CraftManager.log("Starting Main UI");
             CraftManager.main_ui = this;
             window_title = "";
-            alt_window_style = new GUIStyle(CraftManager.skin.window);
+
+            alt_window_style = new GUIStyle(HighLogic.Skin.window);
             alt_window_style.padding.top = 8; //remove excess padding to hide titlebar
 
             window_pos = get_window_position();
@@ -872,6 +873,11 @@ namespace CraftManager
                                     grouped_images = image_data.get_grouped_images(3);
                                 }
                                 scroll_pos["lhs"] = scroll(scroll_pos["lhs"], "side_panel.scroll.tags", inner_width, main_section_height - 40, scroll_width =>{
+                                    if(image_data.images.Count == 0){
+                                        label("You don't have any image in " + CraftManager.screenshot_dir);
+                                        label("click 'take new picture' to grab a screenshot from in the editor");
+                                        label("You can change the folder Craft Manager looks for images in, in the Craft Manager settings");
+                                    }
                                     v_section(() =>{
                                         if(image_select_mode == "thumb"){
                                             for(int i = 0; i < grouped_images.Count; i++){
