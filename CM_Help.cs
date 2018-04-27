@@ -13,6 +13,7 @@ namespace CraftManager
     {
         float rhs_width = 600;
         float lhs_width = 150;
+        float content_height = 400f;
         Vector2 scroll_pos = new Vector2();
         bool return_to_top = false;
         string active_content = "intro";
@@ -30,7 +31,7 @@ namespace CraftManager
 
         protected override void WindowContent(int win_id){ 
             section((w) =>{
-                v_section(lhs_width, 300f, "dialog.section", (w2) =>{
+                v_section(lhs_width, content_height, "dialog.section", (w2) =>{
                     content_button("Intro", "intro");
                     content_button("Keyboard Shortcuts", "keyboard_shortcuts");
                     content_button("Tags", "tags");
@@ -42,15 +43,15 @@ namespace CraftManager
 
 
                 });
-                v_section(10, 300f, (w2)=>{
+                v_section(10, content_height, (w2)=>{
                     label("");
                 });
-                v_section(rhs_width, 300f, "dialog.section", (w2) =>{
+                v_section(rhs_width, content_height, "dialog.section", (w2) =>{
                     if(return_to_top){
                         scroll_pos.y = 0; //setting y=0 in switch_content wasn't working, so a flag (return_to_top) is set and triggers the change here.
                         return_to_top = false;
                     }
-                    scroll_pos = scroll(scroll_pos, w2-8, 294f, (inner_width)=>{
+                    scroll_pos = scroll(scroll_pos, w2-8, content_height-6f, (inner_width)=>{
                         show_content(active_content, inner_width-80);
                     });
                 });
@@ -95,7 +96,8 @@ namespace CraftManager
             label("In the top right, the 'Include Stock Craft' toggle lets you show/hide the stock craft that come with KSP");
             label(
                 "On the left is the main search field, which allows you to search for craft by name.\n" + 
-                "To the right of the search is the 'view craft from' dropdown menu. This lets you view craft from different saves or switch to viewing your craft on KerbalX.\n"
+                "To the right of the search is the 'view craft from' dropdown menu. This lets you view craft from different saves or switch to viewing your craft on KerbalX.\n" +
+                "(this menu won't be shown if you only have 1 save and KerbalX integration is disabled)."
             );
             label(
                 "The main section of the inteface is divided into 3 panels. On the left are your tags, in the middle is the craft list and the right will show details about the selected craft.\n" + 
@@ -108,6 +110,8 @@ namespace CraftManager
                 button("tags,", "hyperlink.inline", ()=>{switch_content("tags");});
                 button("the craft list,", "hyperlink.inline", ()=>{switch_content("craft_list");});
                 button("craft details panel", "hyperlink.inline", ()=>{switch_content("craft_details");});
+                label("and");
+                button("uploading to KerbalX", "hyperlink.inline", ()=>{switch_content("upload_mode");});
             });
         }
 
@@ -156,10 +160,14 @@ namespace CraftManager
                 "Click on multiple tags to filter the list to craft that have all selected tags.\n" +
                 "Click the '+' at the bottom to create a new tag.\n" +
                 "Click on craft and then use the 'add tag' dropdown in the craft details section to add/remove tags. Or right click on craft in the craft list and select 'add tag'.\n" + 
-                "Right click on a tag to edit, delete or Exclude it. (excluding a tag hides its craft from the craft list).\n"
+                "Right click on a tag to edit, delete or Exclude it. (excluding a tag hides its craft from the craft list)."
             );
 
-            label("Rule based tags", "h3");
+            label("Tags are save specific and are stored in a 'craft.tags' file in each save folder.  If you view craft from multiple saves then the tags shown will be combined and any tags with the same name will merge. " +
+                "If you have a tag in one save, then view craft from multiple saves and tag a craft in a different save with that tag, the tag will also be added to the other save.\n"
+            );
+
+            label("Dynamic (rule based) tags", "h3");
             label(
                 "Tags can be given a 'rule' and will then automatically tag any craft which match that rule.\n" + 
                 "Rules are made up of an attribute, a comparitor and a value, for example;\n" + 
@@ -273,7 +281,10 @@ namespace CraftManager
 
         private void compact_mode_content(float content_width){
             label("Compact Mode", "h2");
-
+            label(
+                "Compact mode hides the left and right panels so you just have the craft list.  Some functionality is reduced, but you can still do most things via right clicking on a craft and " +
+                "you can select tags to filter using a dropdown 'tags' menu. (but you can't edit tags or select tags to be excluded, you'll need to return to full view mode to do that)."
+            );
         }
 
 
