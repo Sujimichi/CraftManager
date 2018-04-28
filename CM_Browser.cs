@@ -147,7 +147,7 @@ namespace CraftManager
 
         protected override void on_hide(){
             if(exit_kerbalx_mode_after_close){
-                kerbalx_mode = false;
+                KerbalX.load_local();
                 exit_kerbalx_mode_after_close = false;
             }
             close_dialog(); //incase any dialogs have been left open
