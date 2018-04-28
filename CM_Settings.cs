@@ -35,7 +35,7 @@ namespace CraftManager
             settings.Add("screenshot_dir", "<ksp_install>/Screenshots");
 
             settings.Add("compact_mode", "False");
-            settings.Add("exclude_stock_craft", "True"); //TODO change to False in full release
+            settings.Add("exclude_stock_craft", "False"); //TODO change to False in full release
             settings.Add("craft_sort_reverse", "False");
             settings.Add("craft_sort", "name");
             settings.Add("sort_tags_by", "name");

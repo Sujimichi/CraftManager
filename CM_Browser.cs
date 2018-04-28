@@ -48,7 +48,10 @@ namespace CraftManager
                         populate_new_save_dialog();
                     }
                 }
+                KerbalX.fetch_existing_craft_info();
+                KerbalX.check_download_queue();
             }
+
 
             //Settup click event on the stock save button.
             EditorLogic.fetch.saveBtn.onClick.AddListener(on_save_click); 
@@ -124,11 +127,6 @@ namespace CraftManager
                 auto_focus_on(CraftData.filtered.Find(c => c.save_dir == current_save_dir && c.name == cur_selected_name));
             }
 
-            if(KerbalX.enabled){
-                update_remote_craft_info();
-                KerbalX.check_download_queue();
-            }
-
             grouped_images = null;
             image_data = null;
 
@@ -152,6 +150,7 @@ namespace CraftManager
 
         private void on_app_focus(bool focus_on){
             if(focus_on){
+                KerbalX.fetch_existing_craft_info();
                 KerbalX.check_download_queue();
             }
         }

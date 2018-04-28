@@ -355,11 +355,6 @@ namespace CraftManager
             filter_craft();
         }
 
-        protected void update_remote_craft_info(){
-            if(KerbalX.enabled){
-                KerbalX.fetch_existing_craft_info();
-            }
-        }
 
         protected void clear_search(){
             search_string = "";

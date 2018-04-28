@@ -59,7 +59,8 @@ namespace CraftManager
         }
 
         public static void load_stock_craft_from_files(){            
-            foreach(string path in Directory.GetFiles(Paths.joined(CraftManager.ksp_root, "Ships"), "*.craft", SearchOption.AllDirectories)){
+            string[] craft_file_paths = Directory.GetFiles(Paths.joined(CraftManager.ksp_root, "Ships"), "*.craft", SearchOption.AllDirectories);
+            foreach(string path in craft_file_paths){
                 new CraftData(path, true);
             }
             if(CraftManager.main_ui){
