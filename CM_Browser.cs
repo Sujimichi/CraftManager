@@ -467,7 +467,7 @@ namespace CraftManager
                 } else if(evt.right_click){
                     if(!craft.remote){
                         DropdownMenuData menu = new DropdownMenuData(new Dictionary<string, string>{{"add_tag", "Add Tag"}, {"rename", "Rename"}, {"transfer", "Transfer"}});
-                        if(saves_count > 2){menu.items.Add("move_copy", "Move/Copy");}
+                        if(saves_count > 1){menu.items.Add("move_copy", "Move/Copy");}
                         if(!craft.stock_craft && KerbalXAPI.logged_in()){
                             if(craft.on_kerbalx()){
                                 menu.items.Add("update", "Update on KerbalX");
@@ -713,7 +713,7 @@ namespace CraftManager
                             gui_state(!upload_interface_ready, ()=>{
                                 section(() => {                                    
                                     button("transfer", transfer_craft_dialog);
-                                    if(saves_count > 2){
+                                    if(saves_count > 1){
                                         button("move/copy", move_copy_craft_dialog);
                                     }
                                 });
