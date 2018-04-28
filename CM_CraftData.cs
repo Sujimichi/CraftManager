@@ -42,6 +42,7 @@ namespace CraftManager
                 craft_file_paths = Directory.GetFiles(Paths.joined(CraftManager.ksp_root, "saves", save_dir), "*.craft", SearchOption.AllDirectories);
             }
 
+
             all_craft.Clear();
             foreach(string path in craft_file_paths){                
                 new CraftData(path);

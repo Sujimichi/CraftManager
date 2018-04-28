@@ -28,11 +28,11 @@ namespace CraftManager
         private void Start(){     
             CraftManager.log("Starting Main UI");
             CraftManager.main_ui = this;
-            window_title = "";
 
             alt_window_style = new GUIStyle(HighLogic.Skin.window);
             alt_window_style.padding.top = 8; //remove excess padding to hide titlebar
 
+            window_title = "";
             window_pos = get_window_position();
             visible = false;
             draggable = false;
@@ -40,6 +40,9 @@ namespace CraftManager
             prevent_click_through = false; //disable the standard click through prevention. show and hide will add control locks which are not based on mouse pos.
 
             toggle_compact_mode(bool.Parse(CraftManager.settings.get("compact_mode")), false);
+
+            //load the cache (& if cache has not been created, ie after initial install, then generate cache data for craft)     
+            StartCoroutine(load_cache());
 
             if(KerbalX.enabled){
                 enable_request_handler();
@@ -82,12 +85,6 @@ namespace CraftManager
             type_select(EditorDriver.editorFacility.ToString(), true);  
 
 
-            //pre-heat the cache (if cache has not been created, ie after initial install, then generate cache before the UI is first opened)
-            if(!File.Exists(CraftDataCache.cache_path)){
-                CraftManager.log("pre-generating craft data cache");
-                CraftData.load_craft_from_files(active_save_dir);
-            }
-
             saves_count = CraftData.save_names.Count;
 
             if(DevTools.autostart){
@@ -110,6 +107,7 @@ namespace CraftManager
             show_transfer_indicator = false;
             CraftManager.status_info = "";
 
+//            StartCoroutine(threaded_load());
             string cur_selected_name = null;
             string cur_selected_craft_path = null;
             if(CraftData.selected_craft != null){
@@ -118,7 +116,9 @@ namespace CraftManager
                 cur_selected_name = EditorLogic.fetch.ship.shipName;
             }
 
-            if(!kerbalx_mode){refresh();}
+            if(!kerbalx_mode){
+                refresh();
+            }
 
             //autoselect loaded craft in list, or re-select previously selected craft
             if(cur_selected_craft_path != null){
@@ -133,6 +133,16 @@ namespace CraftManager
             auto_focus_field = "main_search_field";
             InputLockManager.SetControlLock(window_id.ToString());
             interface_locked = true; //will trigger unlock of interface (after slight delay) on window hide
+        }
+
+        public IEnumerator<bool> load_cache(){
+            yield return true;
+            if(!File.Exists(CraftDataCache.cache_path)){
+                CraftManager.log("pre-generating craft data cache");
+                CraftData.load_craft_from_files(active_save_dir);
+            }else if(CraftData.cache == null){
+                CraftData.cache = new CraftDataCache();                
+            }
         }
 
         protected override void on_hide(){
