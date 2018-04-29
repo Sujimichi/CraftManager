@@ -136,7 +136,6 @@ namespace CraftManager
 
         protected bool craft_list_overflow = false;
         protected bool craft_list_drag_active = false;
-        protected Vector2 craft_list_drag_force = new Vector2();
 
 
         //KerbalX specific stuff
@@ -283,23 +282,19 @@ namespace CraftManager
 
         //an attempt at enabling the user to drag the craft list up and down. it works, but can be a bit laggy (but then so is the stock list when dragged)
         //and I can't make it so the user can drag it fast and let go and have it keep sliding. 
-        protected void drag_scroll(Rect craft_scroll_section){
+        protected Vector2 last_mouse_pos = new Vector2();
+        protected Vector2 drag_scroll(Rect craft_scroll_section, Vector2 scroll_control){
+            Event c_event = Event.current;
             if(Input.GetMouseButtonUp(0)){
                 craft_list_drag_active = false;
-            }else if(craft_scroll_section.Contains(Event.current.mousePosition) && Event.current.button == 0 && Event.current.type == EventType.MouseDrag){
+            }else if(c_event.button == 0 && c_event.type == EventType.MouseDrag && craft_scroll_section.Contains(c_event.mousePosition)){
                 craft_list_drag_active = true;
             }
-            if(craft_list_drag_active){
-                craft_list_drag_force = Event.current.delta;
-                scroll_pos["main"] -= craft_list_drag_force;
-            }else if(craft_list_drag_force.y >= 1 || craft_list_drag_force.y <= -1){
-                scroll_pos["main"] -= craft_list_drag_force;
-                if(craft_list_drag_force.y > 0){
-                    craft_list_drag_force.y -= 0.2f;
-                }else if(craft_list_drag_force.y < 0){
-                    craft_list_drag_force.y += 0.2f;
-                }
-            }            
+            if(craft_list_drag_active){                
+                scroll_control.y -= (c_event.mousePosition.y - last_mouse_pos.y);
+            }
+            last_mouse_pos = c_event.mousePosition;
+            return scroll_control;
         }
 
 

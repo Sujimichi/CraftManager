@@ -410,7 +410,7 @@ namespace CraftManager
                 if(calculate_heights && Event.current.type == EventType.Repaint){
                     craft_list_overflow = item_last_height+10 >= main_section_height;
                 }
-                drag_scroll(GUILayoutUtility.GetLastRect());
+                scroll_pos["main"] = drag_scroll(GUILayoutUtility.GetLastRect(), scroll_pos["main"]);
             });            
         }
 
