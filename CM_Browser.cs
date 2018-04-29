@@ -474,8 +474,12 @@ namespace CraftManager
                         load_craft( craft.construction_type=="Subassembly" ? "subload" : "load");                        
                     }
                 } else if(evt.right_click){
-                    if(!craft.remote){
-                        DropdownMenuData menu = new DropdownMenuData(new Dictionary<string, string>{{"add_tag", "Add Tag"}, {"rename", "Rename"}, {"transfer", "Transfer"}});
+
+                    DropdownMenuData menu;
+                    if(craft.remote){
+                        menu = new DropdownMenuData(new Dictionary<string, string>{ {"view_remote", "View on KerbalX"}, {"download", "Download"} });
+                    }else{
+                        menu = new DropdownMenuData(new Dictionary<string, string>{{"add_tag", "Add Tag"}, {"rename", "Rename"}, {"transfer", "Transfer"}});
                         if(saves_count > 1){menu.items.Add("move_copy", "Move/Copy");}
                         if(!craft.stock_craft && KerbalXAPI.logged_in()){
                             if(craft.on_kerbalx()){
@@ -485,24 +489,27 @@ namespace CraftManager
                             }
                         }
                         menu.special_items.Add("delete", "Delete");
-                        menu.special_items_first = false;
-                        menu.offset_menu = false;
-                        Rect offset = new Rect(0,0,0,0);
-                        Rect container = new Rect(Input.mousePosition.x-this.window_pos.x, Screen.height-Input.mousePosition.y-this.window_pos.y, 0,0);
-
-                        menu.set_attributes(container, offset, this, 0f, "menu.background", "menu.item.craft", (resp) => {
-                            switch(resp){
-                                case "add_tag"  : prepare_tag_menu(craft, container); break;
-                                case "rename"   : rename_craft_dialog(craft);break;
-                                case "transfer" : transfer_craft_dialog(craft);break;
-                                case "move_copy": move_copy_craft_dialog(craft);break;
-                                case "share"    : CraftData.select_craft(craft); open_upload_interface();break;
-                                case "update"   : CraftData.select_craft(craft); show_update_kerbalx_craft_dialog();break;
-                                case "delete"   : delete_craft_dialog(craft);break;
-                            }                            
-                        });
-                        gameObject.AddOrGetComponent<Dropdown>().open(menu);
                     }
+
+                    menu.special_items_first = false;
+                    menu.offset_menu = false;
+                    Rect offset = new Rect(0,0,0,0);
+                    Rect container = new Rect(Input.mousePosition.x-this.window_pos.x, Screen.height-Input.mousePosition.y-this.window_pos.y, 0,0);
+                    
+                    menu.set_attributes(container, offset, this, 0f, "menu.background", "menu.item.craft", (resp) => {
+                        switch(resp){
+                            case "add_tag"      : prepare_tag_menu(craft, container); break;
+                            case "rename"       : rename_craft_dialog(craft);break;
+                            case "transfer"     : transfer_craft_dialog(craft);break;
+                            case "move_copy"    : move_copy_craft_dialog(craft);break;
+                            case "share"        : CraftData.select_craft(craft); open_upload_interface();break;
+                            case "update"       : CraftData.select_craft(craft); show_update_kerbalx_craft_dialog();break;
+                            case "delete"       : delete_craft_dialog(craft);break;
+                            case "view_remote"  : Application.OpenURL(KerbalXAPI.url_to(craft.url)); break;
+                            case "download"     : load_craft("dl_load");break;
+                        }                            
+                    });
+                    gameObject.AddOrGetComponent<Dropdown>().open(menu);
                 }
             });
         }
@@ -717,6 +724,10 @@ namespace CraftManager
                                     KerbalX.remove_from_download_queue(craft);
                                 });
                             }
+
+                            button("View on KerbalX", "hyperlink.bold", ()=>{
+                                Application.OpenURL(KerbalXAPI.url_to(craft.url));
+                            });
                         }else{
                             GUILayout.Space(15);
                             gui_state(!upload_interface_ready, ()=>{
