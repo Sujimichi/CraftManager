@@ -272,8 +272,13 @@ namespace CraftManager
             label("Your KerbalX Craft", "h2");
             label("To view your craft on KerbalX, use the 'view craft from' dropdown menu and select KerbalX");
             label(
-                "The tags section will be replaced with a list of the different groups of craft you can view (Your Craft, Your Favourites, Your Past Downloads and Your Download Queue)." +
-                "It will also list the KSP versions of the craft in those groups (and by default just the two most recent will be selected)."
+                "The tags section will be replaced with a list of the different groups of craft you can view (Your Craft, Your Favourites, Your Past Downloads and Your Download Queue).\n" +
+                "It will also list the KSP versions of the craft in those groups so you can filter craft to specific KSP version."
+            );
+            label("If a craft hasn't been downloaded then the default action is to download it, if you already have a craft with the same name there is an option to 'update' which will replace the existing craft with a fresh download");
+            label(
+                "There is also an option to 'Load without saving' (click the dropdown next to the main button) which will download the craft from KerbalX and load it into the editor without saving it locally." +
+                "This is useful if you want to view a KerbalX craft without replacing an existing craft."
             );
 
                 
