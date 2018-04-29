@@ -106,6 +106,7 @@ namespace CraftManager
         protected float sort_menu_width = 0;
 
         protected string auto_focus_field = null;
+        protected string focused_tag_name = "";
         protected CraftData auto_focus_craft = null;
         protected int auto_focus_countdown = 0;
         protected int saves_count = 0;

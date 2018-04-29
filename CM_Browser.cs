@@ -416,7 +416,7 @@ namespace CraftManager
 
         //Individual Craft Content for main list.
         protected void draw_craft_list_item(CraftData craft, float section_width){
-            section(section_width-(30f), "craft.list_item" + (craft.selected ? ".selected" : ""), (inner_width)=>{ //subtractions from width to account for margins and scrollbar
+            section(section_width-(30f), "craft.list_item" + (craft.selected ? ".selected" : (craft.menu_open ? ".hover" : "")), (inner_width)=>{ //subtractions from width to account for margins and scrollbar                
                 section(inner_width-80f,()=>{
                     v_section(()=>{
                         section(()=>{
@@ -509,6 +509,12 @@ namespace CraftManager
                             case "download"     : load_craft("dl_load");break;
                         }                            
                     });
+                    menu.on_menu_open = new Callback(()=>{
+                        craft.menu_open = true;
+                    });
+                    menu.on_menu_close = new Callback(()=>{
+                        craft.menu_open = false;
+                    });
                     gameObject.AddOrGetComponent<Dropdown>().open(menu);
                 }
             });
@@ -583,6 +589,9 @@ namespace CraftManager
                                 if(archived_tag){
                                     tag_style = "tag.section.archived";
                                 } 
+                                if(focused_tag_name == tag_name){
+                                    tag_style = "tag.section.hover";
+                                }
                                 Rect tag_container = section(tag_style, ()=>{                                   
                                     int craft_count = CraftData.cache.tag_craft_count_for(tag_name, archived_tag ? "" : tag_filter_mode=="AND" ? "filtered" : "raw_count");
                                     string count_string = "(" + craft_count + ")";
@@ -612,6 +621,9 @@ namespace CraftManager
                                                 case "delete" : delete_tag_dialog(tag_name, pos.y, pos.x);break;
                                             }                                            
                                         });
+                                        menu.on_menu_open = new Callback(()=>{focused_tag_name = tag_name;});
+                                        menu.on_menu_close = new Callback(()=>{focused_tag_name = "";});
+
                                         gameObject.AddOrGetComponent<Dropdown>().open(menu);
                                     }
                                 });                                

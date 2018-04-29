@@ -388,10 +388,12 @@ namespace CraftManager
                 s.normal.background = textures["dark_background"];
                 s.hover.background = textures["blue_background"];
             });
-
             define_style("craft.list_item.selected", "craft.list_item", s =>{
                 s.normal.background = textures["light_blue_background"];
                 s.hover.background = textures["lighter_blue_background"];
+            });
+            define_style("craft.list_item.hover", "craft.list_item", s =>{
+                s.normal.background = textures["blue_background"];
             });
 
             define_style("craft.name", base_skin.label, s =>{
@@ -474,7 +476,9 @@ namespace CraftManager
                 s.margin = new RectOffset(0,0,5,5);
                 s.normal.background = textures["dark_background"];
                 s.hover.background = textures["blue_background"];
-
+            });
+            define_style("tag.section.hover", "tag.section", s =>{
+                s.normal.background = textures["blue_background"];
             });
 
             define_style("tag.section.selected", "tag.section", s =>{

@@ -267,6 +267,7 @@ namespace CraftManager
         public float list_position = 0;
         public float list_height = 0;
         public bool draw = true;
+        public bool menu_open = false;
 
 
 
