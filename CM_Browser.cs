@@ -86,6 +86,7 @@ namespace CraftManager
 
 
             saves_count = CraftData.save_names.Count;
+            CraftData.save_state = 0;
 
             if(DevTools.autostart){
 //                show();                
@@ -236,6 +237,7 @@ namespace CraftManager
                 open_tag_menu  = false;
                 gameObject.AddOrGetComponent<Dropdown>().open(inline_tag_menu);
             }
+
         }
 
         protected override void FooterContent(int window_id){
