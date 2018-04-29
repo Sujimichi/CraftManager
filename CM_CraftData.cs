@@ -349,11 +349,9 @@ namespace CraftManager
 
             //set timestamp data from the craft file
             create_time = System.IO.File.GetCreationTime(path).ToUniversalTime().ToBinary().ToString();
-//            create_time = System.IO.File.GetCreationTime(path).ToBinary().ToString();
             last_updated_time = System.IO.File.GetLastWriteTime(path).ToUniversalTime().ToBinary().ToString();
 
-            //prepare the thumbnail texture
-            load_thumbnail_image();
+            //thumbnails are no longer loaded at this point, they are loaded on demand when the craft is shown in the list using a coroutine 
         }
 
         //return the path to the craft's thumbnail based on craft properties. Overload method provides means to generate a 
@@ -369,7 +367,8 @@ namespace CraftManager
             }
         }
 
-        public void load_thumbnail_image(){
+        public System.Collections.IEnumerator load_thumbnail_image(){
+            yield return true;
             string thumbnail_path = this.thumbnail_path();
             if(File.Exists(thumbnail_path)){
                 thumbnail = new Texture2D(1, 1, TextureFormat.RGBA32, false);
@@ -378,6 +377,7 @@ namespace CraftManager
             } else{
                 thumbnail = (Texture2D)StyleSheet.assets[construction_type + "_placeholder"];                
             }
+            CraftManager.main_ui.thumbnail_generating = false;
         }
 
         //Parse .craft file and read info
@@ -522,7 +522,7 @@ namespace CraftManager
                         Tags.tag_craft(this, tags); //add updated craft to the tags it was previously in.
                         if(thumbnail_file.Exists){
                             thumbnail_file.MoveTo(thumbnail_path());
-                            load_thumbnail_image();
+                            thumbnail = null;
                         }
                         return "200";
                     } else{                    
@@ -601,7 +601,7 @@ namespace CraftManager
                 Tags.tag_craft(this, tags);
                 if(thumbnail_file.Exists){
                     thumbnail_file.MoveTo(thumbnail_path());
-                    load_thumbnail_image();
+                    thumbnail = null;
                 }
                 if(CraftManager.main_ui){CraftManager.main_ui.refresh();}
                 return "200";

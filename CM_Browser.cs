@@ -364,6 +364,8 @@ namespace CraftManager
                 if(CraftData.filtered.FindAll(c => c.list_height == 0).Count > 0){
                     calculate_heights = true;
                 }
+                bool craft_visible = false;
+
                 scroll_pos["main"] = scroll(scroll_pos["main"], "craft.list_container", inner_width, main_section_height, craft_list_width => {                    
                     item_last_height = 0;
                     if(!craft_list_overflow){
@@ -374,8 +376,9 @@ namespace CraftManager
 
                         //determine if this craft is visible in the scroll view and set craft.draw to true if it is (or false if not) BUT only perform this check during a 
                         //Layout event, otherwise the switch between drawing the full detail and the placeholder causes GUI errors (of the pushing more than poping sort).
+                        craft_visible = craft.list_position + craft.list_height > scroll_pos["main"].y-100 && craft.list_position < scroll_pos["main"].y + main_section_height+100;
                         if(Event.current.type == EventType.Layout){
-                            craft.draw = (calculate_heights || (craft.list_position + craft.list_height > scroll_pos["main"].y-100 && craft.list_position < scroll_pos["main"].y + main_section_height+100));                            
+                            craft.draw = (calculate_heights || craft_visible);
                         }
                         //either draw the full detail craft item or a placeholder depending on if it is in the scroll view.
                         if(craft.draw){
@@ -384,6 +387,10 @@ namespace CraftManager
                             section(section_width-(30f), craft.list_height-5, "craft.list_item", (w)=>{ //subtractions from width to account for margins and scrollbar
                                 label(craft.name);
                             });
+                        }
+                        if(!thumbnail_generating && craft_visible && craft.thumbnail == null){
+                            thumbnail_generating = true;
+                            StartCoroutine(craft.load_thumbnail_image());
                         }
 
                         //this is used to get the top offset position of each item in the craft list and that is stored on the CraftData object

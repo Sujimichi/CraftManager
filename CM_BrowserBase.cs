@@ -118,6 +118,7 @@ namespace CraftManager
         protected bool archived_tag = false;
         protected bool open_tag_menu = false;
         protected bool compact_mode = false;
+        internal bool thumbnail_generating = false;
         protected float tag_content_height = 0;
         protected float last_tag_content_height = 0;
         protected float tag_margin_offset = 0;
