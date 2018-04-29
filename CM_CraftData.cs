@@ -325,6 +325,7 @@ namespace CraftManager
             path = full_path.Replace("\\", "/");
             checksum = Checksum.digest(File.ReadAllText(path));
             stock_craft = stock;
+            locked_parts = false;
             locked_parts_checked = false;
 
             bool cache_after_load = false;
@@ -338,9 +339,12 @@ namespace CraftManager
                 cache_after_load = true;
             }
                 
+            bool locked_parts_state = locked_parts;
             if(!locked_parts_checked){
                 check_locked_parts();
-                cache_after_load = true;
+                if(locked_parts_state != locked_parts){
+                    cache_after_load = true;
+                }
             }
 
             if(cache_after_load){
