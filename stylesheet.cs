@@ -591,6 +591,17 @@ namespace CraftManager
                 s.normal.background = textures["blue_background"];
             });
 
+            define_style("save_state_indicator", base_skin.label, s =>{
+                s.fixedWidth = 5f;
+                s.fixedHeight = 5f;
+                s.margin = new RectOffset(2,2,2,2);
+            });
+            define_style("save_state_indicator.saved", "save_state_indicator", s =>{
+                s.normal.background = textures["green_background"];
+            });
+            define_style("save_state_indicator.unsaved", "save_state_indicator", s =>{
+                s.normal.background = textures["red_background"];
+            });
 
             define_style("close_section", base_skin.button, s =>{
                 s.margin = new RectOffset(0,0,0,0);

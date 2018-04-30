@@ -208,7 +208,7 @@ namespace CraftManager
             if(CraftData.selected_craft != null){
                 CraftData craft = CraftData.selected_craft;
                 if(load_type == "load"){                                       
-                    if(CraftData.craft_saved || force){
+                    if(CraftData.loaded_craft_saved || force){
                         CraftData.loading_craft = true;
                         EditorLogic.LoadShipFromFile(craft.path);
                         CraftManager.main_ui.hide();
@@ -236,7 +236,7 @@ namespace CraftManager
                 }else if(load_type == "update_load"){
                     download(true, true, load_craft);
                 } else if(load_type == "dl_load_no_save"){
-                    if(CraftData.craft_saved || force){
+                    if(CraftData.loaded_craft_saved || force){
                         download(false);
                         CraftManager.main_ui.hide();
                     } else{

@@ -21,7 +21,7 @@ namespace CraftManager
 
         public static bool loading_craft = false;
         public static int save_state = 0;
-        public static bool craft_saved {
+        public static bool loaded_craft_saved {
             get{
                 return save_state <= 0;
             }

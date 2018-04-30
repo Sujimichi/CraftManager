@@ -968,6 +968,7 @@ namespace CraftManager
                     button(KerbalX.download_queue_size + " craft waiting to download", "download_waiting", KerbalX.load_download_queue);
                 }
             });
+            label(ShipConstruction.GetSavePath(EditorLogic.fetch.ship.shipName));
             if(compact_mode){
                 v_section("bottom.section", () =>{
                     section(()=>{
@@ -979,11 +980,13 @@ namespace CraftManager
                             kerbalx_status_indicator();
                         });
                     }
+//                    label("", "save_state_indicator" + (CraftData.loaded_craft_saved ? ".saved" : ".unsaved"));
                 });
             } else{
                 section("bottom.section", () =>{
                     v_section(()=>{
                         kerbalx_status_indicator();
+//                        label("", "save_state_indicator" + (CraftData.loaded_craft_saved ? ".saved" : ".unsaved"));
                     });
                     fspace();                   
                     action_buttons();
