@@ -249,11 +249,12 @@ namespace CraftManager
 
         //GUI Top section when in upload mode
         protected void draw_kerbalx_header(float section_width){
-            v_section(()=>{
-                GUILayout.Space(15f);
-                section(section_width, 60f, ()=>{
+            v_section((w)=>{
+                
+                section(section_width, ()=>{
                     fspace();
-                    label("KerbalX Upload", "upload_header");
+                    label(StyleSheet.assets["logo_large"], "upload_header.logo", 415f, 75f);
+                    label("Upload", "upload_header");
                     fspace();
                 });
             });
@@ -968,7 +969,6 @@ namespace CraftManager
                     button(KerbalX.download_queue_size + " craft waiting to download", "download_waiting", KerbalX.load_download_queue);
                 }
             });
-            label(ShipConstruction.GetSavePath(EditorLogic.fetch.ship.shipName));
             if(compact_mode){
                 v_section("bottom.section", () =>{
                     section(()=>{

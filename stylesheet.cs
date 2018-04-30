@@ -115,9 +115,14 @@ namespace CraftManager
             });
             define_style("upload_header", "h1", s =>{
                 s.margin = new RectOffset(0,0,0,0);
-                s.padding = new RectOffset(0,0,0,0);
-                s.fontSize = 40;
+                s.padding = new RectOffset(10,0,10,0);
+                s.fontSize = 60;
             });
+            define_style("upload_header.logo", base_skin.label, s =>{
+                s.margin = new RectOffset(0,0,0,0);
+                s.padding = new RectOffset(0,0,0,0);
+            });
+
             define_style("h2.centered", "h2", s =>{
                 s.alignment = TextAnchor.LowerCenter;
             });
