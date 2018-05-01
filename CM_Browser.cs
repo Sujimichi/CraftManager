@@ -88,10 +88,6 @@ namespace CraftManager
             saves_count = CraftData.save_names.Count;
             CraftData.save_state = 0;
 
-            if(DevTools.autostart){
-//                show();                
-//                SettingsUI.open(gameObject);
-            }
             CraftManager.log("CraftManagerUI-Ready");
         }
 
@@ -249,8 +245,7 @@ namespace CraftManager
 
         //GUI Top section when in upload mode
         protected void draw_kerbalx_header(float section_width){
-            v_section((w)=>{
-                
+            v_section((w)=>{                
                 section(section_width, ()=>{
                     fspace();
                     label(StyleSheet.assets["logo_large"], "upload_header.logo", 415f, 75f);
