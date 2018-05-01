@@ -8,6 +8,7 @@ mkdir bin/Release/CraftManager/Plugins -p
 mkdir bin/Release/CraftManager/Assets -p
 
 cp bin/Release/*.dll bin/Release/CraftManager/Plugins/
+cp CraftManager.version bin/Release/CraftManager/Plugins/
 
 cp -a assets/*.* bin/Release/CraftManager/
 mv bin/Release/CraftManager/*.jpg bin/Release/CraftManager/Assets/
