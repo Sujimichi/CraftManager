@@ -319,6 +319,7 @@ namespace CraftManager
             }
             set_header("MODCLIENT", KerbalXAPI.client);
             set_header("MODCLIENTVERSION", KerbalXAPI.client_version);
+            set_header("KSPVERSION", Versioning.GetVersionString());
             if(RequestHandler.instance == null){
                 throw new Exception("[KerbalX] RequestHandler is not ready, unable to make request");
             } else{
