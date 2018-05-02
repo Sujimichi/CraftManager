@@ -136,8 +136,8 @@ namespace CraftManager
             string filename = "screenshot - " + string.Format("{0:yyyy-MM-dd_hh-mm-ss}", DateTime.Now) + ".png";
             CraftManager.log("grabbing screenshot: " + filename);
 
-//            Application.CaptureScreenshot(filename);
-            ScreenCapture.CaptureScreenshot(filename);
+            Application.CaptureScreenshot(filename);
+//            ScreenCapture.CaptureScreenshot(filename);
             StartCoroutine(shutter(filename));        //shutter re-opens the windows. well, it's kinda the exact opposite of what a shutter does, but yeah....whatever
         }
 

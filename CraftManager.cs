@@ -1,8 +1,10 @@
 ﻿
 
-//Built Against KSP 1.4.3
-//build id = 02152
-//2018-04-26_22-43-47
+//Built Against KSP 1.3.1
+//build id = 01891
+//2017-10-05_22-01-21
+//Branch: master
+
 
 using System;
 using System.IO;
@@ -20,7 +22,7 @@ namespace CraftManager
     public class CraftManager : MonoBehaviour
     {
 
-        public static string version = "0.2.0";
+        public static string version = "0.1.0";
 
         //Settings
         internal static CMSettings settings;
