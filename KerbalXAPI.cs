@@ -393,7 +393,7 @@ namespace CraftManager
             yield return request.Send();
 
 
-            if(request.isError){                                                            //Request Failed, most likely due to being unable to get a response, therefore no status code
+            if(request.isNetworkError){                                                            //Request Failed, most likely due to being unable to get a response, therefore no status code
                 KerbalXAPI.failed_to_connect = true;
                 KerbalXAPI.log("request failed: " + request.error);
 
