@@ -50,7 +50,7 @@
       <Private>False</Private>
     </Reference>
     <Reference Include="KatLib">
-      <HintPath>..\KatLib\bin\Release\KatLib.dll</HintPath>
+      <HintPath>..\KatLib\bin\Release\for_1.3.1\KatLib.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
