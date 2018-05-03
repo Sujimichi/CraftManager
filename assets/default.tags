@@ -7,11 +7,11 @@
 //    craft = SPH_some aircraft
 //}
 //
-//Rule based tags (kinda experimental, probablly best not to edit these here, use the UI for best results!). RULE must define attribute, comparator and value
-//attribute - must be an attribute for craft. one of [name, crew_capacity, stock_craft, part_count, mass_total]
+//Rule based tags (best not to edit these here, use the UI for best results!). RULE must define attribute, comparator and value
+//attribute - must be an attribute for craft. one of [name, crew_capacity, part_count, mass_total, cost_total, stock_craft] (the stock_craft attribute is True for the craft that come with KSP)
 //comparator - type of comparison to perform between attribute and value.  one of [equal_to, greater_than, less_than, includes, starts_with]
 //  greater_than & less_than can only be used with numeric attributes. includes and starts_with can only be used with string attributes.  boolian attributes can only have equal_to as comparator.
-//  attribute types [name:string, crew_capacity:numeric, stock_craft:boolian, part_count:numeric, mass_total:numeric]
+//  attribute types [name:string, crew_capacity:numeric, part_count:numeric, mass_total:numeric, cost_total:numeric, stock_craft:boolian]
 //value - a boolean (True/False), string or numeric value to compare to the selected attribute.
 //Examples of rule based tags.  
 //TAG
@@ -32,6 +32,17 @@
 //        attribute = crew_capacity
 //        comparator = greater_than
 //        value = 0
+//    }
+//
+//}
+//TAG
+//{
+//    tag_name = Satellites
+//    RULE
+//    {
+//        attribute = name
+//        comparator = includes
+//        value = satellite
 //    }
 //
 //}

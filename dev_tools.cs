@@ -27,7 +27,6 @@ namespace CraftManager
 
             if(autostart){
                 HighLogic.SaveFolder = save_name;
-                DebugToolbar.toolbarShown = true;
 
                 if(mode == "editor"){
                     var editor = EditorFacility.SPH;
