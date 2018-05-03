@@ -167,7 +167,7 @@ namespace CraftManager
                 "If you have a tag in one save, then view craft from multiple saves and tag a craft in a different save with that tag, the tag will also be added to the other save.\n"
             );
 
-            label("Dynamic (rule based) tags", "h3");
+            label("Auto tags", "h3");
             label(
                 "Tags can be given a 'rule' and will then automatically tag any craft which match that rule.\n" + 
                 "Rules are made up of an attribute, a comparitor and a value, for example;\n" + 

@@ -145,7 +145,7 @@ namespace CraftManager
         public List<string> autotags_list = new List<string>();
 
         public Dictionary<string, string> rule_attributes = new Dictionary<string, string>{
-            {"name", "Name"}, {"crew_capacity", "Crew Capacity"}, {"stock_craft", "Stock"}, {"part_count", "Part Count"}, {"mass_total", "Mass"}
+            {"name", "Name"}, {"crew_capacity", "Crew Capacity"}, {"part_count", "Part Count"}, {"mass_total", "Mass"}, {"cost_total", "Cost"}, {"stock_craft", "Stock"}
         };
         public Dictionary<string, string> rule_comparitors_numeric = new Dictionary<string, string>{
             {"equal_to", "=="}, {"greater_than", ">"}, {"less_than", "<"}
