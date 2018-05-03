@@ -20,7 +20,7 @@ namespace CraftManager
     public class CraftManager : MonoBehaviour
     {
 
-        public static string version = "0.2.0";
+        public static string version = "1.1.0";
 
         //Settings
         internal static CMSettings settings;

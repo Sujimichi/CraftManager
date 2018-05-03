@@ -35,9 +35,9 @@ namespace CraftManager
 
         public static Dictionary<int, Dictionary<string, string>> user_craft;//container for listing of user's craft already on KX and some details about them.
 
-//        internal static string site_url = "https://kerbalx.com";
+        internal static string site_url = "https://kerbalx.com";
 //        internal static string site_url = "http://kerbalx-stage.herokuapp.com";
-        internal static string site_url = "http://mizu.local:3000";
+//        internal static string site_url = "http://mizu.local:3000";
 
 
         internal static bool logged_out(){
