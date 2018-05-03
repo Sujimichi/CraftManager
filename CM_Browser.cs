@@ -282,7 +282,7 @@ namespace CraftManager
                 section(() =>{
                     label("Search Craft:", "h2");
                     GUI.SetNextControlName("main_search_field");
-                    search_string = GUILayout.TextField(search_string, width(compact_mode ? 345 : 500)); //TODO adjust this width in compact mode
+                    search_string = GUILayout.TextField(search_string, width(compact_mode ? 345 : 500));
                     if(last_search != search_string){
                         filter_craft();
                     }
