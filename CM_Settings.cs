@@ -20,14 +20,8 @@ namespace CraftManager
 
             //default settings. These will populate settings.cfg if the file doesn't exist and also provides
             //a reference of which values to try and fetch from the confignode.
-//            if(DevTools.autostart){ //TODO remove this IF in full release
-//                settings.Add("show_initial_setup_dialog", "False"); 
-//                settings.Add("KerbalX_integration_enabled", "True");
-//            } else{
             settings.Add("show_initial_setup_dialog", "True"); 
             settings.Add("KerbalX_integration_enabled", "False");
-//            }
-
             settings.Add("ask_to_populate_new_save", "True");
             settings.Add("replace_editor_load_button", "True");
             settings.Add("use_stock_toolbar", "True");
@@ -35,7 +29,7 @@ namespace CraftManager
             settings.Add("screenshot_dir", "<ksp_install>/Screenshots");
 
             settings.Add("compact_mode", "False");
-            settings.Add("exclude_stock_craft", "False"); //TODO change to False in full release
+            settings.Add("exclude_stock_craft", "False"); 
             settings.Add("craft_sort_reverse", "False");
             settings.Add("craft_sort", "name");
             settings.Add("sort_tags_by", "name");
