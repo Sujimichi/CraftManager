@@ -176,24 +176,29 @@ namespace CraftManager
         }
 
 
-
+        internal static void ensure_ship_folders_exist(string save_dir){
+            string save_path = Paths.joined(CraftManager.ksp_root, "saves", save_dir);
+            CraftManager.log("checking save folders in " + save_path);
+            if(!Directory.Exists(Paths.joined(save_path, "Subassemblies"))){
+                Directory.CreateDirectory(Paths.joined(save_path, "Subassemblies"));
+            }
+            if(!Directory.Exists(Paths.joined(save_path, "Ships"))){
+                Directory.CreateDirectory(Paths.joined(save_path, "Ships"));
+            }
+            if(!Directory.Exists(Paths.joined(save_path, "Ships", "VAB"))){
+                Directory.CreateDirectory(Paths.joined(save_path, "Ships", "VAB"));
+            }
+            if(!Directory.Exists(Paths.joined(save_path, "Ships", "SPH"))){
+                Directory.CreateDirectory(Paths.joined(save_path, "Ships", "SPH"));
+            }
+            
+        }
 
         internal static void bulk_download(List<int> ids, string save_dir, Callback callback){
 
             string save_path = Paths.joined(CraftManager.ksp_root, "saves", save_dir);
             if(Directory.Exists(save_path)){
-                if(!Directory.Exists(Paths.joined(save_path, "Subassemblies"))){
-                    Directory.CreateDirectory(Paths.joined(save_path, "Subassemblies"));
-                }
-                if(!Directory.Exists(Paths.joined(save_path, "Ships"))){
-                    Directory.CreateDirectory(Paths.joined(save_path, "Ships"));
-                }
-                if(!Directory.Exists(Paths.joined(save_path, "Ships", "VAB"))){
-                    Directory.CreateDirectory(Paths.joined(save_path, "Ships", "VAB"));
-                }
-                if(!Directory.Exists(Paths.joined(save_path, "Ships", "SPH"))){
-                    Directory.CreateDirectory(Paths.joined(save_path, "Ships", "SPH"));
-                }
+                ensure_ship_folders_exist(save_dir);
 
                 if(ids.Count > 0){
                     int id = ids[0];                
@@ -273,6 +278,7 @@ namespace CraftManager
                 KerbalXAPI.download_craft(id, (craft_file_string, code) =>{
                     if(code == 200){
                         ConfigNode craft = ConfigNode.Parse(craft_file_string);
+                        check_download_queue();
                         CraftManager.status_info = "";
                         callback(craft);
                     }

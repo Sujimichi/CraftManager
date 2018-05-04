@@ -259,7 +259,8 @@ namespace CraftManager
         internal void download(bool save = true, bool force_overwrite = false, DialogAction action = null){
             CraftData craft = CraftData.selected_craft;
             if(craft != null && craft.remote){                
-                if(save){
+                if(save){                    
+                    KerbalX.ensure_ship_folders_exist(current_save_dir);                   
                     if(!File.Exists(craft.path) || force_overwrite){
                         KerbalX.download(craft.remote_id, craft_file =>{
                             craft_file.Save(craft.path);

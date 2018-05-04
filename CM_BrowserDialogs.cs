@@ -428,8 +428,8 @@ namespace CraftManager
 
         protected void populate_new_save_dialog(){
             KerbalX.get_craft_ids_by_version((craft_by_version, versions) =>{
-                string v1 = versions[1].ToString();
-                string v2 = versions[2].ToString();
+                string v1 = versions[0].ToString();
+                string v2 = versions[1].ToString();
                 string resp = "";
                 Version ksp_version = new Version(Versioning.GetVersionString());
                 KerbalX.log_scroll = new Vector2();
@@ -440,28 +440,28 @@ namespace CraftManager
                     label("Do you want to fetch your craft from KerbalX?", "h2");
 
                     if(versions[0] == ksp_version){
-                        button("download " + craft_by_version[versions[0].ToString()].Count + " craft built in KSP " + ksp_version, ()=>{
-                            KerbalX.bulk_download(craft_by_version[versions[0].ToString()], current_save_dir, ()=>{});
+                        button("download " + craft_by_version[v1].Count + " craft built in KSP " + ksp_version, ()=>{
+                            KerbalX.bulk_download(craft_by_version[v1], current_save_dir, ()=>{});
                         });
                     }else{
                         label("You don't have any craft made in this version of KSP");
+                        if(v1 != null || v2 != null){
+                            label("get craft from previous versions:");
+                            section(()=>{
+                                if(v1 != null && craft_by_version[v1] != null ){
+                                    button("download " + craft_by_version[v1].Count + " craft built in KSP " + v1, ()=>{
+                                        KerbalX.bulk_download(craft_by_version[v1], current_save_dir, ()=>{});
+                                    });
+                                }
+                                if(v2 != null && craft_by_version[v2] != null ){
+                                    button("download " + craft_by_version[v2].Count + " craft built in KSP " + v2, ()=>{
+                                        KerbalX.bulk_download(craft_by_version[v2], current_save_dir, ()=>{});
+                                    });
+                                }
+                            });
+                        }
                     }
 
-                    if(v1 != null || v2 != null){
-                        label("get craft from previous versions:");
-                        section(()=>{
-                            if(v1 != null && craft_by_version[v1] != null ){
-                                button("download " + craft_by_version[v1].Count + " craft built in KSP " + v1, ()=>{
-                                    KerbalX.bulk_download(craft_by_version[v1], current_save_dir, ()=>{});
-                                });
-                            }
-                            if(v2 != null && craft_by_version[v2] != null ){
-                                button("download " + craft_by_version[v2].Count + " craft built in KSP " + v2, ()=>{
-                                    KerbalX.bulk_download(craft_by_version[v2], current_save_dir, ()=>{});
-                                });
-                            }
-                        });
-                    }
 
                     if(!String.IsNullOrEmpty(KerbalX.bulk_download_log)){
                         KerbalX.log_scroll = scroll(KerbalX.log_scroll, d.window_pos.width, 80f, (w)=>{
