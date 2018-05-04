@@ -21,10 +21,9 @@ Search, Sort and Organize your craft, view and load craft from any save, move/co
 
 Craft can be tagged with custom tags which you can manually assign. Tags can also be given a rule so they also auto associate with craft.
 
-##### CraftManager is a WIP, not released yet, no touchy!
 
 
-#### Licence (likely to change once fully released)
+#### Licence
 Licenced under Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 (CC BY-NC-ND 4.0) [![CC logo](https://i.creativecommons.org/l/by-nc-nd/4.0/88x31.png "CC BY-NC-ND 4.0")](https://creativecommons.org/licenses/by-nc-nd/4.0/)    
 Copyright (c) 2016, <Katateochi@gmail.com>    
 
