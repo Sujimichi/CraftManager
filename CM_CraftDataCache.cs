@@ -43,8 +43,10 @@ namespace CraftManager
                 locked_parts.Clear();
                 List<string> part_names = new List<string>();
                 foreach(AvailablePart part in PartLoader.LoadedPartsList){
-                    part_data.Add(part.name, part);
-                    part_names.Add(part.name);
+                    if(!part_data.ContainsKey(part.name)){
+                        part_data.Add(part.name, part);
+                    }
+                    part_names.AddUnique(part.name);                        
                     if(!ResearchAndDevelopment.PartTechAvailable(part)){
                         locked_parts.AddUnique(part.name);
                     }
