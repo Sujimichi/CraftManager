@@ -911,7 +911,7 @@ namespace CraftManager
                                 }
                                 scroll_pos["lhs"] = scroll(scroll_pos["lhs"], "side_panel.scroll.tags", inner_width, main_section_height - 40, scroll_width =>{
                                     if(image_data.images.Count == 0){
-                                        label("You don't have any image in " + CraftManager.screenshot_dir);
+                                        label("You don't have any pictures in " + CraftManager.screenshot_dir);
                                         label("click 'take new picture' to grab a screenshot from in the editor");
                                         label("You can change the folder Craft Manager looks for images in, in the Craft Manager settings");
                                     }
