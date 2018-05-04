@@ -35,15 +35,19 @@
     <Reference Include="System" />
     <Reference Include="UnityEngine.UI">
       <HintPath>..\#References\KSP 1.4.3\UnityEngine.UI.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="UnityEngine">
       <HintPath>..\#References\KSP 1.4.3\UnityEngine.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="Assembly-CSharp-firstpass">
       <HintPath>..\#References\KSP 1.4.3\Assembly-CSharp-firstpass.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="Assembly-CSharp">
       <HintPath>..\#References\KSP 1.4.3\Assembly-CSharp.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="KatLib">
       <HintPath>..\KatLib\bin\Release\for_1.4.x\KatLib.dll</HintPath>
