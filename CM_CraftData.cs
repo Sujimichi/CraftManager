@@ -491,6 +491,22 @@ namespace CraftManager
             locked_parts_checked = true;
         }
 
+        public List<string> list_missing_parts(){
+            
+            AvailablePart matched_part;
+            ConfigNode data = ConfigNode.Load(path);
+            ConfigNode[] parts = data.GetNodes();
+            List<string> missing_parts_list = new List<string>();
+            foreach(ConfigNode part in parts){
+
+                string part_name = get_part_name(part);
+                matched_part = cache.fetch_part(part_name);
+                if(matched_part == null){
+                    missing_parts_list.AddUnique(part_name);
+                }
+            }
+            return missing_parts_list;
+        }
 
         //Rename the craft (both name in the craft file and the file itself). Does checks before attempting rename to ensure valid name.
         //the new name should be set on the craft object first;

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using SimpleJSON;
+using ExtensionMethods;
 using KatLib;
 
 namespace CraftManager
@@ -219,6 +220,86 @@ namespace CraftManager
                 });
                 GUILayout.Space(10);
                 button("Cancel", "button.cancel_load", close_dialog);
+                return resp;
+            });
+        }
+
+        internal void load_craft_with_missing_parts_dialog(CraftData craft, string load_type){
+            string resp = "";
+            List<string> missing_parts_list = new List<string>();
+            Dictionary<string, string> identified_parts_list = new Dictionary<string, string>();
+            bool show_identified_parts = false;
+            List<string> required_mods = new List<string>();
+            Vector2 part_list_scroll = new Vector2();
+            show_dialog("Missing Parts", "This Craft has missing parts", d =>{
+                    
+                section(()=>{
+                    button("list missing parts", ()=>{
+                        show_identified_parts = false;
+                        missing_parts_list = craft.list_missing_parts();
+                    });
+                    if(KerbalX.enabled){
+                        button("KerblaX Mod lookup", () => {
+                            KerbalX.lookup_parts(craft.list_missing_parts(), identified_parts => {
+                                identified_parts_list = identified_parts;
+                                missing_parts_list.Clear();
+                                part_list_scroll = new Vector2();
+                                required_mods.Clear();
+                                foreach(string mod_name in identified_parts_list.Values){
+                                    if(mod_name != "Squad"){
+                                        required_mods.AddUnique(mod_name);
+                                    }
+                                }
+                                show_identified_parts = true;
+                            });
+                        });
+                    }
+                });
+                if(KerbalX.enabled){
+                    label("click \"KerbalX Mod Lookup\" and KerbalX will try to work out which mods you need for the missing parts");
+                }else{
+                    label("tip: if you enable KerbalX integration, Craft Manager can use KerbalX to try and work out which mods you need", "small");
+                }
+
+
+                if(missing_parts_list.Count > 0){
+                    part_list_scroll= scroll(part_list_scroll, d.window_pos.width, 200, (w) => {
+                        foreach(string part_name in missing_parts_list){
+                            label(part_name);
+                        }
+                    });
+                }
+
+                if(show_identified_parts){
+                    if(identified_parts_list.Count > 0){
+                        part_list_scroll= scroll(part_list_scroll, d.window_pos.width, 200, (w) => {
+                            foreach(KeyValuePair<string, string> pair in identified_parts_list){
+                                section(()=>{
+                                    label(pair.Key, "Label", w*0.3f);
+                                    label(pair.Value, "Label", w*0.6f);                                    
+                                });
+                            }
+                        }); 
+                        if(identified_parts_list.ContainsValue("Squad")){
+                            label("You seem to be missing some parts from the core game!", "alert");
+                        }
+                        if(required_mods.Count > 0){                            
+                            label("This craft needs the following mods:\n" + required_mods.n_join("and"));
+                        }
+
+                    }else{
+                        label("no part info found");
+                    }
+                }
+
+
+                section(()=>{
+                    button("Try to load anyway", ()=>{
+                        load_craft(load_type + "_ignore_missing", false);
+                        resp = "200";
+                    });
+                    button("Cancel", close_dialog);                    
+                });
                 return resp;
             });
         }
