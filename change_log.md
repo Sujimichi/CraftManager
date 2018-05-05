@@ -4,7 +4,7 @@
 
 1.0.2 & 1.1.2
 Fix: issue caused when creating list of installed parts when there are more than 1 parts with the same name.
-
+New: CM can use KerbalX to lookup which mods missing parts on a craft belong to.
 
 1.0.1 & 1.1.1  
 minnor bug fixes:  
