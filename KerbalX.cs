@@ -57,6 +57,7 @@ namespace CraftManager
         internal delegate void ActionCallback();
         internal delegate void RemoteCraftMatcher();
         internal delegate void CraftByVersionCallback(Dictionary<string, List<int>> cids_by_version, List<Version> versions);
+        internal delegate void PartLookupCallback(Dictionary<string, string> identified_parts);
 
 
         internal static void login(){
@@ -270,6 +271,27 @@ namespace CraftManager
                 rcm();
             }
 
+        }
+
+        internal static void lookup_parts(List<string> parts, PartLookupCallback callback){
+            if_logged_in_do(() =>{
+                WWWForm part_data = new WWWForm();
+                string part_json = "[\"" + String.Join("\",\"", parts.ToArray()) + "\"]";
+                part_data.AddField("parts", part_json);
+                Dictionary<string, string> identified_parts = new Dictionary<string, string>();
+                KerbalXAPI.lookup_parts(part_data, (resp, code) => {
+                    if(code == 200){
+                        JSONNode part_info = JSON.Parse(resp);
+                        foreach(string part_name in parts){
+                            if(!identified_parts.ContainsKey(part_name)){
+                                identified_parts.Add(part_name, part_info[part_name]);
+                            }
+                        }
+                        callback(identified_parts);                        
+                    }
+
+                });
+            });
         }
 
         internal static void download(int id, DownloadCallback callback){

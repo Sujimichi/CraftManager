@@ -207,45 +207,52 @@ namespace CraftManager
         protected void load_craft(string load_type, bool force = false){            
             if(CraftData.selected_craft != null){
                 CraftData craft = CraftData.selected_craft;
-                if(load_type == "load"){                                       
-                    if(CraftData.loaded_craft_saved || force){
-                        CraftData.loading_craft = true;
-                        EditorLogic.LoadShipFromFile(craft.path);
-                        CraftManager.main_ui.hide();
-                    } else{                        
-                        CraftManager.main_ui.load_craft_confirm_dialog(() =>{
-                            load_craft(load_type, true);
-                        });
+                if(craft.missing_parts && !load_type.Contains("ignore_missing") && (load_type == "load" || load_type == "merge" || load_type == "subload")){
+                    CraftManager.main_ui.load_craft_with_missing_parts_dialog(craft, load_type);
+                } else{                    
+                    if(load_type.Contains("ignore_missing")){
+                        load_type = load_type.Replace("_ignore_missing", "");
                     }
-                } else if(load_type == "merge"){                    
-                    ShipConstruct ship = new ShipConstruct();
-                    ship.LoadShip(ConfigNode.Load(craft.path));
-                    EditorLogic.fetch.SpawnConstruct(ship);
-                    CraftManager.main_ui.hide();
-                } else if(load_type == "subload"){
-                    ShipTemplate subassembly = new ShipTemplate();
-                    subassembly.LoadShip(ConfigNode.Load(craft.path));
-                    EditorLogic.fetch.SpawnTemplate(subassembly);
-                    CraftManager.main_ui.hide();
-                } else if(load_type == "download"){
-                    download(true, false);
-                } else if(load_type == "update"){
-                    download(true, true);
-                } else if(load_type == "dl_load"){
-                    download(true, false, load_craft);
-                }else if(load_type == "update_load"){
-                    download(true, true, load_craft);
-                } else if(load_type == "dl_load_no_save"){
-                    if(CraftData.loaded_craft_saved || force){
-                        download(false);
+                    if(load_type == "load"){                                       
+                        if(CraftData.loaded_craft_saved || force){
+                            CraftData.loading_craft = true;
+                            EditorLogic.LoadShipFromFile(craft.path);
+                            CraftManager.main_ui.hide();
+                        } else{                        
+                            CraftManager.main_ui.load_craft_confirm_dialog(() =>{
+                                load_craft(load_type, true);
+                            });
+                        }
+                    } else if(load_type == "merge"){                    
+                        ShipConstruct ship = new ShipConstruct();
+                        ship.LoadShip(ConfigNode.Load(craft.path));
+                        EditorLogic.fetch.SpawnConstruct(ship);
                         CraftManager.main_ui.hide();
-                    } else{
-                        CraftManager.main_ui.load_craft_confirm_dialog(() =>{
-                            load_craft(load_type, true);
-                        });
+                    } else if(load_type == "subload"){
+                        ShipTemplate subassembly = new ShipTemplate();
+                        subassembly.LoadShip(ConfigNode.Load(craft.path));
+                        EditorLogic.fetch.SpawnTemplate(subassembly);
+                        CraftManager.main_ui.hide();
+                    } else if(load_type == "download"){
+                        download(true, false);
+                    } else if(load_type == "update"){
+                        download(true, true);
+                    } else if(load_type == "dl_load"){
+                        download(true, false, load_craft);
+                    }else if(load_type == "update_load"){
+                        download(true, true, load_craft);
+                    } else if(load_type == "dl_load_no_save"){
+                        if(CraftData.loaded_craft_saved || force){
+                            download(false);
+                            CraftManager.main_ui.hide();
+                        } else{
+                            CraftManager.main_ui.load_craft_confirm_dialog(() =>{
+                                load_craft(load_type, true);
+                            });
+                        }
+                    } else if(load_type == "upload"){                    
+                        craft.upload_data.post();
                     }
-                } else if(load_type == "upload"){                    
-                    craft.upload_data.post();
                 }
             }
         }
