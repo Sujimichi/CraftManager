@@ -85,6 +85,11 @@ namespace CraftManager
             set_texture("blue_background", new Color(0.4f, 0.5f, 0.9f, 1), TextureWrapMode.Repeat);           
             set_texture("light_blue_background", new Color(0.37f, 0.41f, 0.62f, 0.4f));           
             set_texture("lighter_blue_background", new Color(0.4f, 0.5f, 0.9f, 0.6f));           
+            set_texture("navy_background", new Color(0.26f, 0.34f, 0.45f, 0.8f));
+            set_texture("light_navy_background", new Color(0.26f, 0.34f, 0.45f, 0.2f));
+
+                
+
             set_texture("dark_background", new Color(0.12f, 0.12f, 0.12f, 0.5f));
             set_texture("pic_highlight", new Color(0.4f, 0.5f, 0.9f, 1));
             set_texture("green_background", new Color(0.2f, 0.6f, 0.2f, 1));
@@ -397,6 +402,11 @@ namespace CraftManager
                 s.normal.background = textures["light_blue_background"];
                 s.hover.background = textures["lighter_blue_background"];
             });
+            define_style("craft.list_item.group_selected", "craft.list_item", s =>{
+                s.normal.background = textures["navy_background"];
+                s.hover.background = textures["lighter_blue_background"];
+            });
+
             define_style("craft.list_item.hover", "craft.list_item", s =>{
                 s.normal.background = textures["blue_background"];
             });

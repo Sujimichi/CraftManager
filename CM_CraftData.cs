@@ -164,15 +164,18 @@ namespace CraftManager
                 filtered[i].list_height = 0;
             }
         }
+
+
             
-        public static void select_craft(CraftData craft){
+        public static void select_craft(CraftData craft){            
             for(int i = 0; i < CraftData.all_craft.Count; i++){
                 CraftData.all_craft[i].selected = false;
+                CraftData.all_craft[i].group_selected = false;
             }
             craft.selected = true;
         }
 
-        public static void toggle_selected(CraftData craft){
+        public static void toggle_selected(CraftData craft){            
             if(craft.selected){
                 craft.selected = false;
             }else{
@@ -180,11 +183,63 @@ namespace CraftManager
             }
         }
 
+
+
+        public static void group_select(CraftData craft){
+            for(int i = 0; i < CraftData.all_craft.Count; i++){
+                if(CraftData.all_craft[i].selected){
+                    CraftData.all_craft[i].selected = false;
+                    CraftData.all_craft[i].group_selected = true;
+                }
+            }
+            craft.group_selected = true;
+        }
+
+        public static void toggle_group_select(CraftData craft){
+            CraftManager.log("toggle group called");
+            if(active_craft.Count == 0 || (active_craft.Count == 1 && active_craft[0] == craft)){
+                CraftManager.log("active_craft.count: " + active_craft.Count + "\nperforming standard select");
+                toggle_selected(craft);
+            } else{
+                CraftManager.log("performing group select action");
+                if(craft.group_selected){
+                    CraftManager.log("deselecting");
+                    craft.group_selected = false;
+                } else{
+                    CraftManager.log("calling group_select");
+                    CraftData.group_select(craft);
+                }                
+            }
+            if(active_craft.Count == 1){
+                CraftManager.log("one active_craft present, forcing standard select");
+                CraftData.select_craft(active_craft[0]);
+            }
+        }
+
+
         public static CraftData selected_craft { 
             get { 
                 return filtered.Find(c => c.selected == true);
             } 
         }
+
+        public static List<CraftData> selected_group{
+            get{
+                return filtered.FindAll(c => c.group_selected == true);
+            }
+        }
+
+        //active_craft returns all craft that are selected, be that just the single selected_craft or the selected_group
+        public static List<CraftData> active_craft{
+            get{ 
+                List<CraftData> all_selected_craft = new List<CraftData>(selected_group);
+                if(CraftData.selected_craft != null){
+                    all_selected_craft.AddUnique(CraftData.selected_craft);
+                }
+                return all_selected_craft;
+            }
+        }
+
 
         public static List<string> save_names{
             get{
@@ -199,6 +254,30 @@ namespace CraftManager
             }
 
         }
+
+        internal static string delete_active_craft(){
+            return perform_bulk_action(craft => craft.delete());
+        }
+
+        internal static string transfer_active_craft_to(EditorFacility facility){
+            return perform_bulk_action(craft => craft.transfer_to(facility));
+        }
+
+        internal static string move_copy_active_craft_to(string new_save_dir, bool move = false){
+            return perform_bulk_action(craft => craft.move_copy_to(new_save_dir, move));
+        }
+
+        private delegate string BulkActionCallback(CraftData craft);
+        private static string perform_bulk_action(BulkActionCallback action){
+            string r = "200";
+            foreach(CraftData craft in active_craft){
+                if(r == "200"){
+                    r = action(craft);
+                }
+            }
+            return r;
+        }
+
 
 
         //**Instance Methods/Variables**//
@@ -260,6 +339,7 @@ namespace CraftManager
 
         //Attributes which are set during object's lifetime and not cached.
         public bool selected = false;
+        public bool group_selected = false;
         public bool locked_parts_checked = false;
         public List<string> tag_name_cache = null;
 
@@ -563,6 +643,7 @@ namespace CraftManager
 
         public string delete(){
             if(File.Exists(path)){
+                CraftManager.log("Deleting Craft: " + path);
                 File.Delete(path);
                 FileInfo thumbnail_file = new FileInfo(thumbnail_path());
                 if(thumbnail_file.Exists){
@@ -572,7 +653,7 @@ namespace CraftManager
                 if(CraftManager.main_ui){CraftManager.main_ui.refresh();}
                 return "200";
             } else{
-                return "error 404 - file not found";
+                return "error 404 - file not found: " + path;
             }
         }
 
