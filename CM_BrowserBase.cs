@@ -365,20 +365,6 @@ namespace CraftManager
             }
         }
 
-        protected void draw_tags_list(){
-            foreach(string tag in tags_for_active_craft){
-                section(() =>{
-                    label(tag, "compact");
-                    fspace();
-                    if(!Tags.instance.autotags_list.Contains(tag)){                                    
-                        gui_state(!upload_interface_ready, ()=>{
-                            button("x", "tag.delete_button.x", ()=>{Tags.untag_craft(CraftData.active_craft, tag);});
-                        });
-                    }
-                });
-            }
-        }
-
         protected void toggle_compact_mode(){toggle_compact_mode(!compact_mode);}
         internal void toggle_compact_mode(bool change_to, bool save_setting = true){
             compact_mode = change_to;

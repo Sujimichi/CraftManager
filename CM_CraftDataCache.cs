@@ -172,6 +172,16 @@ namespace CraftManager
                 }
             }
         }
+
+        internal static IEnumerator<bool> load_cache(){
+            yield return true;
+            if(!File.Exists(CraftDataCache.cache_path)){
+                CraftManager.log("pre-generating craft data cache");
+                CraftData.load_craft_from_files(CraftManager.main_ui.active_save_dir);
+            }else if(CraftData.cache == null){
+                CraftData.cache = new CraftDataCache();                
+            }
+        }
     }
 }
 
