@@ -159,7 +159,6 @@ namespace CraftManager
                 s.fontSize = 12;
             });
 
-
             define_style("error", base_skin.label, s =>{
                 s.normal.textColor = Color.red;
             });
@@ -442,6 +441,16 @@ namespace CraftManager
             define_style("craft.missing_parts", base_skin.label, s =>{
                 s.normal.textColor = Color.red;
             });
+
+            define_style("thumbnail", base_skin.label, s =>{
+                s.margin = new RectOffset(0,0,0,0);
+                s.padding = new RectOffset(0,0,0,0);
+                s.alignment = TextAnchor.MiddleCenter;
+            });
+            define_style("section.thumbnail", "thumbnail", s =>{
+                s.margin.right = base_skin.label.margin.right;
+            });
+
 
             define_style("side_panel.scroll", "craft.list_container", s =>{
             });

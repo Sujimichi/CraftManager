@@ -27,6 +27,7 @@ namespace CraftManager
             settings.Add("use_stock_toolbar", "True");
             settings.Add("use_editor_key_shortcuts", "True");
             settings.Add("screenshot_dir", "<ksp_install>/Screenshots");
+            settings.Add("show_craft_icon_in_details", "True");
 
             settings.Add("compact_mode", "False");
             settings.Add("exclude_stock_craft", "False"); 
@@ -190,6 +191,11 @@ namespace CraftManager
                 if(!String.IsNullOrEmpty(setting_error_open_opts)){
                     label(setting_error_open_opts, "error");
                 }
+                v_section("dialog.section", () =>{
+                    setting_section("show_craft_icon_in_details", "Craft Icon in Details",
+                        "shows the craft thumbnail in the right hand side details"
+                    );
+                });
                 v_section("dialog.section", ()=>{
                     setting_section("compact_mode", "Use Compact Mode", 
                         "The interface hides the tags and craft details sections, making it more like the stock interface.",

@@ -222,7 +222,6 @@ namespace CraftManager
                 open_tag_menu  = false;
                 gameObject.AddOrGetComponent<Dropdown>().open(inline_tag_menu);
             }
-
         }
 
         protected override void FooterContent(int window_id){
@@ -403,7 +402,7 @@ namespace CraftManager
         protected void draw_craft_list_item(CraftData craft, float section_width){
             
             section(section_width-(30f), "craft.list_item" + (craft.group_selected ? ".group_selected" : craft.selected ? ".selected" : (craft.menu_open ? ".hover" : "")), (inner_width)=>{ //subtractions from width to account for margins and scrollbar                
-                section(inner_width-80f,()=>{
+                section(inner_width-85f,()=>{
                     v_section(()=>{
                         section(()=>{
                             label(craft.name, "craft.name");
@@ -444,9 +443,10 @@ namespace CraftManager
                         }
                     });
                 });
-                section(80f,()=>{
+
+                section(80f, "section.thumbnail", (w)=>{
                     fspace();
-                    GUILayout.Label(craft.thumbnail, width(70), height(70));
+                    GUILayout.Label(craft.thumbnail, "thumbnail", width(80), height(80));
                 });
             }, evt => {
                 if(evt.single_click){
@@ -682,6 +682,15 @@ namespace CraftManager
             GUILayout.Space(5);
             CraftData craft = CraftData.selected_craft;                        
             section(()=>{label(craft.name, "h2");});
+
+            if(bool.Parse(CraftManager.settings.get("show_craft_icon_in_details"))){                
+                section(() =>{
+                    fspace();
+                    GUILayout.Label(craft.thumbnail, "thumbnail", width(scroll_width*0.6f), height(scroll_width*0.6f));
+                    fspace();
+                });
+            }
+
             if(expand_details){
                 float details_width = scroll_width - 50;
                 GUILayoutOption grid_width = width(details_width*0.4f);
@@ -866,11 +875,9 @@ namespace CraftManager
                 });
                 label("Tags used by all selected craft");
                 draw_tags_list();
-            } else{
-                section(() => {
-                    button("Download All", "button.load", show_bulk_download_dialog);
-                    label("note: bulk downloads will replace any existing craft with the same name as the ones being downloaded", "small");
-                });
+            } else{                
+                button("Download All", "button.load", show_bulk_download_dialog);
+                label("note: bulk downloads will replace any existing craft with the same name as the ones being downloaded", "small");
             }
         }
 
