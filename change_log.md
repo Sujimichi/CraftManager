@@ -6,7 +6,7 @@
 Group Actions; You can now select multiple craft (hold ctrl while selecting) and then perform actions across all of them; add/remove Tags, Transfer between craft type [SPH/VAB/Subs], Move/Copy between saves and Delete.  RHS panel shows info for combined mass, cost and crew capacity when a group is selected.
 Fix: version for KSP 1.4.x was not detecting ctrl + click (previously used for selecting multiple craft type filters, now also used in group selecting craft)
 Thumbnail icon is slightly bigger and there is the option in settings to have a larger thumbnail shown in the details panel (disabled by default).
-
+Fix: fixed issue where moving a craft between saves would fail unless the craft had a thumbnail already generated
 
 1.0.2 & 1.1.2
 Fix: issue caused when creating list of installed parts when there are more than 1 parts with the same name.

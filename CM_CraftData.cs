@@ -733,10 +733,14 @@ namespace CraftManager
                     try{                        
                         if(move){
                             file.MoveTo(new_path);
-                            thumbnail_file.MoveTo(thumbnail_path(new_save_dir, this.construction_type, this.name));
+                            if(thumbnail_file.Exists){
+                                thumbnail_file.MoveTo(thumbnail_path(new_save_dir, this.construction_type, this.name));
+                            }
                         }else{                        
                             file.CopyTo(new_path);
-                            thumbnail_file.CopyTo(thumbnail_path(new_save_dir, this.construction_type, this.name));
+                            if(thumbnail_file.Exists){
+                                thumbnail_file.CopyTo(thumbnail_path(new_save_dir, this.construction_type, this.name));
+                            }
                         }
                         if(CraftManager.main_ui){CraftManager.main_ui.refresh();}
                         return "200";
