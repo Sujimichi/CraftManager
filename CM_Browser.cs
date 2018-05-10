@@ -466,13 +466,17 @@ namespace CraftManager
                 } else if(evt.right_click){
 
                     DropdownMenuData menu;
-                    if(CraftData.selected_group.Count > 0){
+                    if(kerbalx_mode){
+                        if(CraftData.selected_group.Count > 0){
+                            menu = new DropdownMenuData(new Dictionary<string, string>{ {"bulk_download", "Download All"} });                            
+                        }else{
+                            menu = new DropdownMenuData(new Dictionary<string, string>{ {"view_remote", "View on KerbalX"}, {"download", "Download"} });                            
+                        }
+                    }else if(CraftData.selected_group.Count > 0){
                         menu = new DropdownMenuData(new Dictionary<string, string>{{"add_tag", "Add Tag"}, {"transfer", "Transfer"}});
                         if(saves_count > 1){menu.items.Add("move_copy", "Move/Copy");}
                         menu.special_items.Add("delete", "Delete");
-                    }else if(craft.remote){
-                        menu = new DropdownMenuData(new Dictionary<string, string>{ {"view_remote", "View on KerbalX"}, {"download", "Download"} });
-                    }else{
+                    }else {
                         CraftData.select_craft(craft); //ensure the right clicked craft is the focus craft
                         menu = new DropdownMenuData(new Dictionary<string, string>{{"add_tag", "Add Tag"}, {"rename", "Rename"}, {"transfer", "Transfer"}});
                         if(saves_count > 1){menu.items.Add("move_copy", "Move/Copy");}
@@ -502,6 +506,7 @@ namespace CraftManager
                             case "delete"       : delete_craft_dialog(); break;
                             case "view_remote"  : Application.OpenURL(KerbalXAPI.url_to(craft.url)); break;
                             case "download"     : load_craft("dl_load"); break;
+                            case "bulk_download": show_bulk_download_dialog(); break;
                         }                            
                     });
                     menu.on_menu_open = new Callback(()=>{
@@ -841,28 +846,30 @@ namespace CraftManager
 
             if(!kerbalx_mode){
                 GUILayout.Space(15);
-                gui_state(!upload_interface_ready, ()=>{
-                    section(() => {                                    
-                        button("transfer", transfer_craft_dialog);
-                        if(saves_count > 1){
-                            button("move/copy", move_copy_craft_dialog);
-                        }
-                    });
-                    section(() => {                                
-                        button("delete", "button.delete", delete_craft_dialog);
-                    });
-
-                    GUILayout.Space(15);
-                    section(()=>{
-                        label("Tags", "h2");
-                        fspace();
-                        tags_menu_content.selected_items = tags_for_active_craft;
-                        dropdown("Add Tags", StyleSheet.assets["caret-down"], "add_tag_menu", tags_menu_content, this, scroll_relative_pos, 70f, "Button", "menu.background", "menu.item.small", resp => {
-                            respond_to_tag_menu(resp);
-                        });                                
-                    });
-                    label("Tags used by all selected craft");
-                    draw_tags_list();
+                section(() =>{                                    
+                    button("transfer", transfer_craft_dialog);
+                    if(saves_count > 1){
+                        button("move/copy", move_copy_craft_dialog);
+                    }
+                });
+                section(() =>{                                
+                    button("delete", "button.delete", delete_craft_dialog);
+                });
+                GUILayout.Space(15);
+                section(()=>{
+                    label("Tags", "h2");
+                    fspace();
+                    tags_menu_content.selected_items = tags_for_active_craft;
+                    dropdown("Add Tags", StyleSheet.assets["caret-down"], "add_tag_menu", tags_menu_content, this, scroll_relative_pos, 70f, "Button", "menu.background", "menu.item.small", resp => {
+                        respond_to_tag_menu(resp);
+                    });                                
+                });
+                label("Tags used by all selected craft");
+                draw_tags_list();
+            } else{
+                section(() => {
+                    button("Download All", "button.load", show_bulk_download_dialog);
+                    label("note: bulk downloads will replace any existing craft with the same name as the ones being downloaded", "small");
                 });
             }
         }

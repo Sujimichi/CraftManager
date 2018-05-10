@@ -202,12 +202,16 @@ namespace CraftManager
                 ensure_ship_folders_exist(save_dir);
 
                 if(ids.Count > 0){
+                    CraftManager.status_info = "Downloading craft from KerbalX...";
                     int id = ids[0];                
                     ids.Remove(id);
                     var craft_ref = KerbalXAPI.user_craft[id];
                     string type = craft_ref["type"];
                     string path = "";
-                    bulk_download_log += "\ndownloading [" + (type=="Subassembly" ? "Sub" : type) + "]" + craft_ref["name"] + "...";
+                    if(!String.IsNullOrEmpty(bulk_download_log)){
+                        bulk_download_log += "\n";
+                    }
+                    bulk_download_log += "downloading [" + (type=="Subassembly" ? "Sub" : type) + "]" + craft_ref["name"] + "...";
                     if(type == "Subassembly"){
                         path = Paths.joined(save_path, "Subassemblies", craft_ref["name"] + ".craft");
                     } else{
@@ -224,6 +228,7 @@ namespace CraftManager
                         }
                     });
                 } else{
+                    CraftManager.status_info = "";
                     callback();
                 }
             }
@@ -279,6 +284,7 @@ namespace CraftManager
                 string part_json = "[\"" + String.Join("\",\"", parts.ToArray()) + "\"]";
                 part_data.AddField("parts", part_json);
                 Dictionary<string, string> identified_parts = new Dictionary<string, string>();
+                CraftManager.status_info = "Looking up parts....";
                 KerbalXAPI.lookup_parts(part_data, (resp, code) => {
                     if(code == 200){
                         JSONNode part_info = JSON.Parse(resp);
@@ -287,6 +293,7 @@ namespace CraftManager
                                 identified_parts.Add(part_name, part_info[part_name]);
                             }
                         }
+                        CraftManager.status_info = "";
                         callback(identified_parts);                        
                     }
 

@@ -580,6 +580,44 @@ namespace CraftManager
             });
         }
 
+        protected void show_bulk_download_dialog(){
+            string resp = "";
+            long time_completed = 0;
+            long close_delay = 4000;
+            long time_to_close = close_delay;
+
+            List<int> ids_to_download = new List<int>();
+            foreach(CraftData craft in CraftData.selected_group){
+                ids_to_download.AddUnique(craft.remote_id);
+            }
+            KerbalX.bulk_download_log = "";
+            KerbalX.bulk_download(ids_to_download, current_save_dir, ()=>{
+                time_completed =  DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;    
+            });
+            KerbalX.log_scroll = new Vector2();
+
+            show_dialog("Downloading from KerbalX...", "", d =>{
+                if(!String.IsNullOrEmpty(KerbalX.bulk_download_log)){
+                    KerbalX.log_scroll = scroll(KerbalX.log_scroll, d.window_pos.width, 80f, (w)=>{
+                        label(KerbalX.bulk_download_log);
+                    });
+                }
+                if(time_completed != 0){
+                    time_to_close = close_delay - ((DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond) - time_completed);
+
+                    section(()=>{
+                        fspace();
+                        button("close (auto closing in " + ((time_to_close / (TimeSpan.TicksPerMillisecond/10)) + 1).ToString() + ")", close_dialog);
+                    });
+
+                    if( time_to_close <= 0){
+                        resp = "200";                        
+                    }
+                }
+                return resp;
+            });
+        }
+
         internal void close_update_kerbalx_craft_dialog(){
             close_dialog();
         }
