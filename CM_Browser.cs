@@ -33,11 +33,15 @@ namespace CraftManager
             alt_window_style.padding.top = 8; //remove excess padding to hide titlebar
 
             window_title = "";
-            window_pos = get_window_position();
+//            window_pos = get_window_position();
+            set_window_position();
             visible = false;
             draggable = false;
             footer = false;
             prevent_click_through = false; //disable the standard click through prevention. show and hide will add control locks which are not based on mouse pos.
+
+            height_scale = float.Parse(CraftManager.settings.get("main_ui_height_scale"));
+            CraftManager.log("height_scale:  " + height_scale);
 
             toggle_compact_mode(bool.Parse(CraftManager.settings.get("compact_mode")), false);
 
@@ -129,7 +133,6 @@ namespace CraftManager
             auto_focus_field = "main_search_field";
             InputLockManager.SetControlLock(window_id.ToString());
             interface_locked = true; //will trigger unlock of interface (after slight delay) on window hide
-
         }
 
 

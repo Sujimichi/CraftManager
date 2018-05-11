@@ -14,7 +14,19 @@ namespace CraftManager
         
         internal const string all_saves_ref = "<all_saves>";
 
-        protected float main_section_height = Screen.height - 420f;
+        protected float main_section_height{
+            get{ 
+                return (Screen.height-height_adjustment) * height_scale;
+            }
+        }
+
+        protected float height_adjustment{
+            get{ 
+                return compact_mode ? 263 : 212;
+            }
+        }
+
+        internal float height_scale = 0.8f;
         protected float window_width  = 1000f;
         protected float[] col_widths_default = new float[]{0.2f,0.55f,0.25f};
         protected float[] col_widths_current = new float[]{0.2f,0.55f,0.25f};
@@ -379,15 +391,21 @@ namespace CraftManager
             } else{
                 window_width = 1000f;
             }
-            window_pos = get_window_position();
+            set_window_position();
             more_menu.items["compact_mode"] = compact_mode ? "Full View" : "Compact Mode";
             if(save_setting){
                 CraftManager.settings.set("compact_mode", change_to.ToString());
             }
         }
 
-        protected Rect get_window_position(){
-            return new Rect((Screen.width/2) - (window_width/2) + 100, 80, window_width, main_section_height);
+        protected Rect get_window_position(){            
+            float y_pos = (Screen.height - main_section_height - height_adjustment) / 2;
+            CraftManager.log("y_pos: " + y_pos);
+            return new Rect((Screen.width/2) - (window_width/2) + 100, y_pos, window_width, main_section_height);
+        }
+
+        internal void set_window_position(){
+            window_pos = get_window_position();
         }
 
         //load/reload craft from the active_save_dir and apply any active filters

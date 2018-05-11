@@ -3,11 +3,13 @@
 1.1.x are builds for KSP 1.4.x  
 
 1.0.3 & 1.1.3
-Group Actions; You can now select multiple craft (hold ctrl while selecting) and then perform actions across all of them; add/remove Tags, Transfer between craft type [SPH/VAB/Subs], Move/Copy between saves and Delete.  RHS panel shows info for combined mass, cost and crew capacity when a group is selected.
+New: Group Actions; You can now select multiple craft (hold ctrl while selecting) and then perform actions across all of them; add/remove Tags, Transfer between craft type [SPH/VAB/Subs], Move/Copy between saves and Delete.  RHS panel shows info for combined mass, cost and crew capacity when a group is selected.
 Fix: version for KSP 1.4.x was not detecting ctrl + click (previously used for selecting multiple craft type filters, now also used in group selecting craft)
-Thumbnail icon is slightly bigger and there is the option in settings to have a larger thumbnail shown in the details panel (disabled by default).
+Tweak: Thumbnail icon is slightly bigger
+New: There is the option in settings to have a larger thumbnail shown in the details panel (disabled by default).
 Fix: fixed issue where moving a craft between saves would fail unless the craft had a thumbnail already generated
 Added QuickTag; lets you add/remove tags to the current craft in the editor without having to open the main Craft Manager interface. click the tags icon in the toolbar or press ctrl+t to open it (esc or ctrl+t again will close it). Open it, add/remove a tag, done (changes are saved right away).
+Added: Height of main UI can be adjusted in settings.
 
 
 1.0.2 & 1.1.2
