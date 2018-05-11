@@ -276,7 +276,7 @@ namespace CraftManager
         }
 
         //Associate a craft with a tag. Will create a Tag with the given name if it doesn't already exist
-        public static void tag_craft(CraftData craft, string tag_name){                    
+        public static void tag_craft(CraftData craft, string tag_name){    
             Tag tag = Tags.find_or_create_by(tag_name, craft.save_dir);
             tag.add(craft);
         }

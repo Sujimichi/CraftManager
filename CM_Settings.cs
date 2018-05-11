@@ -27,7 +27,8 @@ namespace CraftManager
             settings.Add("use_stock_toolbar", "True");
             settings.Add("use_editor_key_shortcuts", "True");
             settings.Add("screenshot_dir", "<ksp_install>/Screenshots");
-            settings.Add("show_craft_icon_in_details", "True");
+            settings.Add("show_craft_icon_in_details", "False");
+            settings.Add("show_quick_tag_on_toolbar", "True");
 
             settings.Add("compact_mode", "False");
             settings.Add("exclude_stock_craft", "False"); 
@@ -36,21 +37,24 @@ namespace CraftManager
             settings.Add("sort_tags_by", "name");
             settings.Add("tag_filter_mode", "AND");
             settings.Add("tag_states", "");
+            settings.Add("quick_tag_pos", "auto");
 
             if(File.Exists(settings_path)){
                 ConfigNode settings_raw = ConfigNode.Load(settings_path);
                 ConfigNode settings_data = settings_raw.GetNode("SETTINGS");
                 List<string> keys = new List<string>(settings.Keys);
                 foreach(string key in keys){
-                    settings[key] = settings_data.GetValue(key);
+                    if(!String.IsNullOrEmpty(settings_data.GetValue(key))){
+                        settings[key] = settings_data.GetValue(key);
+                    }
                 }
+                save();
             } else{
                 save();
             }
 
             CraftManager.kerbalx_integration_enabled = bool.Parse(get("KerbalX_integration_enabled"));
             CraftManager.replace_editor_load_button = bool.Parse(get("replace_editor_load_button"));
-            CraftManager.use_stock_toolbar = bool.Parse(get("use_stock_toolbar"));
             CraftManager.use_editor_key_shortcuts = bool.Parse(get("use_editor_key_shortcuts"));
 
             CraftManager.screenshot_dir = get("screenshot_dir");
@@ -201,6 +205,26 @@ namespace CraftManager
                         "The interface hides the tags and craft details sections, making it more like the stock interface.",
                         "Some functionality is reduced, and uploading craft will switch you back to full size view."
                     );
+                });
+                v_section("dialog.section", ()=>{
+                    setting_section("show_quick_tag_on_toolbar", "Show Quick Tag Icon", 
+                        "Shows icon to open Quick Tag in the stock toolbar",
+                        "You can also open Quick Tag with ctrl+t if Editor Shortcuts are enabled"
+                    );
+                    section(() =>{
+                        v_section(lhs_width, (w2) =>{
+                            label("Reset QuickTag position", "h2.tight");
+                            label("The Quick Tag window remembers it's last position, but incase you drag it offscreen you can reset it here", "compact");
+                        });
+                        v_section(rhs_width, (w2) =>{
+                            GUILayout.Space(20f);
+                            button("Reset", ()=>{
+                                settings.set("quick_tag_pos", "auto");
+                                    
+                            });
+                        });
+
+                    });
                 });
                 v_section("dialog.section", () =>{
                     string prev_new_screenshot_location = new_screenshot_location;

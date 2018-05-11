@@ -30,6 +30,7 @@ namespace CraftManager
             { "arrow-down",             GameDatabase.Instance.GetTexture(Paths.joined("CraftManager", "Assets", "arrow-down"), false) },
             { "arrow-up",               GameDatabase.Instance.GetTexture(Paths.joined("CraftManager", "Assets", "arrow-up"), false) },
             { "tags",                   GameDatabase.Instance.GetTexture(Paths.joined("CraftManager", "Assets", "tags"), false) },
+            { "tags_toolbar_icon",      GameDatabase.Instance.GetTexture(Paths.joined("CraftManager", "Assets", "tags_toolbar_icon"), false) },
             { "logo_small",             GameDatabase.Instance.GetTexture(Paths.joined("CraftManager", "Assets", "KXlogo_small"), false) },     //166x30 
             { "logo_large",             GameDatabase.Instance.GetTexture(Paths.joined("CraftManager", "Assets", "KXlogo"), false) },           //664x120 
             { "image_placeholder",      GameDatabase.Instance.GetTexture(Paths.joined("CraftManager", "Assets", "image_placeholder"), false) },

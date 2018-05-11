@@ -103,7 +103,7 @@ namespace CraftManager
             stock_craft_loaded = false;
             show_transfer_indicator = false;
             CraftManager.status_info = "";
-
+            
             string cur_selected_name = null;
             string cur_selected_craft_path = null;
             if(CraftData.selected_craft != null){
@@ -115,21 +115,23 @@ namespace CraftManager
             if(!kerbalx_mode){
                 refresh();
             }
-
+            
             //autoselect loaded craft in list, or re-select previously selected craft
             if(cur_selected_craft_path != null){
                 auto_focus_on(CraftData.filtered.Find(c => c.path == cur_selected_craft_path));
             } else if(cur_selected_name.ToLower() != "untitled space craft"){
                 auto_focus_on(CraftData.filtered.Find(c => c.save_dir == current_save_dir && c.name == cur_selected_name));
             }
-
+            
             grouped_images = null;
             image_data = null;
-
+            
             auto_focus_field = "main_search_field";
             InputLockManager.SetControlLock(window_id.ToString());
             interface_locked = true; //will trigger unlock of interface (after slight delay) on window hide
+
         }
+
 
         protected override void on_hide(){
             if(exit_kerbalx_mode_after_close){
@@ -1140,15 +1142,17 @@ namespace CraftManager
             }
         }
 
-        private void draw_tags_list(){
+        internal void draw_tags_list(bool include_auto_tags = true){
             foreach(string tag in tags_for_active_craft){
                 section(() =>{
-                    label(tag, "compact");
-                    fspace();
-                    if(!Tags.instance.autotags_list.Contains(tag)){                                    
-                        gui_state(!upload_interface_ready, ()=>{
-                            button("x", "tag.delete_button.x", ()=>{Tags.untag_craft(CraftData.active_craft, tag);});
-                        });
+                    if(include_auto_tags || !Tags.instance.autotags_list.Contains(tag)){
+                        label(tag, "compact");
+                        fspace();
+                        if(!Tags.instance.autotags_list.Contains(tag)){                                    
+                            gui_state(!upload_interface_ready, ()=>{
+                                button("x", "tag.delete_button.x", ()=>{Tags.untag_craft(CraftData.active_craft, tag);});
+                            });
+                        }
                     }
                 });
             }

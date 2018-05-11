@@ -365,6 +365,12 @@ namespace CraftManager
             }
         }
 
+        internal void open_quick_tag(){
+            if(!QuickTag.instance){
+                QuickTag.open(gameObject);
+            }            
+        }
+
         protected void toggle_compact_mode(){toggle_compact_mode(!compact_mode);}
         internal void toggle_compact_mode(bool change_to, bool save_setting = true){
             compact_mode = change_to;
@@ -579,7 +585,7 @@ namespace CraftManager
 
         protected bool check_ctrl_key = true;
         //listen to key press actions
-        protected void key_event_handler(){
+        protected virtual void key_event_handler(){
             Event e = Event.current;          
 
             //This is somewhat batshit, allow me to explain. Event.current.control only detects the key press, not a key hold, so we used Input.GetKey(..) 

@@ -166,12 +166,16 @@ namespace CraftManager
         }
 
 
-            
-        public static void select_craft(CraftData craft){            
+
+        public static void deselect_all(){
             for(int i = 0; i < CraftData.all_craft.Count; i++){
                 CraftData.all_craft[i].selected = false;
                 CraftData.all_craft[i].group_selected = false;
             }
+        }
+            
+        public static void select_craft(CraftData craft){            
+            deselect_all();
             craft.selected = true;
         }
 
@@ -182,8 +186,6 @@ namespace CraftManager
                 CraftData.select_craft(craft);
             }
         }
-
-
 
         public static void group_select(CraftData craft){
             for(int i = 0; i < CraftData.all_craft.Count; i++){
@@ -196,22 +198,16 @@ namespace CraftManager
         }
 
         public static void toggle_group_select(CraftData craft){
-            CraftManager.log("toggle group called");
             if(active_craft.Count == 0 || (active_craft.Count == 1 && active_craft[0] == craft)){
-                CraftManager.log("active_craft.count: " + active_craft.Count + "\nperforming standard select");
                 toggle_selected(craft);
             } else{
-                CraftManager.log("performing group select action");
                 if(craft.group_selected){
-                    CraftManager.log("deselecting");
                     craft.group_selected = false;
                 } else{
-                    CraftManager.log("calling group_select");
                     CraftData.group_select(craft);
                 }                
             }
             if(active_craft.Count == 1){
-                CraftManager.log("one active_craft present, forcing standard select");
                 CraftData.select_craft(active_craft[0]);
             }
         }
@@ -219,13 +215,13 @@ namespace CraftManager
 
         public static CraftData selected_craft { 
             get { 
-                return filtered.Find(c => c.selected == true);
+                return all_craft.Find(c => c.selected == true);
             } 
         }
 
         public static List<CraftData> selected_group{
             get{
-                return filtered.FindAll(c => c.group_selected == true);
+                return all_craft.FindAll(c => c.group_selected == true);
             }
         }
 
