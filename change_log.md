@@ -10,7 +10,7 @@ New: There is the option in settings to have a larger thumbnail shown in the det
 Fix: fixed issue where moving a craft between saves would fail unless the craft had a thumbnail already generated
 Added QuickTag; lets you add/remove tags to the current craft in the editor without having to open the main Craft Manager interface. click the tags icon in the toolbar or press ctrl+t to open it (esc or ctrl+t again will close it). Open it, add/remove a tag, done (changes are saved right away).
 Added: Height of main UI can be adjusted in settings.
-
+Change: The primary name shown is now the internal ship name, and (if different) the file name is shown in smaller font.  Renaming craft now allows non OS safe chars to be used and those chars will be replaced with an underscore in the filename. [note, may break some tag associations, craft_data.cache will need to be deleted when upgrading to this version]
 
 1.0.2 & 1.1.2
 Fix: issue caused when creating list of installed parts when there are more than 1 parts with the same name.

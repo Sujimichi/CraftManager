@@ -281,7 +281,7 @@ namespace CraftManager
         //craft attributes - attributes with getters will automatically be stored in the in memory cache and written do persistent store cache
         //if they also have a setter then they can be restored from the cache.
         public string name { get; set; }
-        public string alt_name { get; set; }
+        public string file_name { get; set; }
         public string path { get; set; }
         public string checksum { get; set; }
         public string part_sig { get; set; }
@@ -378,7 +378,7 @@ namespace CraftManager
         //Initialize a new CraftData object from remote (KerbalX). Remote craft are not cached.
         public CraftData(int id, string kx_url, string craft_name, string type, string version, int p_count, int stages, int crew, float c_cost, float c_mass, string created_at, string updated_at, string desc){    
             remote = true; stock_craft = false;
-            name = craft_name; alt_name = craft_name; description = desc;
+            name = craft_name; file_name = craft_name; description = desc;
             remote_id = id; url = kx_url; construction_type = type; ksp_version = version;
             stage_count = stages; part_count = p_count; crew_capacity = crew; cost_total = c_cost; mass_total = c_mass;
             create_time = DateTime.Parse(created_at).ToUniversalTime().ToBinary().ToString();                
@@ -438,7 +438,7 @@ namespace CraftManager
         //return the path to the craft's thumbnail based on craft properties. Overload method provides means to generate a 
         //different thumbnail path without changing the crafts properties.
         public string thumbnail_path(){
-            return thumbnail_path(stock_craft ? "stock" : save_dir, construction_type, name);
+            return thumbnail_path(stock_craft ? "stock" : save_dir, construction_type, file_name);
         }
         public string thumbnail_path(string save_folder, string construct_type, string craft_name){
             if(save_folder == "stock"){
@@ -463,14 +463,14 @@ namespace CraftManager
 
         //Parse .craft file and read info
         private void read_craft_info_from_file(){
-            name = Path.GetFileNameWithoutExtension(path);
+            file_name = Path.GetFileNameWithoutExtension(path);
             CraftData.file_load_count += 1; //increment count of craft loaded from file
 
             ConfigNode data = ConfigNode.Load(path);
             ConfigNode[] parts = data.GetNodes();
             AvailablePart matched_part;
 
-            alt_name = data.GetValue("ship");
+            name = data.GetValue("ship");
             description = data.GetValue("description");
             construction_type = data.GetValue("type");
             ksp_version = data.GetValue("version");
@@ -590,44 +590,43 @@ namespace CraftManager
         //craft.rename();
         //returns various strings depending on outcome, a "200" string means all went ok, yes it's an HTTP status code, I'm a web dev, deal with it.
         public string rename(){
-            List<string> invalid = new List<string>();
+            string os_safe_name = new_name;
             if(!String.IsNullOrEmpty(new_name) && new_name != name){
+                
                 foreach(char c in Path.GetInvalidFileNameChars()){                    
-                    if(new_name.Contains(c.ToString())){
-                        invalid.Add(c.ToString());
+                    if(os_safe_name.Contains(c.ToString())){
+                        os_safe_name = os_safe_name.Replace(c, '_');
                     }
                 }
-                if(invalid.Count == 0){
-                    string new_path = path.Replace(name + ".craft", new_name + ".craft");
-                    if(File.Exists(new_path)){
-                        return "Another craft already has this name";
-                    }
-                    FileInfo file = new FileInfo(path);
-                    if(file.Exists){                                            
-                        try{
-                            file.MoveTo(new_path);
-                        }
-                        catch(Exception e){
-                            return "Unable to rename file\n" + e.Message;
-                        }
-                        FileInfo thumbnail_file = new FileInfo(thumbnail_path());
-                        List<string> tags = Tags.untag_craft(this); //remove old name from tags (returns any tag names it was in).
-                        ConfigNode nodes = ConfigNode.Load(new_path);
-                        nodes.SetValue("ship", new_name);
-                        nodes.Save(new_path);
-                        initialize(new_path, stock_craft);  //reprocess the craft file
-                        Tags.tag_craft(this, tags); //add updated craft to the tags it was previously in.
-                        if(thumbnail_file.Exists){
-                            thumbnail_file.MoveTo(thumbnail_path());
-                            thumbnail = null;
-                        }
-                        return "200";
-                    } else{                    
-                        return "error 404 - file not found";
-                    }
-                } else{
-                    return "new name has invalid letters; " + String.Join(",", invalid.ToArray());
+
+                string new_path = path.Replace(file_name + ".craft", os_safe_name + ".craft");
+                if(File.Exists(new_path)){
+                    return "Another craft already has this name";
                 }
+                FileInfo file = new FileInfo(path);
+                if(file.Exists){                                            
+                    try{
+                        file.MoveTo(new_path);
+                    }
+                    catch(Exception e){
+                        return "Unable to rename file\n" + e.Message;
+                    }
+                    FileInfo thumbnail_file = new FileInfo(thumbnail_path());
+                    List<string> tags = Tags.untag_craft(this); //remove old name from tags (returns any tag names it was in).
+                    ConfigNode nodes = ConfigNode.Load(new_path);
+                    nodes.SetValue("ship", new_name);
+                    nodes.Save(new_path);
+                    initialize(new_path, stock_craft);  //reprocess the craft file
+                    Tags.tag_craft(this, tags); //add updated craft to the tags it was previously in.
+                    if(thumbnail_file.Exists){
+                        thumbnail_file.MoveTo(thumbnail_path());
+                        thumbnail = null;
+                    }
+                    return "200";
+                } else{                    
+                    return "error 404 - file not found";
+                }
+
             } else{
                 if(String.IsNullOrEmpty(new_name)){
                     return "name can not be blank";                    
@@ -670,11 +669,11 @@ namespace CraftManager
         public string transfer_to(EditorFacility facility){
             string new_path = "";
             if(facility == EditorFacility.SPH){
-                new_path = Paths.joined(CraftManager.ksp_root, "saves", save_dir, "Ships", "SPH", name + ".craft");
+                new_path = Paths.joined(CraftManager.ksp_root, "saves", save_dir, "Ships", "SPH", file_name + ".craft");
             } else if(facility == EditorFacility.VAB){
-                new_path = Paths.joined(CraftManager.ksp_root, "saves", save_dir, "Ships", "VAB", name + ".craft");
+                new_path = Paths.joined(CraftManager.ksp_root, "saves", save_dir, "Ships", "VAB", file_name + ".craft");
             } else if(facility == EditorFacility.None){
-                new_path = Paths.joined(CraftManager.ksp_root, "saves", save_dir, "Subassemblies", name + ".craft");
+                new_path = Paths.joined(CraftManager.ksp_root, "saves", save_dir, "Subassemblies",file_name + ".craft");
             }
             if(String.IsNullOrEmpty(new_path)){
                 return "Unexpected error";
@@ -717,9 +716,9 @@ namespace CraftManager
             }
             if(existing_saves.Contains(new_save_dir)){
                 if(this.construction_type == "Subassembly"){
-                    new_path = Paths.joined(CraftManager.ksp_root, "saves", new_save_dir, "Subassemblies", name + ".craft");
+                    new_path = Paths.joined(CraftManager.ksp_root, "saves", new_save_dir, "Subassemblies", file_name + ".craft");
                 } else{                
-                    new_path = Paths.joined(CraftManager.ksp_root, "saves", new_save_dir, "Ships", this.construction_type, name + ".craft");
+                    new_path = Paths.joined(CraftManager.ksp_root, "saves", new_save_dir, "Ships", this.construction_type, file_name + ".craft");
                 }
                 if(File.Exists(new_path)){
                     return "A Craft with this name alread exists in " + new_save_dir;
@@ -730,12 +729,12 @@ namespace CraftManager
                         if(move){
                             file.MoveTo(new_path);
                             if(thumbnail_file.Exists){
-                                thumbnail_file.MoveTo(thumbnail_path(new_save_dir, this.construction_type, this.name));
+                                thumbnail_file.MoveTo(thumbnail_path(new_save_dir, this.construction_type, this.file_name));
                             }
                         }else{                        
                             file.CopyTo(new_path);
                             if(thumbnail_file.Exists){
-                                thumbnail_file.CopyTo(thumbnail_path(new_save_dir, this.construction_type, this.name));
+                                thumbnail_file.CopyTo(thumbnail_path(new_save_dir, this.construction_type, this.file_name));
                             }
                         }
                         if(CraftManager.main_ui){CraftManager.main_ui.refresh();}

@@ -411,8 +411,8 @@ namespace CraftManager
                     v_section(()=>{
                         section(()=>{
                             label(craft.name, "craft.name");
-                            if(craft.name != craft.alt_name){
-                                label("(" + craft.alt_name + ")", "craft.alt_name");
+                            if(craft.name != craft.file_name){
+                                label("(" + craft.file_name + ")", "craft.alt_name");
                             }
                             if(active_save_dir != current_save_dir){
                                 fspace();
