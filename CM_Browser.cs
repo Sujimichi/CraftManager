@@ -124,9 +124,13 @@ namespace CraftManager
             if(cur_selected_craft_path != null){
                 auto_focus_on(CraftData.filtered.Find(c => c.path == cur_selected_craft_path));
             } else if(cur_selected_name.ToLower() != "untitled space craft"){
-                auto_focus_on(CraftData.filtered.Find(c => c.save_dir == current_save_dir && c.name == cur_selected_name));
+                List<CraftData> matching_craft = CraftData.filtered.FindAll(c => c.name == cur_selected_name && c.file_name != autosave_craft_name);
+                if(matching_craft.Count == 1){
+                    auto_focus_on(matching_craft[0]);
+                }
             }
-            
+            CraftManager.log(EditorLogic.fetch.ship.shipFacility.ToString());
+
             grouped_images = null;
             image_data = null;
             
@@ -411,8 +415,12 @@ namespace CraftManager
                     v_section(()=>{
                         section(()=>{
                             label(craft.name, "craft.name");
-                            if(craft.name != craft.file_name){
-                                label("(" + craft.file_name + ")", "craft.alt_name");
+                            if(craft.name != craft.file_name){                                
+                                if(craft.file_name == autosave_craft_name){
+                                    label("[" + craft.file_name + "]", "craft.autosaved_name");
+                                }else{                                    
+                                    label("(" + craft.file_name + ")", "craft.alt_name");
+                                }
                             }
                             if(active_save_dir != current_save_dir){
                                 fspace();

@@ -423,6 +423,13 @@ namespace CraftManager
                 s.normal.textColor = Color.yellow;
                 s.margin.top = 8;
             });
+            define_style("craft.autosaved_name", "craft.name", s =>{
+                s.normal.textColor = Color.magenta;
+                s.padding.left = base_skin.label.padding.left;
+                s.margin.top = 8;
+                s.fontSize = 15;
+            });
+
             define_style("craft.info", base_skin.label, s =>{
                 s.fontSize = 15;
                 s.normal.textColor = new Color(244, 244, 244, 1);

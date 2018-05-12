@@ -654,6 +654,10 @@ namespace CraftManager
 
         public string save_description(){
             try{
+                List<CraftData> matching_craft = CraftData.filtered.FindAll(c => c.name == EditorLogic.fetch.ship.shipName);
+                if(matching_craft.Count == 1 && matching_craft[0] == CraftData.selected_craft){                    
+                    EditorLogic.fetch.shipDescriptionField.text = description.Replace("\n", "¨");
+                }
                 ConfigNode nodes = ConfigNode.Load(path);
                 nodes.SetValue("description", description.Replace("\n","¨"));
                 nodes.Save(path);

@@ -13,6 +13,7 @@ namespace CraftManager
     {
         
         internal const string all_saves_ref = "<all_saves>";
+        internal const string autosave_craft_name = "Auto-Saved Ship";
 
         protected float main_section_height{
             get{ 
