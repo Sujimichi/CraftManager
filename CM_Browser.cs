@@ -129,7 +129,6 @@ namespace CraftManager
                     auto_focus_on(matching_craft[0]);
                 }
             }
-            CraftManager.log(EditorLogic.fetch.ship.shipFacility.ToString());
 
             grouped_images = null;
             image_data = null;
