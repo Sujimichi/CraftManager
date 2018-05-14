@@ -463,6 +463,7 @@ namespace CraftManager
             }, evt => {
                 if(evt.single_click){
                     GUIUtility.keyboardControl = 0;
+                    CraftData.track_currently_selected();//remember which craft are selected before selecing another (used to restore selected after drag scrolling);
                     if(ctrl_key_down){
                         CraftData.toggle_group_select(craft);
                     }else{

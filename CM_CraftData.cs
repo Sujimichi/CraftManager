@@ -166,6 +166,26 @@ namespace CraftManager
         }
 
 
+        internal static List<string> previously_selected = new List<string>();
+        internal static void track_currently_selected(){
+            previously_selected.Clear();
+            foreach(CraftData craft in CraftData.active_craft){
+                previously_selected.Add(craft.path);
+            }
+            CraftManager.log("prev_selected track: " + previously_selected.Count);
+        }
+        internal static void restore_previously_selected(){
+            CraftData.deselect_all();
+            foreach(string path in previously_selected){
+                CraftData craft = CraftData.all_craft.Find(c => c.path == path);
+                if(craft != null){
+                    craft.group_selected = true;
+                }
+            }
+            if(active_craft.Count == 1){
+                CraftData.select_craft(active_craft[0]);
+            }
+        }
 
         public static void deselect_all(){
             for(int i = 0; i < CraftData.all_craft.Count; i++){
@@ -179,7 +199,7 @@ namespace CraftManager
             craft.selected = true;
         }
 
-        public static void toggle_selected(CraftData craft){            
+        public static void toggle_selected(CraftData craft){
             if(craft.selected){
                 craft.selected = false;
             }else{

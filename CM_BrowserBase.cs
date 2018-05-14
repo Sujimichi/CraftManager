@@ -307,9 +307,13 @@ namespace CraftManager
         protected Vector2 drag_scroll(Rect craft_scroll_section, Vector2 scroll_control){
             Event c_event = Event.current;
             if(Input.GetMouseButtonUp(0)){
+                if(craft_list_drag_active){
+                    CraftData.restore_previously_selected();
+                }
                 craft_list_drag_active = false;
             }else if(c_event.button == 0 && c_event.type == EventType.MouseDrag && craft_scroll_section.Contains(c_event.mousePosition)){
                 craft_list_drag_active = true;
+                CraftData.restore_previously_selected();
             }
             if(craft_list_drag_active){                
                 scroll_control.y -= (c_event.mousePosition.y - last_mouse_pos.y);
