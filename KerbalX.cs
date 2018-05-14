@@ -56,7 +56,7 @@ namespace CraftManager
         internal delegate void DownloadCallback(ConfigNode craft_file);
         internal delegate void ActionCallback();
         internal delegate void RemoteCraftMatcher();
-        internal delegate void CraftByVersionCallback(Dictionary<string, List<int>> cids_by_version, List<Version> versions);
+        internal delegate void CraftByVersionCallback(Dictionary<string, Dictionary<int, Dictionary<string, string>>> cids_by_version, List<Version> versions);
         internal delegate void PartLookupCallback(Dictionary<string, string> identified_parts);
 
 
@@ -195,28 +195,29 @@ namespace CraftManager
             
         }
 
-        internal static void bulk_download(List<int> ids, string save_dir, Callback callback){
-
+        internal static void bulk_download(Dictionary<int, Dictionary<string, string>> download_list, string save_dir, Callback callback){
+            
             string save_path = Paths.joined(CraftManager.ksp_root, "saves", save_dir);
             if(Directory.Exists(save_path)){
                 ensure_ship_folders_exist(save_dir);
 
-                if(ids.Count > 0){
+                if(download_list.Count > 0){
                     CraftManager.status_info = "Downloading craft from KerbalX...";
-                    int id = ids[0];                
-                    ids.Remove(id);
-                    var craft_ref = KerbalXAPI.user_craft[id];
+                    List<int> keys = new List<int>(download_list.Keys);
+                    int id = keys[0];
+
+
+                    Dictionary<string, string> craft_ref = download_list[id];
                     string type = craft_ref["type"];
                     string path = "";
-                    if(!String.IsNullOrEmpty(bulk_download_log)){
-                        bulk_download_log += "\n";
-                    }
-                    bulk_download_log += "downloading [" + (type=="Subassembly" ? "Sub" : type) + "]" + craft_ref["name"] + "...";
                     if(type == "Subassembly"){
                         path = Paths.joined(save_path, "Subassemblies", craft_ref["name"] + ".craft");
                     } else{
-                        path = Paths.joined(save_path, "Ships", type, craft_ref["name"] + ".craft");
+                        path = Paths.joined(save_path, "Ships", type,   craft_ref["name"] + ".craft");
                     }
+                    bulk_download_log += (String.IsNullOrEmpty(bulk_download_log) ? "" : "\n") + "downloading [" + (type=="Subassembly" ? "Sub" : type) + "]" + craft_ref["name"] + "...";
+
+                    download_list.Remove(id); 
 
                     KerbalXAPI.download_craft(id, (craft_file_string, code) =>{
                         if(code == 200){
@@ -224,7 +225,7 @@ namespace CraftManager
                             craft.Save(path);
                             bulk_download_log += "Done";
                             log_scroll.y = 10000;
-                            KerbalX.bulk_download(ids, save_dir, callback);
+                            KerbalX.bulk_download(download_list, save_dir, callback);
                         }
                     });
                 } else{
@@ -237,15 +238,17 @@ namespace CraftManager
         internal static void get_craft_ids_by_version(CraftByVersionCallback callback){
             if(KerbalXAPI.logged_in()){
                 KerbalXAPI.fetch_existing_craft(() =>{                
-                    Dictionary<string, List<int>> craft_ids_by_version = new Dictionary<string, List<int>>();
+                    
+                    Dictionary<string, Dictionary<int, Dictionary<string, string>>> craft_ids_by_version = new Dictionary<string, Dictionary<int, Dictionary<string, string>>>();
                     List<Version> version_list = new List<Version>();
                     foreach(KeyValuePair<int, Dictionary<string, string>> data in KerbalXAPI.user_craft){
                         string v = data.Value["version"];
                         if(!craft_ids_by_version.ContainsKey(v)){
-                            craft_ids_by_version.Add(v, new List<int>());
+                            craft_ids_by_version.Add(v, new Dictionary<int, Dictionary<string, string>>());
                         }
                         version_list.AddUnique(new Version(v));
-                        craft_ids_by_version[v].Add(int.Parse(data.Value["id"]));
+
+                        craft_ids_by_version[v].Add(int.Parse(data.Value["id"]), new Dictionary<string, string>{{"name", data.Value["name"]}, {"type", data.Value["type"] }});
                     }
                     version_list.Sort((x, y) => y.CompareTo(x));
                     callback(craft_ids_by_version, version_list);

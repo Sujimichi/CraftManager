@@ -538,7 +538,7 @@ namespace CraftManager
                     label("Do you want to fetch your craft from KerbalX?", "h2");
 
                     if(versions[0] == ksp_version){
-                        button("download " + craft_by_version[v1].Count + " craft built in KSP " + ksp_version, ()=>{
+                        button("download " + craft_by_version[v1].Count + " craft built in KSP " + ksp_version, ()=>{                            
                             KerbalX.bulk_download(craft_by_version[v1], current_save_dir, ()=>{});
                         });
                     }else{
@@ -583,19 +583,19 @@ namespace CraftManager
         protected void show_bulk_download_dialog(){
             string resp = "";
             long time_completed = 0;
-            long close_delay = 4000;
+            long close_delay = 3000;
             long time_to_close = close_delay;
-
-            List<int> ids_to_download = new List<int>();
+            Dictionary<int, Dictionary<string, string>> ids_to_download = new Dictionary<int, Dictionary<string, string>>();
             foreach(CraftData craft in CraftData.selected_group){
-                ids_to_download.AddUnique(craft.remote_id);
+                if(!ids_to_download.ContainsKey(craft.remote_id)){
+                    ids_to_download.Add(craft.remote_id, new Dictionary<string, string>{{"name", craft.name}, {"type", craft.construction_type}});
+                }
             }
             KerbalX.bulk_download_log = "";
             KerbalX.bulk_download(ids_to_download, current_save_dir, ()=>{
                 time_completed =  DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;    
             });
             KerbalX.log_scroll = new Vector2();
-
             show_dialog("Downloading from KerbalX...", "", d =>{
                 if(!String.IsNullOrEmpty(KerbalX.bulk_download_log)){
                     KerbalX.log_scroll = scroll(KerbalX.log_scroll, d.window_pos.width, 80f, (w)=>{
@@ -604,12 +604,10 @@ namespace CraftManager
                 }
                 if(time_completed != 0){
                     time_to_close = close_delay - ((DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond) - time_completed);
-
                     section(()=>{
                         fspace();
                         button("close (auto closing in " + ((time_to_close / (TimeSpan.TicksPerMillisecond/10)) + 1).ToString() + ")", close_dialog);
                     });
-
                     if( time_to_close <= 0){
                         resp = "200";                        
                     }
