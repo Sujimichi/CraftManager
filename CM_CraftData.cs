@@ -232,6 +232,25 @@ namespace CraftManager
             }
         }
 
+        public static void shift_select(CraftData craft){
+            int sel_index = CraftData.filtered.IndexOf(craft);
+            Vector2 cur_sel_indexes = new Vector2();
+            Vector2 sel_between = new Vector2();
+            cur_sel_indexes.x = CraftData.filtered.IndexOf(CraftData.active_craft[0]);
+            cur_sel_indexes.y = CraftData.filtered.IndexOf(CraftData.active_craft[CraftData.active_craft.Count-1]);
+            if(sel_index < (int)cur_sel_indexes.x){
+                sel_between.x = sel_index; sel_between.y = cur_sel_indexes.x;
+            }else if(sel_index > (int)cur_sel_indexes.y){
+                sel_between.x = cur_sel_indexes.x; sel_between.y = sel_index;
+            }
+            deselect_all();
+            for(int i = 0; i < CraftData.filtered.Count; i++){
+                if(i >= (int)sel_between.x && i <= (int)sel_between.y){
+                    group_select(CraftData.filtered[i]);
+                }
+            }
+                
+        }
 
         public static CraftData selected_craft { 
             get { 

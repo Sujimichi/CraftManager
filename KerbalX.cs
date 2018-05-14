@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Collections.Generic;
+using System.Threading;
 using UnityEngine;
 using KatLib;
 using SimpleJSON;
@@ -223,8 +224,10 @@ namespace CraftManager
                         if(code == 200){
                             ConfigNode craft = ConfigNode.Parse(craft_file_string);
                             craft.Save(path);
+                            Thread.Sleep(1000); //This sleep is just to add a pause to reduce load on the site.
                             bulk_download_log += "Done";
                             log_scroll.y = 10000;
+
                             KerbalX.bulk_download(download_list, save_dir, callback);
                         }
                     });

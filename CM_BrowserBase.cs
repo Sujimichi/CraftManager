@@ -607,6 +607,7 @@ namespace CraftManager
         }
 
         protected bool check_ctrl_key = true;
+        protected bool shift_key_down = false;
         //listen to key press actions
         protected virtual void key_event_handler(){
             Event e = Event.current;          
@@ -626,6 +627,7 @@ namespace CraftManager
             if(check_ctrl_key){
                 ctrl_key_down = (Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl));
             }
+            shift_key_down = (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift));
                 
             if(e.type == EventType.keyDown){
                 //'esc' - close interface
@@ -641,6 +643,11 @@ namespace CraftManager
                 } else if((ctrl_key_down || e.control) && e.keyCode == KeyCode.T){
                     CraftManager.main_ui.create_tag_dialog(true);
                     ctrl_key_down = false;
+                    e.Use();
+                } else if((ctrl_key_down || e.control) && e.keyCode == KeyCode.A){
+                    foreach(CraftData craft in CraftData.filtered){
+                        CraftData.group_select(craft);
+                    }
                     e.Use();
                     //'up arrow' move up in craft list
                 } else if(e.keyCode == KeyCode.UpArrow && !upload_interface_ready){
