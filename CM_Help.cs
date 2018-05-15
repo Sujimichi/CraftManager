@@ -40,7 +40,7 @@ namespace CraftManager
                     content_button("Share on KerbalX", "upload_mode");
                     content_button("Download from KerbalX", "kerbalx_craft");
                     content_button("Compact Mode", "compact_mode");
-
+                    content_button("Quick Tag", "quick_tag");
 
                 });
                 v_section(10, content_height, (w2)=>{
@@ -83,6 +83,7 @@ namespace CraftManager
                 case "upload_mode" :        upload_interface_content(inner_width); break;
                 case "kerbalx_craft":       kerbalx_craft_content(inner_width);break;
                 case "compact_mode" :       compact_mode_content(inner_width);break;
+                case "quick_tag":           quick_tag_content(inner_width);break;
             }
         }
 
@@ -140,15 +141,22 @@ namespace CraftManager
                     label("ctrl +  f", "line");
                     label("[tab]", "line");
                     label("esc", "line");
+                    label("ctrl + a", "line");
+                    label("ctrl + click", "line");
+                    label("shift + click", "line");
                 });
                 v_section(content_width*0.7f, (w)=>{
                     label("scroll up craft list", "line");
                     label("scroll down craft list", "line");
                     label("load selected craft", "line");
-                    label("create new tag", "line");
+                    label("create new tag OR open Quick Tag (when CM is closed)", "line");
                     label("Focus cursor on search field", "line");
                     label("move cursor from search field to list");
                     label("Close Craft Manager interface", "line");
+                    label("(on craft list) select all craft", "line");
+                    label("(on craft list) select multiple craft", "line");
+                    label("(on craft list) if a craft is already selected, holding shift and clicking on another craft will select all craft between them as well", "line");
+
                 });
             });
         }
@@ -292,6 +300,16 @@ namespace CraftManager
             );
         }
 
+
+        private void quick_tag_content(float inner_width){
+            label("Quick Tag", "h2");
+            label(
+                "Quick Tag lets you add/remove/create tags for the currently loaded craft without having to open the main Craft Manager interface.\n" +
+                "Click the tags icon in the toolbar or press ctrl + T to open it (esc or ctrl+t again will close it).\n" +
+                "Then add or create tags from the dropdown menu or click the x by tags to remove them.\n" +
+                "The Quick Tag dialog will remember where you position it, you can reset it's position from settings."
+            );
+        }
 
         public static void open(GameObject go){           
             go.AddOrGetComponent<HelpUI>();
