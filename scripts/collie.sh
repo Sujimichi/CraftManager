@@ -26,8 +26,11 @@ rm bin/Release/*.dll
 rm bin/Release/*.dll.mdb
 
 cd bin/Release
-rm CraftManager_$CMVER.zip
-zip -r CraftManager_$CMVER.zip CraftManager/
+rm -rf $CMVER/
+
+mkdir $CMVER
+#rm CraftManager_$CMVER.zip
+zip -r $CMVER/CraftManager.zip CraftManager/
 
 
 rm -rf /home/sujimichi/KSP/dev_KSP-$KSPVER/GameData/CraftManager/
