@@ -21,121 +21,136 @@ namespace CraftManager
         //of the action which is then returned by submit.
 
 
-        protected void rename_craft_dialog(){ rename_craft_dialog(CraftData.selected_craft); }
-        protected void rename_craft_dialog(CraftData craft){            
-            craft.new_name = craft.name;
-            string resp = "";
-            show_dialog("Rename Craft", "rename: " + craft.name, d =>{
-                GUI.SetNextControlName("dialog_focus_field");
-                craft.new_name = GUILayout.TextField(craft.new_name, width(d.window_pos.width-22));
-                section(()=>{
-                    fspace();
-                    button("Cancel", close_dialog);
-                    resp = submit("Rename", craft.rename);
-                });
-                return resp;
-            });
-        }
-
-        protected void delete_craft_dialog(){ delete_craft_dialog(CraftData.selected_craft); }
-        protected void delete_craft_dialog(CraftData craft){
-            string resp = "";
-            show_dialog("Delete Craft?", "Delete " + craft.name + "?\nAre you sure you want to do this?", d =>{                
-                section(()=>{
-                    fspace();
-                    button("Cancel", close_dialog);
-                    resp = submit("Delete", "button.delete", craft.delete);
-                });
-                return resp;
-            });
-        }
-
-        protected void transfer_craft_dialog(){ transfer_craft_dialog(CraftData.selected_craft); }
-        protected void transfer_craft_dialog(CraftData craft){
-            string resp = "";
-            bool switch_to_editor = false;
-            Dictionary<string, EditorFacility> lookup = new Dictionary<string, EditorFacility>{
-                {"SPH", EditorFacility.SPH}, {"VAB",EditorFacility.VAB},{"Subassembly",EditorFacility.None}
-            };
-            int selected_transfer_option = -1;
-            List<string> transfer_opts = new List<string>();
-            if(craft.construction_type != "SPH"){transfer_opts.Add("SPH");}
-            if(craft.construction_type != "VAB"){transfer_opts.Add("VAB");}
-            if(craft.construction_type != "Subassembly"){transfer_opts.Add("Subassembly");}
-            string[] transfer_options = transfer_opts.ToArray();
-            string opt = null;  
-
-            show_dialog("Transfer Craft", "Transfer this craft to:", d =>{
-                section(()=>{
-                    selected_transfer_option = GUILayout.SelectionGrid(selected_transfer_option, transfer_options, 2, "button.large");
-                });
-
-                GUILayout.Space(10);
-                if(selected_transfer_option == -1){
-                    label("Select one of the above options and then click confirm");
-                }else{
-                    opt = transfer_options[selected_transfer_option];
-                    label("Click Confirm to make this craft a " + opt + (opt=="Subassembly" ? "." : " craft."), "h2");
-                    if(opt != "Subassembly"){
-                        section(()=>{
-                            switch_to_editor = GUILayout.Toggle(switch_to_editor, "");
-                            button("Switch to " + opt + " and load craft", "bold", ()=>{
-                                switch_to_editor = !switch_to_editor;    
-                            });
-                        });
-                    }
-                }
-                gui_state(selected_transfer_option != -1, ()=>{
-                    resp = submit("Confirm", "button.large", ()=>{                        
-                        string response =  craft.transfer_to(lookup[opt]);
-                        if(switch_to_editor){
-                            EditorDriver.StartAndLoadVessel(craft.path, lookup[opt]);
-                        }
-                        return response;
+        protected void rename_craft_dialog(){            
+            CraftData craft = CraftData.selected_craft;
+            if(craft != null){
+                craft.new_name = craft.name;
+                string resp = "";
+                show_dialog("Rename Craft", "rename: " + craft.name, d =>{
+                    GUI.SetNextControlName("dialog_focus_field");
+                    craft.new_name = GUILayout.TextField(craft.new_name, width(d.window_pos.width - 22));
+                    section(() =>{
+                        fspace();
+                        button("Cancel", close_dialog);
+                        resp = submit("Rename", craft.rename);
                     });
+                    return resp;
                 });
-                GUILayout.Space(10);
-                section(()=>{
-                    fspace();
-                    button("Cancel", close_dialog);                    
+            }
+        }
+                   
+        protected void delete_craft_dialog(){
+            if(CraftData.active_craft.Count > 0){
+                string resp = "";
+                string message = "";
+                if(CraftData.active_craft.Count == 1){
+                    message = "Delete " + CraftData.active_craft[0].name + "?";
+                } else{
+                    message = "Delete " + CraftData.active_craft.Count + " selected craft?";
+                }
+                message += "\nAre you sure you want to do this?";
+
+                show_dialog("Delete Craft?", message, d =>{                
+                    section((w) =>{
+                        fspace();
+                        button("Cancel", close_dialog);
+                        resp = submit("Delete", "button.delete", CraftData.delete_active_craft);
+                    });
+                    return resp;
                 });
-                return resp;
-            });
+            }
         }
 
-        protected void move_copy_craft_dialog(){ move_copy_craft_dialog(CraftData.selected_craft); }
-        protected void move_copy_craft_dialog(CraftData craft){            
-            string resp = "";
-            string selected_save = "";
-            DropdownMenuData move_copy_save_menu = new DropdownMenuData();
-            save_menu_data(move_copy_save_menu);
-            move_copy_save_menu.items.Remove(craft.save_dir);
-            move_copy_save_menu.items.Remove(all_saves_ref);
-            move_copy_save_menu.items.Remove("kerbalx_remote");
-            Rect d_offset = new Rect();
-            show_dialog("Move/Copy Craft", "", d =>{
-                section(500f, (inner_width)=>{
-                    label("Move or Copy this craft to another save:", "h2");
-                    d_offset.x = -d.window_pos.x; d_offset.y = -d.window_pos.y;
-                    dropdown("Select Save", StyleSheet.assets["caret-down"], "copy_transfer_save_menu", move_copy_save_menu, d, d_offset, inner_width/2, "button.large", "menu.background", "menu.item", (selected_save_name) => {
-                        resp = "";
-                        selected_save = selected_save_name;
-                    });           
+        protected void transfer_craft_dialog(){
+            if(CraftData.active_craft.Count > 0){
+                string resp = "";
+                bool switch_editor = false;
+                Dictionary<string, EditorFacility> lookup = new Dictionary<string, EditorFacility> { { "SPH", EditorFacility.SPH }, { "VAB", EditorFacility.VAB }, { "Subassembly", EditorFacility.None } };
+                int selected_transfer_option = -1;
+                if(CraftData.active_craft.Count == 1){
+                    lookup.Remove(CraftData.active_craft[0].construction_type);                    
+                }
+                string[] transfer_options = new List<string>(lookup.Keys).ToArray();
+                string opt = null;  
+
+                show_dialog("Transfer Craft", "Select where to Transfer " + (CraftData.active_craft.Count > 1 ? "these" : "this") + " craft to:", d =>{
+                    section(() =>{
+                        switch_editor = GUILayout.Toggle(switch_editor, "");
+                        button("Switch editor after transfer", "bold", () =>{
+                            switch_editor = !switch_editor;    
+                        });
+                    });
+                    section(() =>{
+                        selected_transfer_option = GUILayout.SelectionGrid(selected_transfer_option, transfer_options, transfer_options.Length, "button.large");
+                    });
+                    if(selected_transfer_option != -1){
+                        opt = transfer_options[selected_transfer_option];
+                        selected_transfer_option = -1;
+                        resp = CraftData.transfer_active_craft_to(lookup[opt]);
+                        if(switch_editor){
+                            if(CraftManager.version.Split('.')[1] == "0"){
+                                EditorDriver.StartAndLoadVessel(CraftData.active_craft[0].path, lookup[opt]);                            
+                            } else{
+                                EditorLogic.fetch.SwitchEditor();
+                                CraftData.select_craft(CraftData.active_craft[0]);
+                                load_craft("load");
+                            }
+                        }
+                    }                   
+                    section(() =>{
+                        fspace();
+                        button("Cancel", close_dialog);                    
+                    });
+                    return resp;
                 });
-                section(()=>{
-                    label("Selected Save: ", "h2");
-                    label(selected_save, "h2");
-                });
-                section(()=>{
-                    button("Move", "button.large", ()=>{resp = craft.move_copy_to(selected_save, true);});
-                    button("Copy", "button.large", ()=>{resp = craft.move_copy_to(selected_save, false);});
-                });
-                section(()=>{
-                    fspace();
-                    button("Cancel", close_dialog);                    
-                });
-                return resp;
-            });            
+            }
+        }
+            
+        protected void move_copy_craft_dialog(){            
+//            CraftData craft = CraftData.selected_craft;
+            if(CraftData.active_craft.Count > 0){
+                string resp = "";
+                string selected_save = "";
+                DropdownMenuData move_copy_save_menu = new DropdownMenuData();
+                save_menu_data(move_copy_save_menu);
+
+                foreach(CraftData craft in CraftData.active_craft){
+                    move_copy_save_menu.items.Remove(craft.save_dir);                    
+                }
+                move_copy_save_menu.items.Remove(all_saves_ref);
+                move_copy_save_menu.items.Remove("kerbalx_remote");
+                Rect d_offset = new Rect();
+                show_dialog("Move/Copy Craft", "Move or Copy " + (CraftData.active_craft.Count > 1 ? "these" : "this") + " craft to another save:", d =>{
+                    section(500f, (inner_width) =>{                        
+                        d_offset.x = -d.window_pos.x;
+                        d_offset.y = -d.window_pos.y;
+                        dropdown("Select Save", StyleSheet.assets["caret-down"], "copy_transfer_save_menu", move_copy_save_menu, d, d_offset, inner_width / 2, "button.large", "menu.background", "menu.item", (selected_save_name) =>{
+                            resp = "";
+                            selected_save = selected_save_name;
+                        });
+                    });
+                    if(CraftData.active_craft.Count > 1){
+                        label("if the save you're looking for is not listed, it is because one of the craft you've selected is already in that save", "small");
+                    }
+                    section(() =>{
+                        label("Selected Save: ", "h2");
+                        label(selected_save, "h2");
+                    });
+                    section(() =>{
+                        button("Move", "button.large", () =>{                            
+                            resp = CraftData.move_copy_active_craft_to(selected_save, true);
+                        });
+                        button("Copy", "button.large", () =>{                            
+                            resp = CraftData.move_copy_active_craft_to(selected_save, false);
+                        });
+                    });
+                    section(() =>{
+                        fspace();
+                        button("Cancel", close_dialog);                    
+                    });
+                    return resp;
+                });            
+            }
         }
 
 
@@ -308,7 +323,7 @@ namespace CraftManager
 
         //Call Create Tag Dialog (using tag_dialog_form)
         internal void create_tag_dialog(){create_tag_dialog(true, null, true);}
-        internal void create_tag_dialog(bool show_rule_opts = true, CraftData auto_add_craft = null, bool autopos = false){
+        internal void create_tag_dialog(bool show_rule_opts = true, List<CraftData> auto_add_craft = null, bool autopos = false){
             float top = this.window_pos.y + (this.window_pos.height*0.4f);
             float left = this.window_pos.x + (this.window_pos.width/2) - (200f);
             if(autopos){
@@ -320,9 +335,9 @@ namespace CraftManager
             if(save_dir_for_tag == all_saves_ref){
                 save_dir_for_tag = current_save_dir;
             }
-            if(auto_add_craft != null){
-                save_dir_for_tag = auto_add_craft.save_dir;
-            }
+//            if(auto_add_craft != null){
+//                save_dir_for_tag = auto_add_craft[0].save_dir;
+//            }
             tag_dialog_form("Create", show_rule_opts, "", save_dir_for_tag, false, "", "", "", top, left, auto_add_craft);
         }
 
@@ -333,7 +348,9 @@ namespace CraftManager
         }
 
         //The main dialog used for both editing and creating tags
-        protected void tag_dialog_form(string mode, bool show_rule_opts, string tag_name, string save_dir, bool rule_based, string rule_attr, string rule_comparator, string rule_value, float top, float left, CraftData auto_add_craft = null){
+        protected void tag_dialog_form(string mode, bool show_rule_opts, string tag_name, string save_dir, bool rule_based, 
+            string rule_attr, string rule_comparator, string rule_value, float top, float left, List<CraftData> auto_add_craft = null
+        ){
             string initial_name = tag_name;
             string resp = "";
             string header = (mode == "Create" ? "Create Tag" : ("Edit Tag: " + tag_name));
@@ -521,7 +538,7 @@ namespace CraftManager
                     label("Do you want to fetch your craft from KerbalX?", "h2");
 
                     if(versions[0] == ksp_version){
-                        button("download " + craft_by_version[v1].Count + " craft built in KSP " + ksp_version, ()=>{
+                        button("download " + craft_by_version[v1].Count + " craft built in KSP " + ksp_version, ()=>{                            
                             KerbalX.bulk_download(craft_by_version[v1], current_save_dir, ()=>{});
                         });
                     }else{
@@ -560,6 +577,42 @@ namespace CraftManager
 
                     return resp;
                 });
+            });
+        }
+
+        protected void show_bulk_download_dialog(){
+            string resp = "";
+            long time_completed = 0;
+            long close_delay = 3000;
+            long time_to_close = close_delay;
+            Dictionary<int, Dictionary<string, string>> ids_to_download = new Dictionary<int, Dictionary<string, string>>();
+            foreach(CraftData craft in CraftData.selected_group){
+                if(!ids_to_download.ContainsKey(craft.remote_id)){
+                    ids_to_download.Add(craft.remote_id, new Dictionary<string, string>{{"name", craft.name}, {"type", craft.construction_type}});
+                }
+            }
+            KerbalX.bulk_download_log = "";
+            KerbalX.bulk_download(ids_to_download, current_save_dir, ()=>{
+                time_completed =  DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;    
+            });
+            KerbalX.log_scroll = new Vector2();
+            show_dialog("Downloading from KerbalX...", "", d =>{
+                if(!String.IsNullOrEmpty(KerbalX.bulk_download_log)){
+                    KerbalX.log_scroll = scroll(KerbalX.log_scroll, d.window_pos.width, 80f, (w)=>{
+                        label(KerbalX.bulk_download_log);
+                    });
+                }
+                if(time_completed != 0){
+                    time_to_close = close_delay - ((DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond) - time_completed);
+                    section(()=>{
+                        fspace();
+                        button("close (auto closing in " + ((time_to_close / (TimeSpan.TicksPerMillisecond/10)) + 1).ToString() + ")", close_dialog);
+                    });
+                    if( time_to_close <= 0){
+                        resp = "200";                        
+                    }
+                }
+                return resp;
             });
         }
 

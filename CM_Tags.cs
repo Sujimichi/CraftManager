@@ -220,7 +220,7 @@ namespace CraftManager
         }
 
         //creates a tag with all attribute options, returns "200" (status ok) if valid. returns error message is not valid
-        public static string create(string tag_name, string save_dir, bool rule_based, string rule_attr, string rule_comparator, string rule_value, CraftData craft = null){
+        public static string create(string tag_name, string save_dir, bool rule_based, string rule_attr, string rule_comparator, string rule_value, List<CraftData> craft = null){
             tag_name = sanitize_name(tag_name);
             if(String.IsNullOrEmpty(tag_name)){
                 return "Tag Name cannot be blank";
@@ -232,7 +232,9 @@ namespace CraftManager
                     tag.set_rule(rule_attr, rule_comparator, rule_value);
                 } else{
                     if(craft != null){
-                        tag.add(craft);
+                        foreach(CraftData c in craft){
+                            tag.add(c);
+                        }
                     }
                 }
                 Tags.save();
@@ -274,7 +276,7 @@ namespace CraftManager
         }
 
         //Associate a craft with a tag. Will create a Tag with the given name if it doesn't already exist
-        public static void tag_craft(CraftData craft, string tag_name){                    
+        public static void tag_craft(CraftData craft, string tag_name){    
             Tag tag = Tags.find_or_create_by(tag_name, craft.save_dir);
             tag.add(craft);
         }
@@ -292,8 +294,14 @@ namespace CraftManager
                 tag.remove(craft);
 
             }
-            Tags.save();
+            Tags.save();        
         }
+        public static void untag_craft(List<CraftData> craft, string tag_name){
+            foreach(CraftData c in craft){
+                Tags.untag_craft(c, tag_name);
+            }
+        }
+
         //Unassociates a craft with all the tags it is associated with. Returns a list of the tags
         public static List<string> untag_craft(CraftData craft){
             List<Tag> tags = Tags.instance.data.FindAll(t => (t.save_dir == craft.save_dir && t.craft.Contains(craft_reference_key(craft))));

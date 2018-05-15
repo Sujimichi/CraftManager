@@ -30,6 +30,7 @@ namespace CraftManager
             { "arrow-down",             GameDatabase.Instance.GetTexture(Paths.joined("CraftManager", "Assets", "arrow-down"), false) },
             { "arrow-up",               GameDatabase.Instance.GetTexture(Paths.joined("CraftManager", "Assets", "arrow-up"), false) },
             { "tags",                   GameDatabase.Instance.GetTexture(Paths.joined("CraftManager", "Assets", "tags"), false) },
+            { "tags_toolbar_icon",      GameDatabase.Instance.GetTexture(Paths.joined("CraftManager", "Assets", "tags_toolbar_icon"), false) },
             { "logo_small",             GameDatabase.Instance.GetTexture(Paths.joined("CraftManager", "Assets", "KXlogo_small"), false) },     //166x30 
             { "logo_large",             GameDatabase.Instance.GetTexture(Paths.joined("CraftManager", "Assets", "KXlogo"), false) },           //664x120 
             { "image_placeholder",      GameDatabase.Instance.GetTexture(Paths.joined("CraftManager", "Assets", "image_placeholder"), false) },
@@ -85,6 +86,11 @@ namespace CraftManager
             set_texture("blue_background", new Color(0.4f, 0.5f, 0.9f, 1), TextureWrapMode.Repeat);           
             set_texture("light_blue_background", new Color(0.37f, 0.41f, 0.62f, 0.4f));           
             set_texture("lighter_blue_background", new Color(0.4f, 0.5f, 0.9f, 0.6f));           
+            set_texture("navy_background", new Color(0.26f, 0.34f, 0.45f, 0.8f));
+            set_texture("light_navy_background", new Color(0.26f, 0.34f, 0.45f, 0.2f));
+
+                
+
             set_texture("dark_background", new Color(0.12f, 0.12f, 0.12f, 0.5f));
             set_texture("pic_highlight", new Color(0.4f, 0.5f, 0.9f, 1));
             set_texture("green_background", new Color(0.2f, 0.6f, 0.2f, 1));
@@ -153,7 +159,6 @@ namespace CraftManager
             define_style("small.compact", "compact", s =>{
                 s.fontSize = 12;
             });
-
 
             define_style("error", base_skin.label, s =>{
                 s.normal.textColor = Color.red;
@@ -397,6 +402,11 @@ namespace CraftManager
                 s.normal.background = textures["light_blue_background"];
                 s.hover.background = textures["lighter_blue_background"];
             });
+            define_style("craft.list_item.group_selected", "craft.list_item", s =>{
+                s.normal.background = textures["navy_background"];
+                s.hover.background = textures["lighter_blue_background"];
+            });
+
             define_style("craft.list_item.hover", "craft.list_item", s =>{
                 s.normal.background = textures["blue_background"];
             });
@@ -413,6 +423,13 @@ namespace CraftManager
                 s.normal.textColor = Color.yellow;
                 s.margin.top = 8;
             });
+            define_style("craft.autosaved_name", "craft.name", s =>{
+                s.normal.textColor = Color.magenta;
+                s.padding.left = base_skin.label.padding.left;
+                s.margin.top = 8;
+                s.fontSize = 15;
+            });
+
             define_style("craft.info", base_skin.label, s =>{
                 s.fontSize = 15;
                 s.normal.textColor = new Color(244, 244, 244, 1);
@@ -432,6 +449,16 @@ namespace CraftManager
             define_style("craft.missing_parts", base_skin.label, s =>{
                 s.normal.textColor = Color.red;
             });
+
+            define_style("thumbnail", base_skin.label, s =>{
+                s.margin = new RectOffset(0,0,0,0);
+                s.padding = new RectOffset(0,0,0,0);
+                s.alignment = TextAnchor.MiddleCenter;
+            });
+            define_style("section.thumbnail", "thumbnail", s =>{
+                s.margin.right = base_skin.label.margin.right;
+            });
+
 
             define_style("side_panel.scroll", "craft.list_container", s =>{
             });

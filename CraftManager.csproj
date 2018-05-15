@@ -73,6 +73,7 @@
     <Compile Include="KerbalX.cs" />
     <Compile Include="CM_BrowserBase.cs" />
     <Compile Include="CM_BrowserDialogs.cs" />
+    <Compile Include="CM_QuickTag.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ProjectExtensions>

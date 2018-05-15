@@ -13,8 +13,21 @@ namespace CraftManager
     {
         
         internal const string all_saves_ref = "<all_saves>";
+        internal const string autosave_craft_name = "Auto-Saved Ship";
 
-        protected float main_section_height = Screen.height - 420f;
+        protected float main_section_height{
+            get{ 
+                return (Screen.height-height_adjustment) * height_scale;
+            }
+        }
+
+        protected float height_adjustment{
+            get{ 
+                return compact_mode ? 263 : 212;
+            }
+        }
+
+        internal float height_scale = 0.8f;
         protected float window_width  = 1000f;
         protected float[] col_widths_default = new float[]{0.2f,0.55f,0.25f};
         protected float[] col_widths_current = new float[]{0.2f,0.55f,0.25f};
@@ -294,9 +307,13 @@ namespace CraftManager
         protected Vector2 drag_scroll(Rect craft_scroll_section, Vector2 scroll_control){
             Event c_event = Event.current;
             if(Input.GetMouseButtonUp(0)){
+                if(craft_list_drag_active){
+                    CraftData.restore_previously_selected();
+                }
                 craft_list_drag_active = false;
             }else if(c_event.button == 0 && c_event.type == EventType.MouseDrag && craft_scroll_section.Contains(c_event.mousePosition)){
                 craft_list_drag_active = true;
+                CraftData.restore_previously_selected();
             }
             if(craft_list_drag_active){                
                 scroll_control.y -= (c_event.mousePosition.y - last_mouse_pos.y);
@@ -309,30 +326,66 @@ namespace CraftManager
         //prepare to open a tag menu, triggered from another dropdown menu, which is why this is a bit odd. It has to be opened after the first menu has been closed (and destroyed)
         //so this method is called from the frist menu which sets up the tag menu and sets a flag (open_tag_menu).  After this call the first menu closes, but then on the next pass
         //the open_tag_menu flag triggers the opening of this second menu.
-        protected void prepare_tag_menu(CraftData craft, Rect container){
+        protected void prepare_tag_menu(Rect container){
             inline_tag_menu= new DropdownMenuData();
             inline_tag_menu.remote_data = new DataSource(menu => { 
                 menu.set_data(Tags.names.FindAll(t => !Tags.instance.autotags_list.Contains(t)));
             }); 
             inline_tag_menu.special_items.Add("new_tag", "New Tag");
-            inline_tag_menu.selected_items = craft.tag_names();
             inline_tag_menu.offset_menu = false;
+
+//            foreach(CraftData craft in CraftData.active_craft){
+//                foreach(string tag in craft.tag_names()){
+//                    inline_tag_menu.selected_items.AddUnique(tag);
+//                }
+//            }
+            inline_tag_menu.selected_items = tags_for_active_craft;
+//            inline_tag_menu.selected_items = craft.tag_names();
+
             inline_tag_menu.set_attributes(container, new Rect(0,0,0,0), this, 0f, "menu.background", "menu.item.small", (resp) =>{
-                respond_to_tag_menu(craft, resp);
+                respond_to_tag_menu(resp);
             });
             open_tag_menu = true;
         }
 
-        protected void respond_to_tag_menu(CraftData craft, string resp){
+        protected List<string> tags_for_active_craft{
+            get{
+                List<string> tags = new List<string>();
+                foreach(CraftData craft in CraftData.active_craft){
+                    foreach(string tag in craft.tag_names()){
+                        tags.AddUnique(tag);
+                    }
+                }
+                return tags;
+            }
+        }
+
+        protected void respond_to_tag_menu(string resp){
             if(resp == "new_tag"){
-                CraftManager.main_ui.create_tag_dialog(false, craft);
+                CraftManager.main_ui.create_tag_dialog(false, CraftData.active_craft);
             }else{
-                if(craft.tag_names().Contains(resp)){
-                    Tags.untag_craft(craft, resp);
-                }else{                                    
-                    Tags.tag_craft(craft, resp);
+                if(CraftData.active_craft.Count == 1){
+                    CraftData craft = CraftData.active_craft[0];
+                    if(craft.tag_names().Contains(resp)){
+                        Tags.untag_craft(craft, resp);
+                    } else{                                    
+                        Tags.tag_craft(craft, resp);
+                    }
+                } else{
+                    //if all craft in the active selection have the tag, then remove the tag. 
+                    if(CraftData.active_craft.FindAll(c => c.tag_names().Contains(resp)).Count == CraftData.active_craft.Count){
+                        CraftData.active_craft.ForEach(c => Tags.untag_craft(c, resp));
+                    }else{ //otherwise add the tag (in the case where some have it and other not, this will result in all having the tag).
+                        CraftData.active_craft.ForEach(c => Tags.tag_craft(c, resp));
+                    }
                 }
             }
+        }
+
+        internal void open_quick_tag(){
+            if(!QuickTag.instance){
+                QuickTag.open(gameObject);
+            }            
         }
 
         protected void toggle_compact_mode(){toggle_compact_mode(!compact_mode);}
@@ -343,15 +396,21 @@ namespace CraftManager
             } else{
                 window_width = 1000f;
             }
-            window_pos = get_window_position();
+            set_window_position();
             more_menu.items["compact_mode"] = compact_mode ? "Full View" : "Compact Mode";
             if(save_setting){
                 CraftManager.settings.set("compact_mode", change_to.ToString());
             }
         }
 
-        protected Rect get_window_position(){
-            return new Rect((Screen.width/2) - (window_width/2) + 100, 80, window_width, main_section_height);
+        protected Rect get_window_position(){            
+            float y_pos = (Screen.height - main_section_height - height_adjustment) / 2;
+            CraftManager.log("y_pos: " + y_pos);
+            return new Rect((Screen.width/2) - (window_width/2) + 100, y_pos, window_width, main_section_height);
+        }
+
+        internal void set_window_position(){
+            window_pos = get_window_position();
         }
 
         //load/reload craft from the active_save_dir and apply any active filters
@@ -547,28 +606,48 @@ namespace CraftManager
             }
         }
 
-
+        protected bool check_ctrl_key = true;
+        protected bool shift_key_down = false;
         //listen to key press actions
-        protected void key_event_handler(){
-            if(Event.current.control){
-                ctrl_key_down = true;
-            } else{
-                ctrl_key_down = false;
+        protected virtual void key_event_handler(){
+            Event e = Event.current;          
+
+            //This is somewhat batshit, allow me to explain. Event.current.control only detects the key press, not a key hold, so we used Input.GetKey(..) 
+            //but if the focus is on the search text field Input.GetKey won't detect CTRL being held. so...this first bit detects CTRL down while focused on search field
+            //also also sets check_ctrl_key to false so the regular check is skipped.  check_ctrl_key is returned to true on key up
+            if(GUI.GetNameOfFocusedControl() == "main_search_field" && e.type == EventType.keyDown && e.control){
+                ctrl_key_down = true;               
+                check_ctrl_key = false;
+            } 
+
+            if(e.type == EventType.keyUp){
+                check_ctrl_key = true;
             }
-            Event e = Event.current;
+
+            if(check_ctrl_key){
+                ctrl_key_down = (Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl));
+            }
+            shift_key_down = (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift));
                 
             if(e.type == EventType.keyDown){
                 //'esc' - close interface
-                if(e.type == EventType.keyDown && e.keyCode == KeyCode.Escape) {
+                if(e.keyCode == KeyCode.Escape){
                     e.Use();
                     this.hide();
                     //'ctrl+f' - focus on main search field
-                }else if(ctrl_key_down && e.keyCode == KeyCode.F){
+                } else if((ctrl_key_down || e.control) && e.keyCode == KeyCode.F){
                     GUI.FocusControl("main_search_field");
+                    ctrl_key_down = false; 
                     e.Use();
                     //'ctrl+t' - create new tag
-                }else if(ctrl_key_down && e.keyCode == KeyCode.T){
+                } else if((ctrl_key_down || e.control) && e.keyCode == KeyCode.T){
                     CraftManager.main_ui.create_tag_dialog(true);
+                    ctrl_key_down = false;
+                    e.Use();
+                } else if((ctrl_key_down || e.control) && e.keyCode == KeyCode.A){
+                    foreach(CraftData craft in CraftData.filtered){
+                        CraftData.group_select(craft);
+                    }
                     e.Use();
                     //'up arrow' move up in craft list
                 } else if(e.keyCode == KeyCode.UpArrow && !upload_interface_ready){
@@ -579,15 +658,13 @@ namespace CraftManager
                     jump_to_craft(CraftData.filtered.IndexOf(CraftData.selected_craft) + 1);
                     e.Use();
                     //'enter key' - load selected craft (if focus is not on search field)
-                }else if(GUI.GetNameOfFocusedControl() != "main_search_field" && CraftData.selected_craft != null){
-                    if(e.keyCode == KeyCode.Return || e.keyCode == KeyCode.KeypadEnter){                       
-                        load_craft(CraftData.selected_craft.construction_type == "Subassembly" ? "subload" : "load");
-                    }                
+                } else if((e.keyCode == KeyCode.Return || e.keyCode == KeyCode.KeypadEnter) && GUI.GetNameOfFocusedControl() != "main_search_field" && CraftData.selected_craft != null){
+                    load_craft(CraftData.selected_craft.construction_type == "Subassembly" ? "subload" : "load");
                     //'tab' - move focus from search field to craft list.
                 } else if(GUI.GetNameOfFocusedControl() == "main_search_field" && e.keyCode == KeyCode.Tab){
                     jump_to_craft(0);
-                    e.Use();            
-                }
+                    e.Use();
+                }            
             }
         }
     }

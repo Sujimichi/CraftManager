@@ -20,13 +20,16 @@ namespace CraftManager
 
             //default settings. These will populate settings.cfg if the file doesn't exist and also provides
             //a reference of which values to try and fetch from the confignode.
-            settings.Add("show_initial_setup_dialog", "True"); 
-            settings.Add("KerbalX_integration_enabled", "False");
+            settings.Add("show_initial_setup_dialog", "False"); 
+            settings.Add("KerbalX_integration_enabled", "True"); //TODO change before release
             settings.Add("ask_to_populate_new_save", "True");
             settings.Add("replace_editor_load_button", "True");
             settings.Add("use_stock_toolbar", "True");
             settings.Add("use_editor_key_shortcuts", "True");
             settings.Add("screenshot_dir", "<ksp_install>/Screenshots");
+            settings.Add("show_craft_icon_in_details", "False");
+            settings.Add("show_quick_tag_on_toolbar", "True");
+            settings.Add("main_ui_height_scale", "0.8");
 
             settings.Add("compact_mode", "False");
             settings.Add("exclude_stock_craft", "False"); 
@@ -35,21 +38,24 @@ namespace CraftManager
             settings.Add("sort_tags_by", "name");
             settings.Add("tag_filter_mode", "AND");
             settings.Add("tag_states", "");
+            settings.Add("quick_tag_pos", "auto");
 
             if(File.Exists(settings_path)){
                 ConfigNode settings_raw = ConfigNode.Load(settings_path);
                 ConfigNode settings_data = settings_raw.GetNode("SETTINGS");
                 List<string> keys = new List<string>(settings.Keys);
                 foreach(string key in keys){
-                    settings[key] = settings_data.GetValue(key);
+                    if(!String.IsNullOrEmpty(settings_data.GetValue(key))){
+                        settings[key] = settings_data.GetValue(key);
+                    }
                 }
+                save();
             } else{
                 save();
             }
 
             CraftManager.kerbalx_integration_enabled = bool.Parse(get("KerbalX_integration_enabled"));
             CraftManager.replace_editor_load_button = bool.Parse(get("replace_editor_load_button"));
-            CraftManager.use_stock_toolbar = bool.Parse(get("use_stock_toolbar"));
             CraftManager.use_editor_key_shortcuts = bool.Parse(get("use_editor_key_shortcuts"));
 
             CraftManager.screenshot_dir = get("screenshot_dir");
@@ -148,6 +154,7 @@ namespace CraftManager
         string setting_error_open_opts = "";
         string setting_error_screenshot_dir = "";
         Vector2 settings_scroll = new Vector2();
+        float new_height_scale = 0.8f;
 
         private void Start(){
             inner_width = lhs_width + rhs_width+40;
@@ -159,10 +166,12 @@ namespace CraftManager
             }
             CraftManager.settings_ui = this;
             new_screenshot_location = settings.get("screenshot_dir");
+            new_height_scale = float.Parse(settings.get("main_ui_height_scale"));
         }
 
         protected override void WindowContent(int win_id) { 
             settings_scroll = scroll(settings_scroll, "settings.scroll", inner_width-8, 500, (w) =>{
+
                 v_section("dialog.section", () =>{
                     setting_section("KerbalX_integration_enabled", "KerbalX Integration", "Enabled", "Enable",                     
                         "Enables you to share your craft on KerbalX, download them and fetch other users craft.",
@@ -174,6 +183,7 @@ namespace CraftManager
                         );
                     }
                 });
+
                 v_section("dialog.section", () =>{
                     setting_section("replace_editor_load_button", "Replace load button", 
                         "The open button in the editors will open Craft Manager instead of the stock craft browser.", 
@@ -190,73 +200,133 @@ namespace CraftManager
                 if(!String.IsNullOrEmpty(setting_error_open_opts)){
                     label(setting_error_open_opts, "error");
                 }
+
+                v_section("dialog.section", () =>{
+                    setting_section("show_craft_icon_in_details", "Craft Icon in Details",
+                        "shows the craft thumbnail in the right hand side details"
+                    );
+                });
+
                 v_section("dialog.section", ()=>{
                     setting_section("compact_mode", "Use Compact Mode", 
                         "The interface hides the tags and craft details sections, making it more like the stock interface.",
                         "Some functionality is reduced, and uploading craft will switch you back to full size view."
                     );
                 });
+
+                v_section("dialog.section", ()=>{
+                    //main_ui_height_scale
+                    section(() =>{
+                        v_section(lhs_width, (w2) =>{
+                            label("Main UI Height", "h2.tight");
+                            label("Adjust the height of the main UI (as a value between 0.2 and 1.0)", "compact");
+                        });
+                        v_section(rhs_width, (w2) =>{
+                            GUILayout.Space(20f);
+                            section(()=>{
+                                new_height_scale = GUILayout.HorizontalSlider(new_height_scale, 0.2f, 1.0f);
+                                new_height_scale = (float)Math.Round(new_height_scale, 2);                                
+                            });
+                            label(new_height_scale.ToString(), "centered", w2);
+                        });
+                    });
+
+                    if(float.Parse(settings.get("main_ui_height_scale")) != new_height_scale){
+                        settings.set("main_ui_height_scale", new_height_scale.ToString());
+                        CraftManager.main_ui.height_scale = new_height_scale;
+                        CraftManager.main_ui.set_window_position();
+                    }
+                });
+
+                v_section("dialog.section", ()=>{
+                    setting_section("show_quick_tag_on_toolbar", "Show Quick Tag Icon", 
+                        "Shows icon to open Quick Tag in the stock toolbar",
+                        "You can also open Quick Tag with ctrl+t if Editor Shortcuts are enabled"
+                    );
+                    section(() =>{
+                        v_section(lhs_width, (w2) =>{
+                            label("Reset QuickTag position", "h2.tight");
+                            label("The Quick Tag window remembers it's last position, but incase you drag it offscreen you can reset it here", "compact");
+                        });
+                        v_section(rhs_width, (w2) =>{
+                            GUILayout.Space(20f);
+                            button("Reset", ()=>{
+                                settings.set("quick_tag_pos", "auto");
+                                    
+                            });
+                        });
+
+                    });
+                });
+
                 v_section("dialog.section", () =>{
                     string prev_new_screenshot_location = new_screenshot_location;
                     section(()=>{
-                        label("Screenshot Folder:", "h2.tight");
-                        new_screenshot_location = GUILayout.TextField(new_screenshot_location);                    
+                        section(lhs_width, ()=>{
+                            label("Screenshot Folder:", "h2.tight");
+                            new_screenshot_location = GUILayout.TextField(new_screenshot_location);                    
+                            if(new_screenshot_location != prev_new_screenshot_location){
+                                setting_error_screenshot_dir = "";
+                                string path = new_screenshot_location.Replace("<ksp_install>", KSPUtil.ApplicationRootPath);
+                                if(Directory.Exists(path)){
+                                    settings.set("screenshot_dir", new_screenshot_location);
+                                    //                            CraftManager.settings = new CMSettings(); //re-initialize settings so updated values are set on CraftManager static variables
+                                }else{
+                                    setting_error_screenshot_dir = "unable to find directory: "+ path;
+                                }
+                            }
+                        });
+                        section(rhs_width, ()=>{
+                            button("default", ()=>{
+                                new_screenshot_location = "<ksp_install>/Screenshots";
+                            });                            
+                        });                       
                     });
-                    if(new_screenshot_location != prev_new_screenshot_location){
-                        setting_error_screenshot_dir = "";
-                        string path = new_screenshot_location.Replace("<ksp_install>", KSPUtil.ApplicationRootPath);
-                        if(Directory.Exists(path)){
-                            settings.set("screenshot_dir", new_screenshot_location);
-                            //                            CraftManager.settings = new CMSettings(); //re-initialize settings so updated values are set on CraftManager static variables
-                        }else{
-                            setting_error_screenshot_dir = "unable to find directory: "+ path;
-                        }
-                    }
+
                     if(!String.IsNullOrEmpty(setting_error_screenshot_dir)){
                         label(setting_error_screenshot_dir, "error");                
                     }
-                    section(()=>{
-                        v_section(()=>{
-                            label("enter the full path to your Screenshot folder,\nor use a relative path in this KSP install by starting with '<ksp_install>'");
-                            label("Craft Manager will show pictures from this folder when uploading craft to KerbalX & will save pictues taken here when using the UI to grab a new screenshot", "small");                            
-                        });
-                        fspace();
-                        button("use default", ()=>{
-                            new_screenshot_location = "<ksp_install>/Screenshots";
-                        });
+                    v_section(()=>{
+                        label("enter the full path to your Screenshot folder,\nor use a relative path in this KSP install by starting with '<ksp_install>'");
+                        label("Craft Manager will show pictures from this folder when uploading craft to KerbalX & will save pictues taken here when using the UI to grab a new screenshot", "small");                            
                     });
                     
                 });
-                section("dialog.section", () =>{
-                    v_section(lhs_width-20, (w1) =>{
-                        label("Reset Cache", "h2");
-                        label("Wait!! Don't press this button!...ok you can, but you should know what it does", "h3");
-                        label(
-                            "Craft Manager uses a cache of info about your craft. Craft info is cached the first time a craft is shown in the UI & then after that it doesn't have " +
-                            "to read the craft file unless it gets changed. This lets the Craft Manager UI open much faster than if it had to read and analyse each craft every time it opens " +
-                            "(which the stock craft list does)."
-                        );
-                        label(
-                            "The cache automatically gets reset if you change your installed parts or when parts are unlocked (in career mode)."
-                        );
-                        label(
-                            "You shouldn't need to manually reset the cache, but if you think the info about your craft is incorrect then try resetting it.\n" +
-                            "You can also reset the cache by deleting the 'craft_data.cache' file in the CraftManager mod folder."
-                        );
-                    });
-                    v_section(rhs_width+20, (w1) =>{
-                        GUILayout.Space(20f);
-                        button("Delete Cache", "button.delete", ()=>{
-                            if(File.Exists(CraftDataCache.cache_path)){
-                                File.Delete(CraftDataCache.cache_path);
-                            }
-                            CraftData.cache = null;
-                            if(CraftManager.main_ui != null){
-                                CraftManager.main_ui.hide();
-                            }
-                            this.close();
+
+                v_section("dialog.section", () =>{
+                   
+                    section(() =>{
+                        v_section(lhs_width-20, (w2) =>{
+                            label("Reset Cache", "h2");
+                            label("Wait!! Don't press this button!...ok you can, but you should know what it does", "h3");                            
+                        });
+                        v_section(rhs_width+20, (w2) =>{
+                            GUILayout.Space(20f);
+                            button("Delete Cache", "button.delete", ()=>{
+                                if(File.Exists(CraftDataCache.cache_path)){
+                                    File.Delete(CraftDataCache.cache_path);
+                                }
+                                CraftData.cache = null;
+                                if(CraftManager.main_ui != null){
+                                    CraftManager.main_ui.hide();
+                                }
+                                this.close();
+                            });
                         });
                     });
+
+                    label(
+                        "Craft Manager uses a cache of info about your craft. Craft info is cached the first time a craft is shown in the UI & then after that it doesn't have " +
+                        "to read the craft file unless it gets changed. This lets the Craft Manager UI open much faster than if it had to read and analyse each craft every time it opens " +
+                        "(which the stock craft list does)."
+                    );
+                    label(
+                        "The cache automatically gets reset if you change your installed parts or when parts are unlocked (in career mode)."
+                    );
+                    label(
+                        "You shouldn't need to manually reset the cache, but if you think the info about your craft is incorrect then try resetting it.\n" +
+                        "You can also reset the cache by deleting the 'craft_data.cache' file in the CraftManager mod folder."
+                    );
                 });
             });
 
