@@ -1155,11 +1155,13 @@ namespace CraftManager
             }
         }
 
-        internal void draw_tags_list(bool include_auto_tags = true){
+        internal int draw_tags_list(bool include_auto_tags = true){
+            int count = 0;
             foreach(string tag in tags_for_active_craft){
                 section(() =>{
                     if(include_auto_tags || !Tags.instance.autotags_list.Contains(tag)){
                         label(tag, "compact");
+                        count+=1;
                         fspace();
                         if(!Tags.instance.autotags_list.Contains(tag)){                                    
                             gui_state(!upload_interface_ready, ()=>{
@@ -1169,6 +1171,7 @@ namespace CraftManager
                     }
                 });
             }
+            return count;
         }
 
         private void craft_display_buttons(){

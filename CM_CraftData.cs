@@ -172,7 +172,6 @@ namespace CraftManager
             foreach(CraftData craft in CraftData.active_craft){
                 previously_selected.Add(craft.path);
             }
-            CraftManager.log("prev_selected track: " + previously_selected.Count);
         }
         internal static void restore_previously_selected(){
             CraftData.deselect_all();

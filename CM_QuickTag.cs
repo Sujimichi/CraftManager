@@ -31,6 +31,7 @@ namespace CraftManager
         private Rect last_window_pos; 
         private int last_tag_count = 0;
         private string last_editor_craft_name = "";
+        private int tag_count = 0;
 
 
         private void Start(){
@@ -70,9 +71,11 @@ namespace CraftManager
                         respond_to_tag_menu(resp);
                     });
                 });
-                v_section("dialog.section", ()=>{
-                    CraftManager.main_ui.draw_tags_list(false);
+
+                v_section(tag_count > 0 ? "dialog.section" : "Label", () =>{
+                    tag_count = CraftManager.main_ui.draw_tags_list(false);
                 });
+
 
                 if(CraftData.selected_craft.tags().Count != last_tag_count){ //reset the window pos, which forces the height to be reset & so shrinking the window after a tag is removed.
                     save_window_pos();
