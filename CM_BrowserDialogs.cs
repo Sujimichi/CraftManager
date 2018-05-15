@@ -88,13 +88,7 @@ namespace CraftManager
                         selected_transfer_option = -1;
                         resp = CraftData.transfer_active_craft_to(lookup[opt]);
                         if(switch_editor){
-                            if(CraftManager.version.Split('.')[1] == "0"){
-                                EditorDriver.StartAndLoadVessel(CraftData.active_craft[0].path, lookup[opt]);                            
-                            } else{
-                                EditorLogic.fetch.SwitchEditor();
-                                CraftData.select_craft(CraftData.active_craft[0]);
-                                load_craft("load");
-                            }
+                            EditorDriver.StartAndLoadVessel(CraftData.active_craft[0].path, lookup[opt]);                            
                         }
                     }                   
                     section(() =>{
