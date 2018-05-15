@@ -1,9 +1,9 @@
 ## Change Log
 
-###Versioning:
+### Versioning:
 The Major version number will only change if there is an API change on KerbalX which would make previous versions incompatible.
 The Minor version number is (a bit unconventionally) being used to indicate compatibility with KSP versions.
-The Patch version number is incremented with each update.  ie 1.0.2 & 1.1.2 have the same features but are for different versions of KSP
+The Patch version number is incremented with each update.  e.g 1.0.2 & 1.1.2 have the same features but are for different versions of KSP
 **1.0.x are builds for KSP 1.3.x | 1.1.x are builds for KSP 1.4.x**
 
 
