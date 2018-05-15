@@ -20,8 +20,8 @@ namespace CraftManager
 
             //default settings. These will populate settings.cfg if the file doesn't exist and also provides
             //a reference of which values to try and fetch from the confignode.
-            settings.Add("show_initial_setup_dialog", "False"); 
-            settings.Add("KerbalX_integration_enabled", "True"); //TODO change before release
+            settings.Add("show_initial_setup_dialog", "True"); 
+            settings.Add("KerbalX_integration_enabled", "False");
             settings.Add("ask_to_populate_new_save", "True");
             settings.Add("replace_editor_load_button", "True");
             settings.Add("use_stock_toolbar", "True");
