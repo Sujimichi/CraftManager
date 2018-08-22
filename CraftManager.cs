@@ -21,6 +21,7 @@ namespace CraftManager
     {
 
         public static string version = "1.1.3";
+        public static Version game_version = new Version(Versioning.GetVersionString());
 
         //Settings
         internal static CMSettings settings;

@@ -762,6 +762,13 @@ namespace CraftManager
                 label("Last Edited", "bold.compact");
                 label(date.time_ago(), "compact");
             });
+            if(CraftManager.game_version.ToString() != craft.ksp_version){
+                section(() =>{
+                    label("Built in KSP:", "bold.compact");
+                    label(craft.ksp_version, "compact");
+                });
+            }
+                
             if(craft.remote){
                 GUILayout.Space(5);
                 if(craft.exists_locally){
@@ -810,6 +817,11 @@ namespace CraftManager
                                     show_must_be_logged_in(KerbalX.close_login_dialog);
                                 });
                             }                                   
+                        });
+                        section((w) => {
+                            button("Mod Lookup", ()=>{
+                                mod_lookup_dialog(craft);
+                            });
                         });
                     }
                 });

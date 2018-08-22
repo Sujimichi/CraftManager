@@ -10,6 +10,8 @@ The Patch version number is incremented with each update.
 **Change:** Moved settings.cfg file into PluginData folder
 **Change:** Moved craft_data.cache file into PluginData folder
 **Fix:** The 'craft has unsaved changes' message should no longer be shown when loading a craft when the current craft is saved.
+**Added:** Details panel shows the KSP version of the selected craft if it's not the same as the current game version.
+**Added:** new "Mod Lookup" button on craft details panel (only available if KerbalX integration is enabled) which uses KerbalX's mod database to check which mods the selected craft uses.
 
 
 #### 1.0.3 & 1.1.3
