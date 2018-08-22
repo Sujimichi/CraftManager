@@ -233,6 +233,40 @@ namespace CraftManager
             });
         }
 
+        internal void mod_lookup_dialog(CraftData craft){
+            string resp = "";
+            bool lookup_complete = false;
+            List<string> required_mods = new List<string>();
+            if(KerbalX.enabled){
+                KerbalX.lookup_parts(craft.list_parts(), identified_parts =>{
+                    foreach(string mod_name in identified_parts.Values){
+                        if(mod_name != "Squad"){
+                            required_mods.AddUnique(mod_name);
+                        }
+                    }
+                    lookup_complete = true;
+                });
+            }
+            show_dialog("Mod Lookup", "", d =>{
+                section((w)=>{
+                    if(lookup_complete){
+                        if(required_mods.Count == 0){
+                            label("This craft doesn't have any modded parts");
+                        }else{                            
+                            label("This craft needs the following mods:\n" + required_mods.n_join("and"));
+                        }
+                    }else{
+                        label("Fetching Mod info from KerbalX", "h2");
+                    }
+
+                });
+                section(()=>{                    
+                    button("close", close_dialog);                    
+                });
+                return resp;
+            });
+        }
+
         internal void load_craft_with_missing_parts_dialog(CraftData craft, string load_type){
             string resp = "";
             List<string> missing_parts_list = new List<string>();
@@ -523,7 +557,7 @@ namespace CraftManager
                 string v1 = versions[0].ToString();
                 string v2 = versions[1].ToString();
                 string resp = "";
-                Version ksp_version = new Version(Versioning.GetVersionString());
+                Version ksp_version = CraftManager.game_version; //new Version(Versioning.GetVersionString());
                 KerbalX.log_scroll = new Vector2();
                 KerbalX.bulk_download_log = "";
 

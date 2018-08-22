@@ -11,12 +11,15 @@ namespace CraftManager
 {
     public class CMSettings
     {
-        protected string settings_path = Paths.joined(CraftManager.ksp_root, "GameData", "CraftManager", "settings.cfg");
+        protected string plugin_data_dir = Paths.joined(CraftManager.ksp_root, "GameData", "CraftManager", "PluginData");
+        protected string settings_path = Paths.joined(CraftManager.ksp_root, "GameData", "CraftManager", "PluginData", "settings.cfg");
         protected Dictionary<string, string> settings = new Dictionary<string, string>();
 
         public string craft_sort;
 
         public CMSettings(){
+            ensure_plugin_data_dir_exists();
+            import_old_data();
 
             //default settings. These will populate settings.cfg if the file doesn't exist and also provides
             //a reference of which values to try and fetch from the confignode.
@@ -30,6 +33,7 @@ namespace CraftManager
             settings.Add("show_craft_icon_in_details", "False");
             settings.Add("show_quick_tag_on_toolbar", "True");
             settings.Add("main_ui_height_scale", "0.8");
+            settings.Add("clear_save_state_delay", "500");
 
             settings.Add("compact_mode", "False");
             settings.Add("exclude_stock_craft", "False"); 
@@ -90,7 +94,30 @@ namespace CraftManager
             foreach(string key in keys){
                 settings_node.AddValue(key, settings[key]);
             }
+            ensure_plugin_data_dir_exists();
             settings_data.Save(settings_path);
+        }
+
+        public void ensure_plugin_data_dir_exists(){
+            if(!Directory.Exists(plugin_data_dir)){
+                Directory.CreateDirectory(plugin_data_dir);
+            }
+        }
+
+        //move settings.cfg and craft_data.cache files, if they exist, from the Mod root to PluginData folder
+        //Enable upgrading from 1.0.3/1.1.3 to 1.0.4/1.1.4 without loss of settings
+        protected void import_old_data(){
+            string old_settings_path = Paths.joined(CraftManager.ksp_root, "GameData", "CraftManager", "settings.cfg");
+            string old_cache_path = Paths.joined(CraftManager.ksp_root, "GameData", "CraftManager", "craft_data.cache");
+            if(File.Exists(old_settings_path)){
+                FileInfo file = new FileInfo(old_settings_path);
+                file.MoveTo(settings_path);
+            }
+            if(File.Exists(old_cache_path)){
+                FileInfo file = new FileInfo(old_cache_path);
+                file.MoveTo(CraftDataCache.cache_path);
+            }
+
         }
 
     }

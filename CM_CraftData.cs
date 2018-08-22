@@ -19,7 +19,6 @@ namespace CraftManager
         public static int file_load_count = 0;
         public static int cache_load_count= 0;
 
-        public static bool loading_craft = false;
         public static int save_state = 0;
         public static bool loaded_craft_saved {
             get{                
@@ -603,6 +602,17 @@ namespace CraftManager
                 }
             }
             locked_parts_checked = true;
+        }
+
+        public List<string> list_parts(){
+            ConfigNode data = ConfigNode.Load(path);
+            ConfigNode[] parts = data.GetNodes();
+            List<string> parts_list = new List<string>();
+
+            foreach(ConfigNode part in parts){
+                parts_list.AddUnique(get_part_name(part));
+            }
+            return parts_list;
         }
 
         public List<string> list_missing_parts(){

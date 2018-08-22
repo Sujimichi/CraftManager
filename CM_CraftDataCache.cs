@@ -8,7 +8,7 @@ namespace CraftManager
 {
     public class CraftDataCache
     {
-        internal static string cache_path = Paths.joined(CraftManager.ksp_root, "GameData", "CraftManager", "craft_data.cache");
+        internal static string cache_path = Paths.joined(CraftManager.ksp_root, "GameData", "CraftManager", "PluginData", "craft_data.cache");
         internal string installed_part_sig; //checksum signature of the installed parts, used to determine if the installed parts have changed since last time
 
         private Dictionary<string, ConfigNode> craft_data = new Dictionary<string, ConfigNode>();
@@ -28,6 +28,7 @@ namespace CraftManager
 
         internal CraftDataCache(){
             CraftManager.log("Initializing Cache");
+            CraftManager.settings.ensure_plugin_data_dir_exists();
             if(File.Exists(cache_path)){
                 CraftManager.log("loading persistent cache from file");
                 try{
