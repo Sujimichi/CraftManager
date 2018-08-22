@@ -11,7 +11,8 @@ namespace CraftManager
 {
     public class CMSettings
     {
-        protected string settings_path = Paths.joined(CraftManager.ksp_root, "GameData", "CraftManager", "settings.cfg");
+        protected string settings_dir = Paths.joined(CraftManager.ksp_root, "GameData", "CraftManager", "PluginData");
+        protected string settings_path = Paths.joined(CraftManager.ksp_root, "GameData", "CraftManager", "PluginData", "settings.cfg");
         protected Dictionary<string, string> settings = new Dictionary<string, string>();
 
         public string craft_sort;
@@ -89,6 +90,9 @@ namespace CraftManager
             List<string> keys = new List<string>(settings.Keys);
             foreach(string key in keys){
                 settings_node.AddValue(key, settings[key]);
+            }
+            if(!Directory.Exists(settings_dir)){
+                Directory.CreateDirectory(settings_dir);
             }
             settings_data.Save(settings_path);
         }

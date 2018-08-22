@@ -6,6 +6,8 @@ The Minor version number is (a bit unconventionally) being used to indicate comp
 The Patch version number is incremented with each update.  
 **1.0.x are builds for KSP 1.3.x | 1.1.x are builds for KSP 1.4.x**
 
+#### 1.0.4 & 1.1.4
+**Change** Moved settings.cfg file into PluginData folder
 
 #### 1.0.3 & 1.1.3
 **Change:** The primary name shown is now the internal ship name, and (if different) the file name is shown in a smaller font.  
