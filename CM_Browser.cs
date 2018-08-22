@@ -1,6 +1,9 @@
 ﻿using System;
 using System.IO;
+using System.Threading;
+using System.Collections;
 using System.Collections.Generic;
+
 using UnityEngine;
 using ExtensionMethods;
 using KatLib;
@@ -159,16 +162,17 @@ namespace CraftManager
             }
         }
 
-        //editor restart is triggered when loading a craft and creating a new one.  
-        //reset the save_state count to 0 (after new) or -1 (after load).  Reason is that onEditorShipModified is called 
-        //directly after loading so it ends up as 0.  The distinction between load and new is detected by loading_craft being true.
+        //called by GameEvents.onEditorRestart which is triggered when loading a craft and creating a new one.
+        //sets the save_state to 0. This is done inside a Coroutine call with a 500ms delay, the reason for this is
+        //that onEditorShipModified is called once directly after loading by the stock game and some mods call it multiple times. The delay lets that happen before setting
+        //the save_state to 0.
         public void on_editor_restart(){
-            if(CraftData.loading_craft){
-                CraftData.save_state = -1;
-                CraftData.loading_craft = false;
-            } else{
-                CraftData.save_state = 0;
-            }
+            StartCoroutine(clear_save_state());
+        }
+        public IEnumerator clear_save_state(){
+            yield return true;
+            Thread.Sleep(int.Parse(CraftManager.settings.get("clear_save_state_delay")));
+            CraftData.save_state = 0;
         }
 
         //called by onEditorShipModified, increments count of save_state

@@ -11,7 +11,7 @@ namespace CraftManager
 {
     public class CMSettings
     {
-        protected string settings_dir = Paths.joined(CraftManager.ksp_root, "GameData", "CraftManager", "PluginData");
+        protected string plugin_data_dir = Paths.joined(CraftManager.ksp_root, "GameData", "CraftManager", "PluginData");
         protected string settings_path = Paths.joined(CraftManager.ksp_root, "GameData", "CraftManager", "PluginData", "settings.cfg");
         protected Dictionary<string, string> settings = new Dictionary<string, string>();
 
@@ -31,6 +31,7 @@ namespace CraftManager
             settings.Add("show_craft_icon_in_details", "False");
             settings.Add("show_quick_tag_on_toolbar", "True");
             settings.Add("main_ui_height_scale", "0.8");
+            settings.Add("clear_save_state_delay", "500");
 
             settings.Add("compact_mode", "False");
             settings.Add("exclude_stock_craft", "False"); 
@@ -91,10 +92,14 @@ namespace CraftManager
             foreach(string key in keys){
                 settings_node.AddValue(key, settings[key]);
             }
-            if(!Directory.Exists(settings_dir)){
-                Directory.CreateDirectory(settings_dir);
-            }
+            ensure_plugin_data_dir_exists();
             settings_data.Save(settings_path);
+        }
+
+        public void ensure_plugin_data_dir_exists(){
+            if(!Directory.Exists(plugin_data_dir)){
+                Directory.CreateDirectory(plugin_data_dir);
+            }
         }
 
     }

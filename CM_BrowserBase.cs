@@ -228,7 +228,6 @@ namespace CraftManager
                     }
                     if(load_type == "load"){                                       
                         if(CraftData.loaded_craft_saved || force){
-                            CraftData.loading_craft = true;
                             EditorLogic.LoadShipFromFile(craft.path);
                             CraftManager.main_ui.hide();
                         } else{                        
