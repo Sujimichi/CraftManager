@@ -96,6 +96,7 @@ namespace CraftManager
             }
             ensure_plugin_data_dir_exists();
             settings_data.Save(settings_path);
+            File.AppendAllText(settings_path, "//see the wiki for info about what each setting does - https://github.com/Sujimichi/CraftManager/wiki/Settings" + Environment.NewLine);
         }
 
         public void ensure_plugin_data_dir_exists(){
