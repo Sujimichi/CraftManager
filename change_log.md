@@ -6,12 +6,14 @@ The Minor version number is (a bit unconventionally) being used to indicate comp
 The Patch version number is incremented with each update.  
 **1.0.x are builds for KSP 1.3.x | 1.1.x are builds for KSP 1.4.x**
 
+
 #### 1.0.4 & 1.1.4
 **Change:** Moved settings.cfg file into PluginData folder
 **Change:** Moved craft_data.cache file into PluginData folder
 **Fix:** The 'craft has unsaved changes' message should no longer be shown when loading a craft when the current craft is saved.
 **Added:** Details panel shows the KSP version of the selected craft if it's not the same as the current game version.
 **Added:** new "Mod Lookup" button on craft details panel (only available if KerbalX integration is enabled) which uses KerbalX's mod database to check which mods the selected craft uses.
+**Fix:** Stop the 'edit description' window from expanding past the bottom of the screen when showing long descriptions. also fix to prevent newline chars from being lost from description.
 
 
 #### 1.0.3 & 1.1.3
@@ -33,6 +35,7 @@ The Patch version number is incremented with each update.
 #### 1.0.2 & 1.1.2
 **Fix:** issue caused when creating list of installed parts when there are more than 1 parts with the same name.
 **New:** CM can use KerbalX.com to lookup any missing parts on a craft and find out which mods they come from.
+
 
 #### 1.0.1 & 1.1.1  
 minnor bug fixes:  

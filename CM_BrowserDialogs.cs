@@ -162,11 +162,14 @@ namespace CraftManager
             float area_height = 0;
             string original_desc = new string(CraftData.selected_craft.description.ToCharArray());
 
-            show_dialog("Edit Description", "Edit Description", d =>{
+            show_dialog("Edit Description", "", d =>{
                 GUI.SetNextControlName("dialog_focus_field");
                 area_height = skin.textArea.CalcHeight(new GUIContent(CraftData.selected_craft.description), d.window_pos.width)+10;
                 if(area_height < 150f){area_height=150f;}
+                if(area_height > Screen.height*0.4f){area_height = Screen.height*0.4f;}
+
                 CraftData.selected_craft.description = GUILayout.TextArea(CraftData.selected_craft.description.Replace("¨", "\n"), height(area_height));
+
                 section(()=>{
                     fspace();
                     button("Cancel", ()=>{
