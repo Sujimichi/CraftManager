@@ -44,7 +44,6 @@ namespace CraftManager
             prevent_click_through = false; //disable the standard click through prevention. show and hide will add control locks which are not based on mouse pos.
 
             height_scale = float.Parse(CraftManager.settings.get("main_ui_height_scale"));
-            CraftManager.log("height_scale:  " + height_scale);
 
             toggle_compact_mode(bool.Parse(CraftManager.settings.get("compact_mode")), false);
 

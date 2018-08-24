@@ -29,6 +29,7 @@ namespace CraftManager
 
         internal float height_scale = 0.8f;
         protected float window_width  = 1000f;
+
         protected float[] col_widths_default = new float[]{0.2f,0.55f,0.25f};
         protected float[] col_widths_current = new float[]{0.2f,0.55f,0.25f};
 
@@ -390,11 +391,8 @@ namespace CraftManager
         protected void toggle_compact_mode(){toggle_compact_mode(!compact_mode);}
         internal void toggle_compact_mode(bool change_to, bool save_setting = true){
             compact_mode = change_to;
-            if(compact_mode){
-                window_width = 500f;
-            } else{
-                window_width = 1000f;
-            }
+
+
             set_window_position();
             more_menu.items["compact_mode"] = compact_mode ? "Full View" : "Compact Mode";
             if(save_setting){
@@ -402,10 +400,27 @@ namespace CraftManager
             }
         }
 
+        protected int get_window_width_from_settings(){
+            int user_window_width = int.Parse(CraftManager.settings.get("main_ui_width"));
+            if(user_window_width > Screen.width){
+                user_window_width = Screen.width;
+            }
+            return user_window_width;
+        }
+
         protected Rect get_window_position(){            
+            int user_window_width = get_window_width_from_settings();
+            if(compact_mode){
+                window_width = user_window_width/2;
+            } else{
+                window_width = user_window_width;
+            }
             float y_pos = (Screen.height - main_section_height - height_adjustment) / 2;
-            CraftManager.log("y_pos: " + y_pos);
-            return new Rect((Screen.width/2) - (window_width/2) + 100, y_pos, window_width, main_section_height);
+            float x_pos = (Screen.width / 2) - ((window_width+40) / 2);
+            if(x_pos + window_width+80 + 120 < Screen.width){
+                x_pos += 120;
+            }
+            return new Rect(x_pos, y_pos, window_width, main_section_height);
         }
 
         internal void set_window_position(){

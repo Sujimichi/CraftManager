@@ -33,6 +33,8 @@ namespace CraftManager
             settings.Add("show_craft_icon_in_details", "False");
             settings.Add("show_quick_tag_on_toolbar", "True");
             settings.Add("main_ui_height_scale", "0.8");
+            settings.Add("main_ui_width", "1000");
+
             settings.Add("clear_save_state_delay", "500");
 
             settings.Add("compact_mode", "False");
@@ -183,6 +185,7 @@ namespace CraftManager
         string setting_error_screenshot_dir = "";
         Vector2 settings_scroll = new Vector2();
         float new_height_scale = 0.8f;
+        int new_width = 1000;
 
         private void Start(){
             inner_width = lhs_width + rhs_width+40;
@@ -195,6 +198,7 @@ namespace CraftManager
             CraftManager.settings_ui = this;
             new_screenshot_location = settings.get("screenshot_dir");
             new_height_scale = float.Parse(settings.get("main_ui_height_scale"));
+            new_width = int.Parse(settings.get("main_ui_width"));
         }
 
         protected override void WindowContent(int win_id) { 
@@ -258,13 +262,32 @@ namespace CraftManager
                             label(new_height_scale.ToString(), "centered", w2);
                         });
                     });
+                    section((w3) =>{
+                        v_section(lhs_width, (w2) =>{
+                            label("Main UI Width", "h2.tight");
+                            label("Adjust the width of the main UI (as a value between 1000 and " + (Screen.width-40) + ")", "compact");
+                        });
+                        v_section(rhs_width, (w2) =>{
+                            GUILayout.Space(20f);
+                            section((w4)=>{
+                                new_width = (int)GUILayout.HorizontalSlider((float)new_width, 1000f, (float)Screen.width-40);
+                            });
+                            label(new_width.ToString(), "centered", w2);
+                        });
+                    });
 
                     if(float.Parse(settings.get("main_ui_height_scale")) != new_height_scale){
                         settings.set("main_ui_height_scale", new_height_scale.ToString());
                         CraftManager.main_ui.height_scale = new_height_scale;
                         CraftManager.main_ui.set_window_position();
                     }
+                    if(float.Parse(settings.get("main_ui_width")) != new_width){
+                        settings.set("main_ui_width", new_width.ToString());
+                        CraftManager.main_ui.set_window_position();
+                    }
                 });
+
+
 
                 v_section("dialog.section", ()=>{
                     setting_section("show_quick_tag_on_toolbar", "Show Quick Tag Icon", 
