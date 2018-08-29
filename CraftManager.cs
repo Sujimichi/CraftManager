@@ -12,6 +12,7 @@ using UnityEngine;
 using KSP.UI.Screens;
 using SimpleJSON;
 using KatLib;
+using KXAPI;
 
 namespace CraftManager
 {
@@ -20,7 +21,7 @@ namespace CraftManager
     public class CraftManager : MonoBehaviour
     {
 
-        public static string version = "1.1.4";
+        public static string version = "1.1.5";
         public static Version game_version = new Version(Versioning.GetVersionString());
 
         //Settings
@@ -53,9 +54,8 @@ namespace CraftManager
         
 
         private void Awake(){
-            KerbalXAPI.client_version = CraftManager.version;
-            KerbalXAPI.client = "CraftManager";
             settings = new CMSettings();
+            KerbalX.api = new KerbalXAPI("CraftManager", CraftManager.version, "development");
 
             bool using_toolbar = false;
 

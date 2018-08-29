@@ -52,6 +52,10 @@
     <Reference Include="KatLib">
       <HintPath>..\KatLib\bin\Release\for_1.4.x\KatLib.dll</HintPath>
     </Reference>
+    <Reference Include="KXAPI">
+      <HintPath>..\KXAPI\bin\Release\0.1.1\KXAPI.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />

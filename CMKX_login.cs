@@ -42,9 +42,9 @@ namespace CraftManager
             CraftManager.login_ui = this;
             if(KerbalX.enabled){                
                 enable_request_handler();
-                enable_request_handler();
+                enable_request_handler(); //TODO why is  this here twice (fix when sober)
                 //try to load a token from file and if present authenticate it with KerbalX.  if token isn't present or token authentication fails then show login fields.
-                if(KerbalXAPI.logged_out()){
+                if(KerbalX.api.logged_out){
                     KerbalX.load_and_authenticate_token();   
                 }
             } else{
@@ -74,9 +74,9 @@ namespace CraftManager
                         fspace();
                         if(login_indicator == null || !enable_login){
                             login_indicator = "login.logging_in";
-                        } else if(KerbalXAPI.logged_in()){                            
+                        } else if(KerbalX.api.logged_in){                            
                             login_indicator = "login.logged_in";
-                        }else if(KerbalXAPI.logged_out()){
+                        }else if(KerbalX.api.logged_out){
                             login_indicator = "login.logged_out";
                         }
                         label("K\ne\nr\nb\na\nl\nX", "centered", 10f);
@@ -93,7 +93,7 @@ namespace CraftManager
                     });
                 });
 
-                if(initial_token_check_complete && KerbalXAPI.logged_out()){
+                if(initial_token_check_complete && KerbalX.api.logged_out){
                     window_retract = false;
                 }
                 if(window_retract && window_pos.x > window_in_pos){
@@ -116,7 +116,7 @@ namespace CraftManager
                         label(login_required_message, "h2");
                     }
 
-                    if (KerbalXAPI.logged_out()) {                  
+                    if (KerbalX.api.logged_out) {                  
                         gui_state(enable_login, () =>{                    
                             label("CraftManager - KerbalX.com login");
                             section(() => {
@@ -136,9 +136,9 @@ namespace CraftManager
                         if(!enable_login){
                             label("Logging in....", "h2");
                         }
-                    }else if (KerbalXAPI.logged_in()) {
+                    }else if (KerbalX.api.logged_in) {
                         label("CraftManager has logged you into KerbalX.com");
-                        label("Welcome back " + KerbalXAPI.logged_in_as());
+                        label("Welcome back " + KerbalX.api.logged_in_as);
                     }
                     if (login_successful) {
                         section(() => {
@@ -152,7 +152,7 @@ namespace CraftManager
                     }
 
                     section(()=>{                        
-                        if (KerbalXAPI.logged_out()) {                
+                        if (KerbalX.api.logged_out) {                
                             gui_state(enable_login, () =>{
                                 button("Login", KerbalX.login);
                             });
@@ -204,13 +204,13 @@ namespace CraftManager
                         label(message);
                         section("dialog.section", ()=>{
                             button("visit KerbalX to download the latest version", "hyperlink", ()=>{
-                                Application.OpenURL(KerbalXAPI.url_to("mod"));
+                                Application.OpenURL(KerbalX.api.url_to("mod"));
                             });                            
                         });
                         section(w2 => {                           
                             button("Remind me later", close_dialog);
                             button("Don't notify me about this update", ()=>{
-                                KerbalXAPI.dismiss_current_update_notification();
+                                KerbalX.api.dismiss_current_update_notification();
                                 close_dialog();
                                 
                             });

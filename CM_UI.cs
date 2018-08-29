@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using KatLib;
+using KXAPI;
 
 namespace CraftManager
 {
@@ -32,12 +33,12 @@ namespace CraftManager
                 prevent_ui_click_through();
             }
 
-            if(KerbalXAPI.server_error_message != null){
+            if(KerbalX.api.server_error_message != null){
                 List<string> messages = new List<string>();
-                foreach(string s in KerbalXAPI.server_error_message.Split(new string[] { Environment.NewLine }, StringSplitOptions.None)){
+                foreach(string s in KerbalX.api.server_error_message.Split(new string[] { Environment.NewLine }, StringSplitOptions.None)){
                     messages.Add(s);
                 }
-                KerbalXAPI.server_error_message = null;
+                KerbalX.api.server_error_message = null;
                 string title = messages[0];
                 messages[0] = "";
                 error_dialog(() =>{
@@ -51,35 +52,35 @@ namespace CraftManager
                 }, "KerbalX.com Error");
                 on_error();
 
-            } else if(KerbalXAPI.upgrade_required){
+            } else if(KerbalX.api.upgrade_required){
                 error_dialog(()=>{
                     label("Upgrade Required", "h2");
                     label("This version of CraftManager is no longer compatible with KerbalX.com\nYou need to get the latest version.");
-                    label(KerbalXAPI.upgrade_required_message);
+                    label(KerbalX.api.upgrade_required_message);
                     label("You can continue using the local features of CraftManager without updating, but you'll need to update to interface with KerbalX.com", "small");
                     section(()=>{                        
                         section("dialog.section", ()=>{
-                            button("Goto KerbalX.com/mod for more info", "hyperlink.left", ()=>{ Application.OpenURL(KerbalXAPI.url_to("/mod")); });                        
+                            button("Goto KerbalX.com/mod for more info", "hyperlink.left", ()=>{ Application.OpenURL(KerbalX.api.url_to("/mod")); });                        
                         });
                         button("Close", close_dialog);
                     });
                 }, "CraftManager Update Required");
-                KerbalXAPI.upgrade_required = false;
+                KerbalX.api.upgrade_required = false;
                 on_error();
 
             }
 
-            if(KerbalXAPI.failed_to_connect){
+            if(KerbalX.api.failed_to_connect){
                 error_dialog(() =>{
                     label("Unable to Connect to KerbalX.com!", "alert.h1");
                     label("Check your net connection and that you can reach KerbalX in a browser", "alert.h2");
-                    section(() =>{
+                    section((w) =>{
                         button("try again", () =>{
                             RequestHandler.instance.try_again();
                             ModalDialog.close();
                         });                    
                         button("cancel", () =>{
-                            KerbalXAPI.failed_to_connect = false;
+                            KerbalX.api.failed_to_connect = false;
                             ModalDialog.close();
                         });
                     });

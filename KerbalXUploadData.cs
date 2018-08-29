@@ -118,11 +118,11 @@ namespace CraftManager
 //                    craft_data.AddField("image_urls[url_" + pic_count++ + "]", "https://i.imgur.com/nSUkIe0.jpg");
                 }
 
-                KerbalXAPI.upload_craft(craft_data, (resp, code) =>{
+                KerbalX.api.upload_craft(craft_data, (resp, code) =>{
                     //                        var resp_data = JSON.Parse(resp);
                     if(code == 200){
                         CraftManager.log("craft uploaded OK");
-                        KerbalXAPI.fetch_existing_craft(()=>{   //refresh remote craft info 
+                        KerbalX.api.fetch_existing_craft(()=>{   //refresh remote craft info 
                             craft.matching_remote_ids = null;
                             CraftManager.main_ui.close_upload_interface();
                         });
@@ -155,10 +155,10 @@ namespace CraftManager
                 craft_data.AddField("craft_file", System.IO.File.ReadAllText(craft.path));
                 craft_data.AddField("part_data", JSONX.toJSON(part_info()));
 
-                KerbalXAPI.update_craft(update_to_id, craft_data, (resp, code) =>{
+                KerbalX.api.update_craft(update_to_id, craft_data, (resp, code) =>{
                     if(code == 200){
                         CraftManager.log("craft updated OK");
-                        KerbalXAPI.fetch_existing_craft(() =>{                        
+                        KerbalX.api.fetch_existing_craft(() =>{                        
                             CraftManager.main_ui.close_upload_interface();
                         });
                     } else{

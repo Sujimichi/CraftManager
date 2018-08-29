@@ -5,12 +5,15 @@ using System.Threading;
 using UnityEngine;
 using KatLib;
 using SimpleJSON;
+using KXAPI;
 
 namespace CraftManager
 {
 
     public class KerbalX
     {
+
+        internal static KerbalXAPI api = null;
 
         internal static bool enabled {
             get{ 
@@ -69,7 +72,7 @@ namespace CraftManager
             CraftManager.login_ui.enable_login = false; //disable interface while logging in to prevent multiple login clicks
             CraftManager.login_ui.login_failed = false;
             CraftManager.login_ui.login_indicator = null;
-            KerbalXAPI.login(username, password, (resp, code) =>{
+            api.login(username, password, (resp, code) =>{
                 if(code == 200){
                     var resp_data = JSON.Parse(resp);
                     CraftManager.log("Logged in");
@@ -93,7 +96,7 @@ namespace CraftManager
             CraftManager.log("logging in....");
             CraftManager.login_ui.enable_login = false;
             CraftManager.login_ui.login_indicator = null;
-            KerbalXAPI.load_and_authenticate_token((resp, code) =>{
+            api.login((resp, code) =>{
                 if(code == 200){                    
                     var resp_data = JSON.Parse(resp);
                     CraftManager.log("Logged in");
@@ -109,7 +112,7 @@ namespace CraftManager
         }
 
         internal static void logout(){
-            KerbalXAPI.logout((resp, code) =>{
+            api.logout((resp, code) =>{
                 CraftManager.login_ui.enable_login = true;
                 CraftManager.login_ui.login_successful = false;
                 CraftManager.login_ui.username = "";
@@ -133,7 +136,7 @@ namespace CraftManager
         }
 
         private static void if_logged_in_do(ActionCallback callback){            
-            if(KerbalXAPI.logged_in()){
+            if(api.logged_in){
                 callback();
             } else{
                 CraftManager.main_ui.show_must_be_logged_in(() =>{
@@ -220,7 +223,7 @@ namespace CraftManager
 
                     download_list.Remove(id); 
 
-                    KerbalXAPI.download_craft(id, (craft_file_string, code) =>{
+                    api.download_craft(id, (craft_file_string, code) =>{
                         if(code == 200){
                             ConfigNode craft = ConfigNode.Parse(craft_file_string);
                             craft.Save(path);
@@ -239,12 +242,12 @@ namespace CraftManager
         }
 
         internal static void get_craft_ids_by_version(CraftByVersionCallback callback){
-            if(KerbalXAPI.logged_in()){
-                KerbalXAPI.fetch_existing_craft(() =>{                
+            if(api.logged_in){
+                KerbalX.api.fetch_existing_craft(() =>{                
                     
                     Dictionary<string, Dictionary<int, Dictionary<string, string>>> craft_ids_by_version = new Dictionary<string, Dictionary<int, Dictionary<string, string>>>();
                     List<Version> version_list = new List<Version>();
-                    foreach(KeyValuePair<int, Dictionary<string, string>> data in KerbalXAPI.user_craft){
+                    foreach(KeyValuePair<int, Dictionary<string, string>> data in api.user_craft){
                         string v = data.Value["version"];
                         if(!craft_ids_by_version.ContainsKey(v)){
                             craft_ids_by_version.Add(v, new Dictionary<int, Dictionary<string, string>>());
@@ -261,9 +264,9 @@ namespace CraftManager
 
         internal static void find_matching_remote_craft(CraftData craft){
             RemoteCraftMatcher rcm = new RemoteCraftMatcher(() =>{
-                if(KerbalXAPI.user_craft != null){
+                if(api.user_craft != null){
                     List<int> list = new List<int>();
-                    foreach(KeyValuePair<int, Dictionary<string, string>> pair in KerbalXAPI.user_craft){
+                    foreach(KeyValuePair<int, Dictionary<string, string>> pair in api.user_craft){
                         if(pair.Value["name"] == craft.name && pair.Value["type"] == craft.construction_type){
                             list.Add(pair.Key);
                         }
@@ -274,8 +277,8 @@ namespace CraftManager
 
             });
 
-            if(KerbalXAPI.logged_in() && KerbalXAPI.user_craft == null){
-                KerbalXAPI.fetch_existing_craft(() =>{                
+            if(api.logged_in && api.user_craft == null){
+                api.fetch_existing_craft(() =>{                
                     rcm();
                 });                    
             } else{
@@ -291,7 +294,7 @@ namespace CraftManager
                 part_data.AddField("parts", part_json);
                 Dictionary<string, string> identified_parts = new Dictionary<string, string>();
                 CraftManager.status_info = "Looking up parts....";
-                KerbalXAPI.lookup_parts(part_data, (resp, code) => {
+                api.lookup_parts(part_data, (resp, code) => {
                     if(code == 200){
                         JSONNode part_info = JSON.Parse(resp);
                         foreach(string part_name in parts){
@@ -310,7 +313,7 @@ namespace CraftManager
         internal static void download(int id, DownloadCallback callback){
             if_logged_in_do(() =>{
                 CraftManager.status_info = "Downloading craft from KerbalX...";
-                KerbalXAPI.download_craft(id, (craft_file_string, code) =>{
+                api.download_craft(id, (craft_file_string, code) =>{
                     if(code == 200){
                         ConfigNode craft = ConfigNode.Parse(craft_file_string);
                         check_download_queue();
@@ -323,11 +326,11 @@ namespace CraftManager
 
         internal static void remove_from_download_queue(CraftData craft){
             if_logged_in_do(() =>{
-                KerbalXAPI.remove_from_queue(craft.remote_id, (resp, code)=>{                    
+                KerbalX.api.remove_from_queue(craft.remote_id, (resp, code)=>{                    
                     if(code==200){
                         CraftData.all_craft.Remove(craft);
                         CraftData.filtered.Remove(craft);
-                        KerbalXAPI.fetch_download_queue(craft_data =>{
+                        api.fetch_download_queue(craft_data =>{
                             download_queue_size = craft_data.Count;
                         });
                     }
@@ -336,21 +339,21 @@ namespace CraftManager
         }
 
         internal static void fetch_existing_craft_info(){
-            if(KerbalXAPI.logged_in()){
+            if(api.logged_in){
                 CraftManager.status_info = "fetching craft info from KerbalX";
                 for(int i = 0; i < CraftData.all_craft.Count; i++){
                     CraftData.all_craft[i].matching_remote_ids = null;
                 }
-                KerbalXAPI.fetch_existing_craft(() =>{
+                api.fetch_existing_craft(() =>{
                     CraftManager.status_info = "";
                 });
             }
         }
 
         internal static void check_download_queue(){
-            if(KerbalXAPI.logged_in()){
+            if(api.logged_in){
                 CraftManager.status_info = "checking KerbalX download queue";
-                KerbalXAPI.fetch_download_queue(craft_data =>{
+                api.fetch_download_queue(craft_data =>{
                     download_queue_size = craft_data.Count;
                     CraftManager.status_info = "";
                 });
@@ -368,8 +371,8 @@ namespace CraftManager
             if_logged_in_do(() =>{
                 CraftManager.status_info = "fetching your craft from KerbalX";
                 loaded_craft_type = "users";
-                KerbalXAPI.fetch_existing_craft(() =>{                
-                    after_load_action(KerbalXAPI.user_craft);
+                api.fetch_existing_craft(() =>{                
+                    after_load_action(api.user_craft);
                 });
             });
         }
@@ -378,7 +381,7 @@ namespace CraftManager
             if_logged_in_do(() =>{
                 CraftManager.status_info = "fetching you past downloads from KerbalX";
                 loaded_craft_type = "past_downloads";
-                KerbalXAPI.fetch_past_downloads(craft_data =>{
+                api.fetch_past_downloads(craft_data =>{
                     after_load_action(craft_data);
                 });
             });
@@ -388,7 +391,7 @@ namespace CraftManager
             if_logged_in_do(() =>{
                 CraftManager.status_info = "fetching your favourites from KerbalX";
                 loaded_craft_type = "favourites";
-                KerbalXAPI.fetch_favoutite_craft(craft_data =>{
+                api.fetch_favoutite_craft(craft_data =>{
                     after_load_action(craft_data);
                 });
             });
@@ -398,7 +401,7 @@ namespace CraftManager
             if_logged_in_do(() =>{
                 CraftManager.status_info = "fetching download queue from KerbalX";
                 loaded_craft_type = "download_queue";
-                KerbalXAPI.fetch_download_queue(craft_data =>{
+                api.fetch_download_queue(craft_data =>{
                     after_load_action(craft_data);
                 });
             });

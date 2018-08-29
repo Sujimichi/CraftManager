@@ -53,7 +53,7 @@ namespace CraftManager
 
             if(KerbalX.enabled){
                 enable_request_handler();
-                if(KerbalXAPI.logged_in() && bool.Parse(CraftManager.settings.get("ask_to_populate_new_save"))){
+                if(KerbalX.api.logged_in && bool.Parse(CraftManager.settings.get("ask_to_populate_new_save"))){
                     if(Directory.GetFiles(Paths.joined(CraftManager.ksp_root, "saves", current_save_dir), "*.craft", SearchOption.AllDirectories).Length == 0){
                         populate_new_save_dialog();
                     }
@@ -442,7 +442,7 @@ namespace CraftManager
                         if(craft.remote){
                             section(()=>{                                
                                 label("made in KSP: " + craft.ksp_version, "craft.tags");
-                                if(craft.author != KerbalXAPI.kx_username){
+                                if(craft.author != KerbalX.api.logged_in_as){
                                     label(" by: " + craft.author, "craft.tags");
                                 }
                             });
@@ -499,7 +499,7 @@ namespace CraftManager
                         CraftData.select_craft(craft); //ensure the right clicked craft is the focus craft
                         menu = new DropdownMenuData(new Dictionary<string, string>{{"add_tag", "Add Tag"}, {"rename", "Rename"}, {"transfer", "Transfer"}});
                         if(saves_count > 1){menu.items.Add("move_copy", "Move/Copy");}
-                        if(!craft.stock_craft && KerbalXAPI.logged_in()){
+                        if(!craft.stock_craft && KerbalX.api.logged_in){
                             if(craft.on_kerbalx()){
                                 menu.items.Add("update", "Update on KerbalX");
                             }else{
@@ -523,7 +523,7 @@ namespace CraftManager
                             case "share"        : open_upload_interface(); break;
                             case "update"       : show_update_kerbalx_craft_dialog(); break;
                             case "delete"       : delete_craft_dialog(); break;
-                            case "view_remote"  : Application.OpenURL(KerbalXAPI.url_to(craft.url)); break;
+                            case "view_remote"  : Application.OpenURL(KerbalX.api.url_to(craft.url)); break;
                             case "download"     : load_craft("dl_load"); break;
                             case "bulk_download": show_bulk_download_dialog(); break;
                         }                            
@@ -787,7 +787,7 @@ namespace CraftManager
                 }
 
                 button("View on KerbalX", "hyperlink.bold", ()=>{
-                    Application.OpenURL(KerbalXAPI.url_to(craft.url));
+                    Application.OpenURL(KerbalX.api.url_to(craft.url));
                 });
             }else{
                 GUILayout.Space(15);
@@ -804,7 +804,7 @@ namespace CraftManager
                     });
                     if(KerbalX.enabled && !craft.stock_craft){
                         section((w)=>{
-                            if(KerbalXAPI.logged_in()){
+                            if(KerbalX.api.logged_in){
                                 if(upload_interface_ready == false){
                                     if(craft.on_kerbalx()){
                                         button("Update craft on KerbalX", show_update_kerbalx_craft_dialog);
