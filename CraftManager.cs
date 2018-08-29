@@ -10,7 +10,6 @@ using System.Collections.Generic;
 
 using UnityEngine;
 using KSP.UI.Screens;
-using SimpleJSON;
 using KatLib;
 using KXAPI;
 

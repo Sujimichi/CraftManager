@@ -133,8 +133,7 @@ namespace CraftManager
                     //return UI to craft list mode and show upload complete dialog.
                     CraftManager.main_ui.show_transfer_indicator = false;
                     //                        CraftManager.main_ui.unlock_ui();
-                    CraftManager.main_ui.upload_complete_dialog(code, resp);
-
+                    CraftManager.main_ui.upload_complete_dialog(code, JSON.Parse(resp));
                 });
 
             }

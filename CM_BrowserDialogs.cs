@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
-using SimpleJSON;
 using ExtensionMethods;
 using KatLib;
 
@@ -534,11 +533,11 @@ namespace CraftManager
             });
         }
 
-        public void upload_complete_dialog(int remote_status_code, string response){
-            var resp_data = JSON.Parse(response);
+        public void upload_complete_dialog(int remote_status_code, SimpleJSON.JSONNode response){
+            
             show_dialog(remote_status_code == 200 ? "Upload Complete" : "Upload Error", "", d =>{
                 if(remote_status_code == 200){
-                    string craft_url = resp_data["url"];
+                    string craft_url = response["url"];
                     string craft_full_url = KerbalX.api.url_to(craft_url);
                     label("Your Craft has been uploaded!", "h2");
                     button("It is now available here:\n" + craft_full_url, "hyperlink.bold", ()=>{
