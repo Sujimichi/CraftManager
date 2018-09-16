@@ -153,7 +153,7 @@ namespace CraftManager
                 button("Yes, Enable KerbalX Integration", "button.large", () =>{
                     CraftManager.settings.set("KerbalX_integration_enabled", "True");
                     CraftManager.settings.set("show_initial_setup_dialog", "False");
-//                    gameObject.AddOrGetComponent<CMKX_login>(); //TODO add call to login here
+                    KerbalX.api.login();
                     GameObject.Destroy(this);
                 });
                 button("No, just use CraftManager core features", "button.large", () =>{

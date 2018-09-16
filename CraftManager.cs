@@ -73,7 +73,9 @@ namespace CraftManager
         }
 
         private void Start(){
-            KerbalX.api.login();
+            if(KerbalX.enabled){
+                KerbalX.api.login();
+            }
         }
 
 
