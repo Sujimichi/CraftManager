@@ -52,7 +52,7 @@ namespace CraftManager
             StartCoroutine(CraftDataCache.load_cache());
 
             if(KerbalX.enabled){
-                enable_request_handler();
+//                enable_request_handler();
                 if(KerbalX.api.logged_in && bool.Parse(CraftManager.settings.get("ask_to_populate_new_save"))){
                     if(Directory.GetFiles(Paths.joined(CraftManager.ksp_root, "saves", current_save_dir), "*.craft", SearchOption.AllDirectories).Length == 0){
                         populate_new_save_dialog();
@@ -814,7 +814,7 @@ namespace CraftManager
                                 }
                             }else{
                                 button("Login to KerbalX to share craft", "button.small", ()=>{
-                                    show_must_be_logged_in(KerbalX.close_login_dialog);
+                                    KerbalX.api.login();
                                 });
                             }                                   
                         });

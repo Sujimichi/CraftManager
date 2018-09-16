@@ -122,7 +122,7 @@ namespace CraftManager
                     //                        var resp_data = JSON.Parse(resp);
                     if(code == 200){
                         CraftManager.log("craft uploaded OK");
-                        KerbalX.api.fetch_existing_craft(()=>{   //refresh remote craft info 
+                        KerbalX.api.fetch_existing_craft((empty_resp, status_code)=>{   //refresh remote craft info 
                             craft.matching_remote_ids = null;
                             CraftManager.main_ui.close_upload_interface();
                         });
@@ -157,7 +157,7 @@ namespace CraftManager
                 KerbalX.api.update_craft(update_to_id, craft_data, (resp, code) =>{
                     if(code == 200){
                         CraftManager.log("craft updated OK");
-                        KerbalX.api.fetch_existing_craft(() =>{                        
+                        KerbalX.api.fetch_existing_craft((empty_resp, status_code) =>{                        
                             CraftManager.main_ui.close_upload_interface();
                         });
                     } else{

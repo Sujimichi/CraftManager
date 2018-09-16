@@ -25,4 +25,4 @@ using System.Runtime.CompilerServices;
 //[assembly: AssemblyDelaySign(false)]
 //[assembly: AssemblyKeyFile("")]
 
-[assembly: KSPAssemblyDependency("KXAPI"﻿, 1, 0)]
+[assembly: KSPAssemblyDependency("KXAPI", 1, 0)]

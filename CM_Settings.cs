@@ -23,8 +23,8 @@ namespace CraftManager
 
             //default settings. These will populate settings.cfg if the file doesn't exist and also provides
             //a reference of which values to try and fetch from the confignode.
-            settings.Add("show_initial_setup_dialog", "True"); 
-            settings.Add("KerbalX_integration_enabled", "False");
+            settings.Add("show_initial_setup_dialog", "False"); 
+            settings.Add("KerbalX_integration_enabled", "True"); //TODO revert to defaults
             settings.Add("ask_to_populate_new_save", "True");
             settings.Add("replace_editor_load_button", "True");
             settings.Add("use_stock_toolbar", "True");
@@ -153,7 +153,7 @@ namespace CraftManager
                 button("Yes, Enable KerbalX Integration", "button.large", () =>{
                     CraftManager.settings.set("KerbalX_integration_enabled", "True");
                     CraftManager.settings.set("show_initial_setup_dialog", "False");
-                    gameObject.AddOrGetComponent<CMKX_login>();
+//                    gameObject.AddOrGetComponent<CMKX_login>(); //TODO add call to login here
                     GameObject.Destroy(this);
                 });
                 button("No, just use CraftManager core features", "button.large", () =>{
