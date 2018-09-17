@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
-using SimpleJSON;
 using ExtensionMethods;
 using KatLib;
 
@@ -534,12 +533,12 @@ namespace CraftManager
             });
         }
 
-        public void upload_complete_dialog(int remote_status_code, string response){
-            var resp_data = JSON.Parse(response);
+        public void upload_complete_dialog(int remote_status_code, SimpleJSON.JSONNode response){
+            
             show_dialog(remote_status_code == 200 ? "Upload Complete" : "Upload Error", "", d =>{
                 if(remote_status_code == 200){
-                    string craft_url = resp_data["url"];
-                    string craft_full_url = KerbalXAPI.url_to(craft_url);
+                    string craft_url = response["url"];
+                    string craft_full_url = KerbalX.api.url_to(craft_url);
                     label("Your Craft has been uploaded!", "h2");
                     button("It is now available here:\n" + craft_full_url, "hyperlink.bold", ()=>{
                         Application.OpenURL(craft_full_url);
@@ -677,10 +676,10 @@ namespace CraftManager
             Dictionary<string, string> upload_select_data_all = new Dictionary<string, string>();
 
             foreach(int id in craft.matching_remote_ids){
-                upload_select_data_matching.Add(id.ToString(), KerbalXAPI.user_craft[id]["url"].Replace(("/" + KerbalXAPI.logged_in_as()+ "/"), ""));
+                upload_select_data_matching.Add(id.ToString(), KerbalX.api.user_craft[id]["url"].Replace(("/" + KerbalX.api.logged_in_as+ "/"), ""));
             }
-            foreach(KeyValuePair<int, Dictionary<string, string>> c in KerbalXAPI.user_craft){
-                upload_select_data_all.Add(c.Key.ToString(), c.Value["url"].Replace(("/" + KerbalXAPI.logged_in_as()+ "/"), ""));
+            foreach(KeyValuePair<int, Dictionary<string, string>> c in KerbalX.api.user_craft){
+                upload_select_data_all.Add(c.Key.ToString(), c.Value["url"].Replace(("/" + KerbalX.api.logged_in_as+ "/"), ""));
             }
 
             DropdownMenuData upload_select_menu = new DropdownMenuData();
@@ -696,8 +695,8 @@ namespace CraftManager
                 d_offset.x = -d.window_pos.x; d_offset.y = -d.window_pos.y;
 
                 if(craft.upload_data.update_to_id != 0){
-                    menu_label = KerbalXAPI.user_craft[craft.upload_data.update_to_id]["url"].Replace(("/" + KerbalXAPI.logged_in_as() + "/"), "");
-                    kx_url = KerbalXAPI.url_to(KerbalXAPI.user_craft[craft.upload_data.update_to_id]["url"]);
+                    menu_label = KerbalX.api.user_craft[craft.upload_data.update_to_id]["url"].Replace(("/" + KerbalX.api.logged_in_as + "/"), "");
+                    kx_url = KerbalX.api.url_to(KerbalX.api.user_craft[craft.upload_data.update_to_id]["url"]);
                 }else{
                     menu_label = "Select a craft";
                 }

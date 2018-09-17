@@ -10,8 +10,8 @@ using System.Collections.Generic;
 
 using UnityEngine;
 using KSP.UI.Screens;
-using SimpleJSON;
 using KatLib;
+using KXAPI;
 
 namespace CraftManager
 {
@@ -34,7 +34,7 @@ namespace CraftManager
 
         //Interface Instances
         internal static CMBrowser main_ui = null;
-        internal static CMKX_login login_ui = null;
+//        internal static CMKX_login login_ui = null;
         internal static GrabImage camera = null;
         internal static SettingsUI settings_ui = null;
         internal static HelpUI help_ui = null;
@@ -53,8 +53,6 @@ namespace CraftManager
         
 
         private void Awake(){
-            KerbalXAPI.client_version = CraftManager.version;
-            KerbalXAPI.client = "CraftManager";
             settings = new CMSettings();
 
             bool using_toolbar = false;
@@ -72,6 +70,12 @@ namespace CraftManager
             }
 
             GameEvents.onGameSceneLoadRequested.Add(scene_load_request);    
+        }
+
+        private void Start(){
+            if(KerbalX.enabled){
+                KerbalX.api.login();
+            }
         }
 
 
