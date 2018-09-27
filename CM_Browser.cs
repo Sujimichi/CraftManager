@@ -650,7 +650,6 @@ namespace CraftManager
                                 }                                
                                 if(tag_prev_state != tag_state){
                                     Tags.toggle_active(tag_name);
-                                    filter_craft();
                                 }
                             }                            
                         });
