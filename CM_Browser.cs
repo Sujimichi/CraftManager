@@ -303,6 +303,8 @@ namespace CraftManager
             }
         }
 
+        internal bool craft_visible = false;
+
         //The Main craft list
         protected void draw_main_section(float section_width){
             v_section(section_width, main_section_height, false, (inner_width)=>{
@@ -357,11 +359,7 @@ namespace CraftManager
                 }
 
                 //Main craft list scrolling section
-                bool calculate_heights = false;
-                if(CraftData.filtered.FindAll(c => c.list_height == 0).Count > 0){
-                    calculate_heights = true;
-                }
-                bool craft_visible = false;
+                craft_visible = false;
 
                 scroll_pos["main"] = scroll(scroll_pos["main"], "craft.list_container", inner_width, main_section_height, craft_list_width => {                    
                     item_last_height = 0;
@@ -375,8 +373,9 @@ namespace CraftManager
                         //Layout event, otherwise the switch between drawing the full detail and the placeholder causes GUI errors (of the pushing more than poping sort).
                         craft_visible = craft.list_position + craft.list_height > scroll_pos["main"].y-100 && craft.list_position < scroll_pos["main"].y + main_section_height+100;
                         if(Event.current.type == EventType.Layout){
-                            craft.draw = (calculate_heights || craft_visible);
+                            craft.draw = craft_visible;
                         }
+
                         //either draw the full detail craft item or a placeholder depending on if it is in the scroll view.
                         if(craft.draw){
                             draw_craft_list_item(craft, craft_list_width); //render each craft
@@ -392,17 +391,16 @@ namespace CraftManager
 
                         //this is used to get the top offset position of each item in the craft list and that is stored on the CraftData object
                         //facilitates maintaining focus on list items when using the up/down arrow keys to scroll.
-                        if(calculate_heights && Event.current.type == EventType.Repaint){
-                            craft.list_position = item_last_height;
-                            craft.list_height = GUILayoutUtility.GetLastRect().height + 5; //+5 for margin
-                            item_last_height += craft.list_height;
-                        }
+                        craft.list_position = item_last_height;
+                        item_last_height += craft.list_height;
                     }
                     if(CraftData.filtered.Count == 0){
                         show_no_matching_craft_message();
                     }
                 });
-                if(calculate_heights && Event.current.type == EventType.Repaint){
+
+
+                if(Event.current.type == EventType.Repaint){
                     craft_list_overflow = item_last_height+10 >= main_section_height;
                 }
                 scroll_pos["main"] = drag_scroll(GUILayoutUtility.GetLastRect(), scroll_pos["main"]);
@@ -474,6 +472,7 @@ namespace CraftManager
                     }else{
                         CraftData.toggle_selected(craft);  
                     }
+                    CraftManager.log("list height: " + craft.list_height.ToString());
                 } else if(evt.double_click){
                     CraftData.select_craft(craft);
                     if(craft.remote){

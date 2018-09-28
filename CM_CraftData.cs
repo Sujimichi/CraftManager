@@ -158,10 +158,6 @@ namespace CraftManager
                 }
             }
 
-            //reset the list_height values on filtered craft so they are recalculated when the list is first drawn
-            for(int i = 0; i < filtered.Count; i++){
-                filtered[i].list_height = 0;
-            }
         }
 
 
@@ -459,6 +455,13 @@ namespace CraftManager
                 if(locked_parts_state != locked_parts){
                     cache_after_load = true;
                 }
+            }
+
+            list_height = 85;
+            if(this.missing_parts && this.locked_parts){
+                list_height = 121;
+            } else if(this.missing_parts || this.locked_parts){
+                list_height = 95;
             }
 
             if(cache_after_load){
