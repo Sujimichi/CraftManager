@@ -41,12 +41,11 @@ namespace CraftManager
                 craft_file_paths = Directory.GetFiles(Paths.joined(CraftManager.ksp_root, "saves", save_dir), "*.craft", SearchOption.AllDirectories);
             }
 
-
             all_craft.Clear();
-            foreach(string path in craft_file_paths){                
-                new CraftData(path);
+            for(int i=0; i < craft_file_paths.Length; i++){
+                new CraftData(craft_file_paths[i]);
             }
-
+            
             if(CraftManager.main_ui && !CraftManager.main_ui.exclude_stock_craft){
                 load_stock_craft_from_files();
             }
@@ -58,11 +57,14 @@ namespace CraftManager
             }
         }
 
-        public static void load_stock_craft_from_files(){            
+
+        public static void load_stock_craft_from_files(){
+            CraftManager.log("loading stock craft");
             string[] craft_file_paths = Directory.GetFiles(Paths.joined(CraftManager.ksp_root, "Ships"), "*.craft", SearchOption.AllDirectories);
-            foreach(string path in craft_file_paths){
-                new CraftData(path, true);
+            for(int i=0; i < craft_file_paths.Length; i++){
+                new CraftData(craft_file_paths[i], true);
             }
+
             if(CraftManager.main_ui){
                 CraftManager.main_ui.stock_craft_loaded = true;
             };
