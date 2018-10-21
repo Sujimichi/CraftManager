@@ -104,3 +104,110 @@ namespace CraftManager
 
     }
 }
+
+//[KSPAddon(KSPAddon.Startup.EditorAny, false)]
+//public class GeoCacheTest : CMUI
+//{
+//    
+//    private string search_string;
+//    private int last_id;
+//    private void Start(){
+//        visible = true;    
+//    }
+//    
+//    protected override void WindowContent(int win_id){
+//        button("list_caches", () =>{
+//            KerbalX.api.fetch_geo_cache_list((resp, code) => {
+//                Debug.Log(resp);
+//            });
+//        });
+//        
+//        search_string = GUILayout.TextField(search_string);
+//        button("search", () =>{
+//            WWWForm search_params = new WWWForm();
+//            search_params.AddField("name", search_string);
+//            
+//            KerbalX.api.search_geo_caches(search_params, (resp, code) => {
+//                Debug.Log(resp);
+//            }); 
+//        });
+//        
+//        button("upload", () =>{
+//            
+//            ConfigNode geo_cache = new ConfigNode();
+//            ConfigNode sub_node = new ConfigNode();
+//            geo_cache.name = "GEO_CACHE";
+//            geo_cache.AddValue("some attr", "some value");
+//            geo_cache.AddValue("some other attr", "some other value");
+//            geo_cache.AddNode("SUB_DATA", sub_node);
+//            sub_node.AddValue("sub attr", "sub value");
+//            
+//            
+//            WWWForm form = new WWWForm();
+//            form.AddField("name", "foobar");
+//            form.AddField("coordinates", "someplace");
+//            form.AddField("file", geo_cache.ToString());
+//            
+//            KerbalX.api.upload_geo_cache(form, (resp, code) => {                    
+//                if(code == 200){
+//                    //example resp: "{\"created\":true,\"id\":8}"
+//                    int database_id = int.Parse(JSON.Parse(resp)["id"]); ﻿   
+//                }else if(code == 422){ //unable to save geo_cache (ie invalid data).
+//                    //example resp: "{\"created\":false,\"errors\":\"unable to save because reasons\"}"
+//                    Debug.Log(JSON.Parse(resp)["errors"]);
+//                }else{
+//                    Debug.Log("unknown error: " + resp);
+//                }    
+//            });
+//        });
+//        
+//        
+//        button("get latest id", () =>{
+//            KerbalX.api.fetch_geo_cache_list((resp, code) => {
+//                if(code == 200){
+//                    var data = JSON.Parse(resp);
+//                    Debug.Log("cache count: " + data.Count);
+//                    last_id = int.Parse(data[data.Count-1]["id"]);                        
+//                }
+//            });                
+//        });
+//        label("last id: " + last_id);
+//        
+//        button("fetch latest", () =>{                
+//            KerbalX.api.fetch_geo_cache(last_id, (geo_cache, status_code) => {
+//                Debug.Log(geo_cache); 
+//                ConfigNode geo = ConfigNode.Parse(geo_cache);
+//            });            
+//        });
+//        
+//        button("update latest", () =>{
+//            ConfigNode geo_cache = new ConfigNode();
+//            geo_cache.name = "GEO_CACHE";
+//            geo_cache.AddValue("some attr", "some updated value");
+//            geo_cache.AddValue("some other attr", "some other updated value");
+//            
+//            WWWForm form = new WWWForm();
+//            form.AddField("name", "new foobar");
+//            form.AddField("coordinates", "some new place");
+//            form.AddField("file", geo_cache.ToString());
+//            
+//            KerbalX.api.update_geo_cache(last_id, form, (resp, code) => {
+//                if(code == 200){
+//                    //example response: "{\"updated\":true,\"id\":8}"
+//                }else if(code == 422){
+//                    //example resp: "{\"updated\":false,\"errors\":\"unable to update because reasons\"}"
+//                }else{
+//                    Debug.Log("unknown error: " + resp);
+//                }
+//            }); 
+//        });
+//        
+//        button("delete latest", () =>{
+//            KerbalX.api.destroy_geo_cache(last_id, (resp, code) => {
+//                Debug.Log(resp);
+//            });
+//        });
+//        
+//        
+//    }
+//}
