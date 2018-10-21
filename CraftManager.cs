@@ -15,7 +15,7 @@ using KXAPI;
 
 namespace CraftManager
 {
-
+    
     [KSPAddon(KSPAddon.Startup.MainMenu, false)]
     public class CraftManager : MonoBehaviour
     {
@@ -78,14 +78,10 @@ namespace CraftManager
             }
         }
 
-
-
         //Bind events to add buttons to the toolbar
         private void add_main_icon_to_toolbar(){
             ApplicationLauncher.Instance.AddOnHideCallback(this.toolbar_on_hide);     //bind events to close guis when toolbar hides
-
             CraftManager.log("Adding main icon to toolbar");
-
             if(!CraftManager.main_ui_toolbar_button){
                 CraftManager.main_ui_toolbar_button = ApplicationLauncher.Instance.AddModApplication(
                     toggle_main_ui, toggle_main_ui, 

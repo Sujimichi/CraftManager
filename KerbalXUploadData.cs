@@ -174,8 +174,8 @@ namespace CraftManager
             Dictionary<string, object> part_data = new Dictionary<string, object>();
 
             foreach(string part_name in craft.part_name_list){
-                if(!part_data.ContainsKey(part_name) && CraftData.cache.part_data.ContainsKey(part_name)){
-                    AvailablePart av_part = CraftData.cache.part_data[part_name];
+                if(!part_data.ContainsKey(part_name) && CraftDataCache.part_data.ContainsKey(part_name)){
+                    AvailablePart av_part = CraftDataCache.part_data[part_name];
                     if(av_part != null){
                         Part part = av_part.partPrefab;
                         Dictionary<string, object> part_detail = new Dictionary<string, object>();

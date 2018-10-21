@@ -9,11 +9,12 @@ namespace CraftManager
     public class CraftDataCache
     {
         internal static string cache_path = Paths.joined(CraftManager.ksp_root, "GameData", "CraftManager", "PluginData", "craft_data.cache");
-        internal string installed_part_sig; //checksum signature of the installed parts, used to determine if the installed parts have changed since last time
+        internal static string installed_part_sig; //checksum signature of the installed parts, used to determine if the installed parts have changed since last time
+
+        internal static Dictionary<string, AvailablePart> part_data = new Dictionary<string, AvailablePart>();  //name->part lookup for available parts
+        internal static List<string> locked_parts = new List<string>();
 
         private Dictionary<string, ConfigNode> craft_data = new Dictionary<string, ConfigNode>();
-        internal Dictionary<string, AvailablePart> part_data = new Dictionary<string, AvailablePart>();  //name->part lookup for available parts
-        internal List<string> locked_parts = new List<string>();
         private List<string> ignore_fields = new List<string>{"selected_craft", "selected_group", "active_craft", "loaded_craft_saved", "craft_saved", "save_names"};
 
         internal Dictionary<string, int> tag_craft_count_store = new Dictionary<string, int>();
@@ -24,6 +25,37 @@ namespace CraftManager
             }
             return tag_craft_count_store[lookup + "_" + modifiyer];
         }
+
+        internal static void cache_game_parts(){
+            CraftManager.log("caching game parts");
+            locked_parts.Clear();
+            List<string> part_names = new List<string>();
+            foreach(AvailablePart part in PartLoader.LoadedPartsList){
+                if(!part_data.ContainsKey(part.name)){
+                    part_data.Add(part.name, part);
+                }
+                part_names.AddUnique(part.name);                        
+                if(!ResearchAndDevelopment.PartTechAvailable(part)){
+                    locked_parts.AddUnique(part.name);
+                }
+            }
+            //Make a string containing all the installed parts and the data from LoaderInfo in the save file and 
+            //then generate a checksum from it.  This is used as a signature of the installed setup which will change
+            //if the installed mods are changed enabling craft to disregard cached data after a change in mod setup.
+            part_names.Sort();
+            string s = String.Join("", part_names.ToArray());
+            string lf = "";
+            try{
+                ConfigNode save_data = ConfigNode.Load(Paths.joined(CraftManager.ksp_root, "saves", HighLogic.SaveFolder, "persistent.sfs"));                   
+                ConfigNode loader_info = save_data.GetNode("GAME").GetNode("LoaderInfo");
+                lf = loader_info.ToString();
+            }
+            catch(Exception e){
+                CraftManager.log("Failed to read loaderinfo " + e.Message);
+            }
+            installed_part_sig = Checksum.digest(s+lf);
+        }
+
 
 
         internal CraftDataCache(){
@@ -40,33 +72,7 @@ namespace CraftManager
             }
 
             if(part_data.Count == 0){
-                CraftManager.log("caching game parts");
-                locked_parts.Clear();
-                List<string> part_names = new List<string>();
-                foreach(AvailablePart part in PartLoader.LoadedPartsList){
-                    if(!part_data.ContainsKey(part.name)){
-                        part_data.Add(part.name, part);
-                    }
-                    part_names.AddUnique(part.name);                        
-                    if(!ResearchAndDevelopment.PartTechAvailable(part)){
-                        locked_parts.AddUnique(part.name);
-                    }
-                }
-                //Make a string containing all the installed parts and the data from LoaderInfo in the save file and 
-                //then generate a checksum from it.  This is used as a signature of the installed setup which will change
-                //if the installed mods are changed enabling craft to disregard cached data after a change in mod setup.
-                part_names.Sort();
-                string s = String.Join("", part_names.ToArray());
-                string lf = "";
-                try{
-                    ConfigNode save_data = ConfigNode.Load(Paths.joined(CraftManager.ksp_root, "saves", HighLogic.SaveFolder, "persistent.sfs"));                   
-                    ConfigNode loader_info = save_data.GetNode("GAME").GetNode("LoaderInfo");
-                    lf = loader_info.ToString();
-                }
-                catch(Exception e){
-                    CraftManager.log("Failed to read loaderinfo " + e.Message);
-                }
-                installed_part_sig = Checksum.digest(s+lf);
+                cache_game_parts();                
             }
             CraftManager.log("Cache Ready");
         }
