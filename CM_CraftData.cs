@@ -334,7 +334,7 @@ namespace CraftManager
         public float mass_total { get; set; }
         public bool stock_craft { get; set; }
         public bool missing_parts { get; set; }
-        public bool locked_parts { get; set; }  //This is an exception. locked_parts will be cached to the in-memory cache but not to the persistent cache.
+        public bool has_locked_parts { get; set; }  //This is an exception. locked_parts will be cached to the in-memory cache but not to the persistent cache.
 
 
         //part_name_list holds a unique list of the craft parts, but uses part_names as the getter and setter for it
@@ -428,7 +428,7 @@ namespace CraftManager
 
             part_sig = checksum = "";
             cost_dry = cost_fuel = mass_dry = mass_fuel = 0;
-            missing_parts = locked_parts = false;           
+            missing_parts = has_locked_parts = false;           
 
             CraftData.all_craft.Add(this);
         }
@@ -437,7 +437,7 @@ namespace CraftManager
             path = full_path.Replace("\\", "/");
             checksum = Checksum.digest(File.ReadAllText(path));
             stock_craft = stock;
-            locked_parts = false;
+            has_locked_parts = false;
             locked_parts_checked = false;
 
             bool cache_after_load = false;
@@ -447,22 +447,22 @@ namespace CraftManager
             if(!cache.try_fetch(this)){
                 read_craft_info_from_file();
                 check_locked_parts();
-                part_sig = cache.installed_part_sig;
+                part_sig = CraftDataCache.installed_part_sig;
                 cache_after_load = true;
             }
                 
-            bool locked_parts_state = locked_parts;
+            bool locked_parts_state = has_locked_parts;
             if(!locked_parts_checked){
                 check_locked_parts();
-                if(locked_parts_state != locked_parts){
+                if(locked_parts_state != has_locked_parts){
                     cache_after_load = true;
                 }
             }
 
             list_height = 85;
-            if(this.missing_parts && this.locked_parts){
+            if(this.missing_parts && this.has_locked_parts){
                 list_height = 121;
-            } else if(this.missing_parts || this.locked_parts){
+            } else if(this.missing_parts || this.has_locked_parts){
                 list_height = 95;
             }
 
@@ -598,11 +598,11 @@ namespace CraftManager
         //craft after entering the editor, and its value will be cached in the in-memory cache so it doesn't need rechecking until the
         //next scene change.
         public void check_locked_parts() {
-            locked_parts = false;
+            has_locked_parts = false;
             if(HighLogic.CurrentGame.Mode != Game.Modes.SANDBOX){
                 foreach(string p_name in part_name_list){
-                    if(cache.locked_parts.Contains(p_name)){
-                        locked_parts = true;
+                    if(CraftDataCache.locked_parts.Contains(p_name)){
+                        has_locked_parts = true;
                     }
                 }
             }

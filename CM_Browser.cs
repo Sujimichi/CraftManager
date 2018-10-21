@@ -8,13 +8,14 @@ using UnityEngine;
 using ExtensionMethods;
 using KatLib;
 
+using SimpleJSON;
+
 namespace CraftManager
 {
 
     //Inheritance Chain:
     //  |                     CraftManager                      |       KatLib        |     Unity    |
-    //  CMBrowser <- CMBrowserDialogs < - CMBrowserBase <- CMUI <- DryUI <- DryUIBase <- MonoBehaviour
-
+    //  CMBrowser <- CMBrowserDialogs < - CMBrowserBase <- CMUI <- DryUI <- DryUIBase <- MonoBehaviour   
     [KSPAddon(KSPAddon.Startup.EditorAny, false)]
     public class CMBrowser : CMBrowserDialogs
     {
@@ -447,7 +448,7 @@ namespace CraftManager
                             if(craft.tag_names().Count > 0){
                                 label("#" + String.Join(", #", craft.tag_names().ToArray()), "craft.tags");
                             }    
-                            if(craft.locked_parts){
+                            if(craft.has_locked_parts){
                                 label("This craft has locked parts", "craft.locked_parts");
                             }
                             if(craft.missing_parts){
