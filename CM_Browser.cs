@@ -385,6 +385,7 @@ namespace CraftManager
                                 label(craft.name);
                             });
                         }
+
                         if(!thumbnail_generating && craft_visible && craft.thumbnail == null){
                             thumbnail_generating = true;
                             StartCoroutine(craft.load_thumbnail_image());

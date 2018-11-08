@@ -376,7 +376,7 @@ namespace CraftManager
 
         public string new_name = "";
         public float list_position = 0;
-        public float list_height = 0;
+        public float list_height = 85;
         public bool draw = true;
         public bool menu_open = false;
 
@@ -459,7 +459,6 @@ namespace CraftManager
                 }
             }
 
-            list_height = 85;
             if(this.missing_parts && this.has_locked_parts){
                 list_height = 121;
             } else if(this.missing_parts || this.has_locked_parts){
