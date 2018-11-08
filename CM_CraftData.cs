@@ -511,8 +511,8 @@ namespace CraftManager
             ConfigNode[] parts = data.GetNodes();
             AvailablePart matched_part;
 
-            name = data.GetValue("ship");
-            description = data.GetValue("description");
+            name = Translate.this_string(data.GetValue("ship"));
+            description = Translate.this_string(data.GetValue("description"));
             construction_type = data.GetValue("type");
             ksp_version = data.GetValue("version");
             if(!(construction_type == "SPH" || construction_type == "VAB")){

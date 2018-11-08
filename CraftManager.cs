@@ -208,4 +208,17 @@ namespace CraftManager
             }
         }
     }
+
+    internal class Translate
+    {
+        internal static string this_string(string look_up){
+            if(look_up.Contains("#autoLOC")){
+                string translated_name;
+                if(KSP.Localization.Localizer.TryGetStringByTag(look_up, out translated_name)){
+                    look_up = translated_name;
+                }
+            }
+            return look_up;
+        }
+    }
 }
