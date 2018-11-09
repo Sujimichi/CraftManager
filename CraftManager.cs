@@ -209,6 +209,11 @@ namespace CraftManager
         }
     }
 
+    //Translate.this_string("some string")
+    //if the given string contains #autoLOC then it will attempt to lookup the translation and return that, 
+    //otherwise it will just return the given stirng.
+    //Translate.this_string("some regular string") -> "some regular string"
+    //Translate.this_string("#autoLOC_501174") -> "a string found in a language file that coresponds to #autoLOC_501174"
     internal class Translate
     {
         internal static string this_string(string look_up){
