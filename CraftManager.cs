@@ -17,7 +17,7 @@ using KXAPI;
 
 namespace CraftManager
 {
-
+    
     [KSPAddon(KSPAddon.Startup.MainMenu, false)]
     public class CraftManager : MonoBehaviour
     {
@@ -82,14 +82,10 @@ namespace CraftManager
             }
         }
 
-
-
         //Bind events to add buttons to the toolbar
         private void add_main_icon_to_toolbar(){
             ApplicationLauncher.Instance.AddOnHideCallback(this.toolbar_on_hide);     //bind events to close guis when toolbar hides
-
             CraftManager.log("Adding main icon to toolbar");
-
             if(!CraftManager.main_ui_toolbar_button){
                 CraftManager.main_ui_toolbar_button = ApplicationLauncher.Instance.AddModApplication(
                     toggle_main_ui, toggle_main_ui, 
@@ -214,6 +210,24 @@ namespace CraftManager
                     }
                 }
             }
+        }
+    }
+
+    //Translate.this_string("some string")
+    //if the given string contains #autoLOC then it will attempt to lookup the translation and return that, 
+    //otherwise it will just return the given stirng.
+    //Translate.this_string("some regular string") -> "some regular string"
+    //Translate.this_string("#autoLOC_501174") -> "a string found in a language file that coresponds to #autoLOC_501174"
+    internal class Translate
+    {
+        internal static string this_string(string look_up){
+            if(look_up.Contains("#autoLOC")){
+                string translated_name;
+                if(KSP.Localization.Localizer.TryGetStringByTag(look_up, out translated_name)){
+                    look_up = translated_name;
+                }
+            }
+            return look_up;
         }
     }
 }
