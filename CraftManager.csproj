@@ -53,8 +53,7 @@
       <HintPath>..\KatLib\bin\Release\for_1.3.1\KatLib.dll</HintPath>
     </Reference>
     <Reference Include="KXAPI">
-      <HintPath>..\KXAPI\bin\Release\KXAPI\Plugins\KXAPI.dll</HintPath>
-      <Private>False</Private>
+      <HintPath>..\KXAPI\bin\Release\ref_for_ksp_1.4.3\KXAPI.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>

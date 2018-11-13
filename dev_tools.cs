@@ -48,62 +48,62 @@
 //    }
 //}
 //
-using System.Diagnostics;
-using System.Collections.Generic;
-
-namespace CraftManager
-{
-
-    internal class Timer
-    {
-
-        internal static Stopwatch stopwatch = null;
-        internal static List<string> data = new List<string>();
-
-
-        internal static void start(){
-            data.Clear();
-            stopwatch = new Stopwatch();
-            stopwatch.Start();
-        }
-
-        internal static void split(string msg = ""){
-            stopwatch.Stop();
-            data.Add(stopwatch.Elapsed.ToString() + " " + msg);
-            stopwatch = new Stopwatch();
-            stopwatch.Start();
-        }
-
-        internal static void stop(){
-            stopwatch.Stop();
-        }
-
-        internal static void clear(){
-            data.Clear();
-        }
-
-        internal static void show(){
-            string output = "";
-            foreach(string t in data){
-                output += "\n" + t;
-            }
-            CraftManager.log(output);
-        }
-
-        internal delegate void TimerBlock();
-        internal static void time(string message, TimerBlock timer_block){
-            stopwatch = new Stopwatch();
-            stopwatch.Start();
-            timer_block();
-            stopwatch.Stop();
-            CraftManager.log(message + "\ntime: " + stopwatch.Elapsed.ToString());
-        }
-
-
-
-
-    }
-}
+//using System.Diagnostics;
+//using System.Collections.Generic;
+//
+//namespace CraftManager
+//{
+//
+//    internal class Timer
+//    {
+//
+//        internal static Stopwatch stopwatch = null;
+//        internal static List<string> data = new List<string>();
+//
+//
+//        internal static void start(){
+//            data.Clear();
+//            stopwatch = new Stopwatch();
+//            stopwatch.Start();
+//        }
+//
+//        internal static void split(string msg = ""){
+//            stopwatch.Stop();
+//            data.Add(stopwatch.Elapsed.ToString() + " " + msg);
+//            stopwatch = new Stopwatch();
+//            stopwatch.Start();
+//        }
+//
+//        internal static void stop(){
+//            stopwatch.Stop();
+//        }
+//
+//        internal static void clear(){
+//            data.Clear();
+//        }
+//
+//        internal static void show(){
+//            string output = "";
+//            foreach(string t in data){
+//                output += "\n" + t;
+//            }
+//            CraftManager.log(output);
+//        }
+//
+//        internal delegate void TimerBlock();
+//        internal static void time(string message, TimerBlock timer_block){
+//            stopwatch = new Stopwatch();
+//            stopwatch.Start();
+//            timer_block();
+//            stopwatch.Stop();
+//            CraftManager.log(message + "\ntime: " + stopwatch.Elapsed.ToString());
+//        }
+//
+//
+//
+//
+//    }
+//}
 
 //[KSPAddon(KSPAddon.Startup.EditorAny, false)]
 //public class GeoCacheTest : CMUI
