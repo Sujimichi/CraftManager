@@ -54,6 +54,7 @@
     </Reference>
     <Reference Include="KXAPI">
       <HintPath>..\KXAPI\bin\Release\ref_for_ksp_1.4.3\KXAPI.dll</HintPath>
+      <Private>False</Private>
     </Reference>
   </ItemGroup>
   <ItemGroup>
