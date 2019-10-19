@@ -629,12 +629,12 @@ namespace CraftManager
             //This is somewhat batshit, allow me to explain. Event.current.control only detects the key press, not a key hold, so we used Input.GetKey(..) 
             //but if the focus is on the search text field Input.GetKey won't detect CTRL being held. so...this first bit detects CTRL down while focused on search field
             //also also sets check_ctrl_key to false so the regular check is skipped.  check_ctrl_key is returned to true on key up
-            if(GUI.GetNameOfFocusedControl() == "main_search_field" && e.type == EventType.keyDown && e.control){
+            if(GUI.GetNameOfFocusedControl() == "main_search_field" && e.type == EventType.KeyDown && e.control){
                 ctrl_key_down = true;               
                 check_ctrl_key = false;
             } 
 
-            if(e.type == EventType.keyUp){
+            if(e.type == EventType.KeyUp){
                 check_ctrl_key = true;
             }
 
@@ -643,7 +643,7 @@ namespace CraftManager
             }
             shift_key_down = (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift));
                 
-            if(e.type == EventType.keyDown){
+            if(e.type == EventType.KeyDown){
                 //'esc' - close interface
                 if(e.keyCode == KeyCode.Escape){
                     e.Use();

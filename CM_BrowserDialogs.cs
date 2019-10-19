@@ -786,7 +786,7 @@ namespace CraftManager
             DialogContent dc = new DialogContent(d =>{               
                 //close on escape key press
                 Event e = Event.current;
-                if (e.type == EventType.keyDown && e.keyCode == KeyCode.Escape) {
+                if (e.type == EventType.KeyDown && e.keyCode == KeyCode.Escape) {
                     close_dialog();
                 }
 
@@ -848,7 +848,7 @@ namespace CraftManager
                 submit_clicked = true;    
             });
             Event e = Event.current;
-            if (GUI.GetNameOfFocusedControl() == "dialog_focus_field" && e.type == EventType.keyDown && (e.keyCode == KeyCode.Return || e.keyCode == KeyCode.KeypadEnter)) {
+            if (GUI.GetNameOfFocusedControl() == "dialog_focus_field" && e.type == EventType.KeyDown && (e.keyCode == KeyCode.Return || e.keyCode == KeyCode.KeypadEnter)) {
                 submit_clicked = true;
                 e.Use();
             }

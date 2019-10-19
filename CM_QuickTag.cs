@@ -142,7 +142,7 @@ namespace CraftManager
 
         protected override void key_event_handler(){
             Event e = Event.current;          
-            if(e.type == EventType.keyDown){
+            if(e.type == EventType.KeyDown){
                 //'esc' - close interface
                 if(e.keyCode == KeyCode.Escape){
                     e.Use();
