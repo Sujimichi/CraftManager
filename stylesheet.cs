@@ -40,7 +40,7 @@ namespace CraftManager
 
         public GUISkin skin;
         public Dictionary<string, GUIStyle> custom_styles = new Dictionary<string, GUIStyle>();
-        public Dictionary<string, Texture2D> textures = new Dictionary<string, Texture2D>();
+        public static Dictionary<string, Texture2D> textures = new Dictionary<string, Texture2D>();
 
         public void define_style(string name, GUIStyle inherits_from, StyleConfig config){
             GUIStyle style = new GUIStyle(inherits_from);
@@ -51,9 +51,7 @@ namespace CraftManager
 
         public void define_style(string name, string inherits_from_name, StyleConfig config){
             GUIStyle style = new GUIStyle(custom_styles[inherits_from_name]);
-            style.name = name;
-            custom_styles.Add(name, style);
-            config(style);
+            define_style(name, style, config);
         }
 
         public void set_texture(string name, Color colour){
@@ -194,7 +192,6 @@ namespace CraftManager
                 s.hover.background = make_texture(2,2, Color.clear);
                 s.active.background = make_texture(2,2, Color.clear);
                 s.focused.background = make_texture(2,2, Color.clear);
-
 
                 s.fontStyle = FontStyle.Normal;
                 s.normal.textColor = new Color(0.4f, 0.5f, 0.9f, 1); //roughly KerbalX Blue - #6E91EB
@@ -547,9 +544,9 @@ namespace CraftManager
             });
 
             define_style("menu.item", base_skin.button, s =>{
-                s.normal.background = (Texture2D)textures["dark_background"];
-                s.hover.background = (Texture2D)textures["blue_background"];
-                s.active.background = (Texture2D)textures["green_background"];
+                s.normal.background = textures["dark_background"];
+                s.hover.background = textures["blue_background"];
+                s.active.background = textures["green_background"];
             });
             define_style("menu.item.small", "menu.item", s =>{
                 s.fontSize = 12;
@@ -565,7 +562,7 @@ namespace CraftManager
             define_style("menu.item.special", "menu.item", s =>{
                 s.normal.textColor = Color.blue;
 //                s.hover.textColor = Color.green;
-                s.normal.background = (Texture2D)textures["light_green_background"];
+                s.normal.background = textures["light_green_background"];
             });
             define_style("menu.item.small.special", "menu.item.special", s =>{
                 s.fontSize = 12;
