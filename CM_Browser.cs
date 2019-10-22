@@ -8,8 +8,6 @@ using UnityEngine;
 using ExtensionMethods;
 using KatLib;
 
-using SimpleJSON;
-
 namespace CraftManager
 {
 
