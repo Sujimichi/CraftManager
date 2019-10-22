@@ -12,12 +12,15 @@ namespace CraftManager
     //will set base_skin to the KXskin and unset it at the end so as to not effect other windows
     //....it's like we need a sorta sheet of styles, maybe one that can cascade, a cascading style sheet if you will....
 
-    public delegate void StyleConfig(GUIStyle style);
+    internal delegate void StyleConfig(GUIStyle style);
 
-    public class StyleSheet : MonoBehaviour
+    internal class StyleSheet : MonoBehaviour
     {
 
-        public static Dictionary<string, Texture> assets = new Dictionary<string, Texture>() { 
+        internal GUISkin skin;
+        internal Dictionary<string, GUIStyle> custom_styles = new Dictionary<string, GUIStyle>();
+        internal static Dictionary<string, Texture2D> textures = new Dictionary<string, Texture2D>();
+        internal static Dictionary<string, Texture> assets = new Dictionary<string, Texture>() {
             { "ui_toolbar_btn",         GameDatabase.Instance.GetTexture(Paths.joined("CraftManager", "Assets", "cm_ui"), false) },
             { "ui_toolbar_btn_hover",   GameDatabase.Instance.GetTexture(Paths.joined("CraftManager", "Assets", "cm_ui_hover"), false) },
             { "SPH_placeholder",        GameDatabase.Instance.GetTexture(Paths.joined("CraftManager", "Assets", "SPH_placeholder"), false) },
@@ -38,37 +41,38 @@ namespace CraftManager
             { "menu",                   GameDatabase.Instance.GetTexture(Paths.joined("CraftManager", "Assets", "menu"), false) }
         };
 
-        public GUISkin skin;
-        public Dictionary<string, GUIStyle> custom_styles = new Dictionary<string, GUIStyle>();
-        public static Dictionary<string, Texture2D> textures = new Dictionary<string, Texture2D>();
 
-        public void define_style(string name, GUIStyle inherits_from, StyleConfig config){
+        internal void define_style(string name, GUIStyle inherits_from, StyleConfig config){
             GUIStyle style = new GUIStyle(inherits_from);
             style.name = name;
             custom_styles.Add(name, style);
             config(style);
         }
 
-        public void define_style(string name, string inherits_from_name, StyleConfig config){
+        internal void define_style(string name, string inherits_from_name, StyleConfig config){
             GUIStyle style = new GUIStyle(custom_styles[inherits_from_name]);
             define_style(name, style, config);
         }
 
-        public void set_texture(string name, Color colour){
+        internal void set_texture(string name, Color colour){
             Texture2D tex = new Texture2D(1, 1, TextureFormat.RGBA32, false);
             tex.SetPixel(0, 0, colour);
             tex.Apply();
-            textures.Add(name, tex);
+            if(!textures.ContainsKey(name)) {
+                textures.Add(name, tex);
+            }
         }
-        public void set_texture(string name, Color colour, TextureWrapMode wrap_mode){
+        internal void set_texture(string name, Color colour, TextureWrapMode wrap_mode){
             Texture2D tex = new Texture2D(1, 1, TextureFormat.RGBA32, false);
             tex.SetPixel(0, 0, colour);
             tex.wrapMode = wrap_mode;
             tex.Apply();
-            textures.Add(name, tex);
+            if(!textures.ContainsKey(name)) {
+                textures.Add(name, tex);
+            }
         }
 
-        public Texture2D make_texture(int width, int height, Color col){
+        internal Texture2D make_texture(int width, int height, Color col){
             Color[] pix = new Color[width * height];
             for( int i = 0; i < pix.Length; ++i ){
                 pix[ i ] = col;
@@ -79,7 +83,7 @@ namespace CraftManager
             return result;
         }
 
-        public StyleSheet(GUISkin base_skin){
+        internal StyleSheet(GUISkin base_skin){
 
             set_texture("blue_background", new Color(0.4f, 0.5f, 0.9f, 1), TextureWrapMode.Repeat);           
             set_texture("light_blue_background", new Color(0.37f, 0.41f, 0.62f, 0.4f));           
