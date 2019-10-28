@@ -14,7 +14,7 @@ namespace CraftManager
     public class CraftManager : MonoBehaviour
     {
 
-        public static string version = "1.2.5";
+        public static string version = "1.2.0";
         public static Version game_version = new Version(Versioning.GetVersionString());
 
         //Settings
