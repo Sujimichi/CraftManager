@@ -42,7 +42,7 @@ namespace CraftManager
         internal static GUISkin alt_skin = null;
 
         //other
-        public static string ksp_root = Directory.GetParent(KSPUtil.ApplicationRootPath).FullName;
+        public static string ksp_root { get { return Directory.GetParent(KSPUtil.ApplicationRootPath).FullName; } }
         public static string status_info = "";
         
 
