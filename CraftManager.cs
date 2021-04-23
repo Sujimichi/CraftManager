@@ -42,11 +42,13 @@ namespace CraftManager
         internal static GUISkin alt_skin = null;
 
         //other
-        public static string ksp_root = Directory.GetParent(KSPUtil.ApplicationRootPath).FullName;
+        static string appRootPath = "";
+        public static string ksp_root { get { return Directory.GetParent(appRootPath).FullName; } }
         public static string status_info = "";
         
 
         private void Awake(){
+            appRootPath = KSPUtil.ApplicationRootPath;
             settings = new CMSettings();
 
             bool using_toolbar = false;
@@ -74,7 +76,11 @@ namespace CraftManager
 
         //Bind events to add buttons to the toolbar
         private void add_main_icon_to_toolbar(){
+#if false
+            // This isn't necessary, entire class/gui will be destroyed when leaving the editor.
+            // This had a bad interaction with QuickHide, which hides the toolbar without leaving the editor
             ApplicationLauncher.Instance.AddOnHideCallback(this.toolbar_on_hide);     //bind events to close guis when toolbar hides
+#endif
             CraftManager.log("Adding main icon to toolbar");
             if(!CraftManager.main_ui_toolbar_button){
                 CraftManager.main_ui_toolbar_button = ApplicationLauncher.Instance.AddModApplication(
@@ -147,12 +153,15 @@ namespace CraftManager
             }
         }
 
+#if false
+        // Not needed, entire GUI will be removed upon exiting the editor
         //triggered when the application launcher hides, used to teardown open GUIs
         private void toolbar_on_hide(){
             if(CraftManager.main_ui){
                 GameObject.Destroy(CraftManager.main_ui);
             }
         }
+#endif
 
         internal static void log(string msg){
             Debug.Log("[CM] " + msg);
@@ -211,7 +220,7 @@ namespace CraftManager
     internal class Translate
     {
         internal static string this_string(string look_up){
-            if(look_up.Contains("#autoLOC")){
+            if(look_up != null && look_up.Contains("#autoLOC")){
                 string translated_name;
                 if(KSP.Localization.Localizer.TryGetStringByTag(look_up, out translated_name)){
                     look_up = translated_name;

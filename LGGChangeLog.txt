@@ -1,0 +1,20 @@
+Changelog
+
+	Fixed nullref caused by missing "description" or "ship" in the craft file
+	Fixed stock toolbar hiding (by Quickhide) causing screen to lock up.
+	Fixed issue #5, when changing from VAB to SPH or back, the default folder when opening mod now is set to the correct vessel directory
+	Fixed following error which doesn't appear in a normal game, but can be
+		seen when in a debug version of the game:
+
+		UnityException: get_dataPath is not allowed to be called from a
+		MonoBehaviour constructor (or instance field initializer), call it in
+		Awake or Start instead. Called from MonoBehaviour 'CraftManager' on game
+		object 'CraftManager'.
+		See "Script Serialization" page in the Unity Manual for further details.
+		at (wrapper managed-to-native) UnityEngine.Application.get_dataPath()
+		at KSPUtil.get_ApplicationRootPath () [0x0001d] in
+		<9d71e4043e394d78a6cf9193ad011698>:0
+		at CraftManager.CraftManager..cctor () [0x00049] in
+		<8b61a4f45bb64fb591febc58234adb97>:0
+		Rethrow as TypeInitializationException: The type initializer for
+		'CraftManager.CraftManager' threw an exception.
