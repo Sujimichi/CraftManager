@@ -105,6 +105,12 @@ namespace CraftManager
         //**Event Hooks**//
 
         protected override void on_show(){            
+            //Set selected type (SPH or VAB) based on which editor we're in.
+            type_select(EditorDriver.editorFacility.ToString(), true);
+
+            //Add on focus event to trigger checking download queue 
+            GameEvents.OnAppFocus.Add(on_app_focus);
+
             stock_craft_loaded = false;
             show_transfer_indicator = false;
             CraftManager.status_info = "";
